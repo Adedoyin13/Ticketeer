@@ -14,6 +14,7 @@ import Events from "./component/Pages/Events";
 import Layout from "./component/Layout/Layout";
 import NavModal from "./component/Modal/NavModal";
 import Reviews from "./component/Pages/Reviews";
+import CreateEvent from "./component/Pages/CreateEvent";
 
 function App() {
   const RenderRoute = () => (
@@ -51,6 +52,11 @@ function App() {
       <Route path='/events' element={
           <Layout>
             <Events/>
+          </Layout>
+        }/>
+      <Route path='/sell' element={
+          <Layout>
+            <CreateEvent/>
           </Layout>
         }/>
       <Route path='/privacy-policy' element={

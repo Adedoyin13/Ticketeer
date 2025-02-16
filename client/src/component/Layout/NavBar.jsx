@@ -8,6 +8,7 @@ const navTitle = [
   { url: "/", title: "Home" },
   { url: "/about", title: "About" },
   { url: "/events", title: "Events" },
+  { url: "/sell", title: "Create event" },
   { url: "/blog", title: "Blog" },
 ];
 
@@ -67,9 +68,9 @@ const NavBar = () => {
         </div>
 
         {/* Navigation and Actions Container */}
-        <div className="flex items-center gap-4 sm:gap-6 md:gap-8 lg:gap-32">
+        <div className="flex items-center gap-4 sm:gap-6 md:gap-8 lg:gap-16">
           {/* Navigation Links */}
-          <ul className="hidden lg:flex items-center space-x-6 xl:space-x-10 font-quicksand font-semibold text-base xl:text-lg">
+          <ul className="hidden lg:flex items-center space-x-6 xl:space-x-8 font-quicksand font-semibold text-base xl:text-lg">
             {navTitle.map(({ url, title }, index) => (
               <li key={index}>
                 <Link
