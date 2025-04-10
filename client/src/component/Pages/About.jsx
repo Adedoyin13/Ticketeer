@@ -29,16 +29,16 @@ const About = () => {
       </div>
   
       {/* Who We Are */}
-      <div className="flex flex-col gap-6 sm:gap-10 items-center pb-20 text-center">
+      {/* <div className="flex flex-col gap-6 sm:gap-10 items-center pb-20 text-center">
         <h1 className="font-montserrat font-semibold text-2xl sm:text-3xl">
           Who are we?
         </h1>
         <div className="flex flex-col gap-2 w-11/12 sm:w-10/12 font-poppins font-normal text-sm sm:text-base">
-          <p>We are a team of finance and technology enthusiasts who believe that everyone deserves financial clarity. Our platform is designed to provide a stress-free way to manage expenses, track spending patterns, and make better financial decisions.</p>
+          <p>Ticketeer is the best choice among online ticketing platforms that are equipped with innovative features and capabilities to make your event a success. With the intuitive ticketing widget, this one of the best event ticketing platforms, and your ticket-selling task will no longer be challenging.</p>
           <p><strong>Mission:</strong> "We connect people to unforgettable experiences with seamless ticketing solutions."</p>
           <p><strong>Problem Solved:</strong> "No more long queues, lost tickets, or hidden fees."</p>
         </div>
-      </div>
+      </div> */}
   
       {/* How It Works */}
       <div className="flex flex-col gap-6 sm:gap-10 items-center pb-20">

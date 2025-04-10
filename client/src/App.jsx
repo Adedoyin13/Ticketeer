@@ -1,82 +1,177 @@
-import { Routes, Route } from "react-router-dom";
-import NavBar from "./component/Layout/NavBar";
-import Footer from "./component/Layout/Footer";
-import Login from "./component/Register/Login";
-import Register from "./component/Register/Register";
-import Contact from "./component/Pages/Contact";
-import About from "./component/Pages/About";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import Layout from "./component/Layouts/Layout";
 import Home from "./component/Pages/Home";
+import About from "./component/Pages/About";
 import Blog from "./component/Pages/Blog";
+import Events from "./component/Event/Events";
+import Organizer from "./component/Pages/Organizer";
+import Login from "./component/User/Authentication/Login";
+import Register from "./component/User/Authentication/Register";
+import Reviews from "./component/User/Reviews/Reviews";
 import FAQ from "./component/Pages/FAQ";
-import TandC from "./component/Pages/TandC";
-import PrivacyPolicy from "./component/Pages/PrivacyPolicy";
-import Events from "./component/Pages/Events";
-import Layout from "./component/Layout/Layout";
-import NavModal from "./component/Modal/NavModal";
-import Reviews from "./component/Pages/Reviews";
-import CreateEvent from "./component/Pages/CreateEvent";
+import UserLayout from "./component/Layouts/UserLayout";
+import Dashboard from "./component/Event/Dashboard";
+import CreateEvent from "./component/Event/CreateEvent";
+import CreateTicket from "./component/Ticket/CreateTicket";
+import Settings from "./component/User/Setting/Settings";
+import ProfileUpdate from "./component/User/Setting/ProfileUpdate";
+import EventListLayout from "./component/Event/EventListLayout";
+import UserProfile from "./component/User/UserProfile";
+import ProtectedRoute from "./component/ProtectedRoute";
+import EventDetails from "./component/Event/EventDetails";
+import AuthSuccess from "./component/User/Authentication/AuthSuccess";
+
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { setupInterceptors } from "./utils/api";
+import { getUser } from "./redux/reducers/userSlice";
+import { getUserEvents } from "./redux/reducers/eventSlice";
+import NotFound from "./component/Pages/NotFound";
 
 function App() {
-  const RenderRoute = () => (
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate()
+  const user = useSelector((state) => state.user.user);
+
+  useEffect(() => {
+    setupInterceptors(dispatch);
+
+    // Avoid calling getUser on login/register pages
+    const isAuthPage = ["/login", "/register"].includes(location.pathname);
+    if (!isAuthPage) {
+      dispatch(getUser());
+    }
+  }, [dispatch, location.pathname]);
+
+  // useEffect(() => {
+  //   setupInterceptors(dispatch);
+  //   dispatch(getUser())
+  // }, [dispatch]);
+
+  // useEffect(() => {
+  //   if (user) {
+  //     navigate("/dashboard");
+  //   }
+  // }, [user, navigate]);
+
+  // useEffect(() => {
+  //   if (user) {
+  //     dispatch(getUser());
+  //   }
+  // }, [dispatch]);
+
+
+  // useEffect(() => {
+  //   if (user) {
+  //     dispatch(getUserEvents());
+  //   }
+  // }, [dispatch]);
+
+  const RenderRoutes = () => (
     <Routes>
-      <Route path='/' element={
-          <Layout>
-            <Home/>
-          </Layout>
-        }/>
-      <Route path="/nav-bar" element={<NavBar />} />
-      <Route path="/footer" element={<Footer />} />
+      {/* Public Routes */}
+      <Route path="/" element={<Layout><Home /></Layout>} />
+      <Route path="/about" element={<Layout><About /></Layout>} />
+      <Route path="/events" element={<Layout><Events /></Layout>} />
+      <Route path="/create" element={<Layout><Organizer /></Layout>} />
+      <Route path="/blog" element={<Layout><Blog /></Layout>} />
+      <Route path="/reviews" element={<Layout><Reviews /></Layout>} />
+      <Route path="/faq" element={<Layout><FAQ /></Layout>} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/nav-modal" element={<NavModal />} />
-      <Route path='/faq' element={
-          <Layout>
-            <FAQ/>
-          </Layout>
-        }/>
-      <Route path='/about' element={
-          <Layout>
-            <About/>
-          </Layout>
-        }/>
-      <Route path='/blog' element={
-          <Layout>
-            <Blog/>
-          </Layout>
-        }/>
-      <Route path='/contact' element={
-          <Layout>
-            <Contact/>
-          </Layout>
-        }/>
-      <Route path='/events' element={
-          <Layout>
-            <Events/>
-          </Layout>
-        }/>
-      <Route path='/sell' element={
-          <Layout>
-            <CreateEvent/>
-          </Layout>
-        }/>
-      <Route path='/privacy-policy' element={
-          <Layout>
-            <PrivacyPolicy/>
-          </Layout>
-        }/>
-      <Route path='/terms-and-conditions' element={
-          <Layout>
-            <TandC/>
-          </Layout>
-        }/>
-      <Route path='/reviews' element={
-          <Layout>
-            <Reviews/>
-          </Layout>
-        }/>
+      <Route path="/auth-success" element={<AuthSuccess />} />
+
+      {/* Protected Routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <Dashboard />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-event"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <CreateEvent />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-ticket/:eventId"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <CreateTicket />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/event-details/:eventId"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <EventDetails />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <Settings />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/profile-update"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <ProfileUpdate />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/event-list"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <EventListLayout />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/userProfile"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <UserProfile />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="/page-not-found" element={<NotFound/>}/>
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/page-not-found" replace />} />
     </Routes>
   );
-  return <> {RenderRoute()}</>;
+
+  return <>{RenderRoutes()}</>;
 }
 
 export default App;
