@@ -45,24 +45,18 @@ const ticketSchema = new mongoose.Schema(
     },
     qrCode: { type: String, required: true },
     purchaseDate: { type: Date, default: Date.now },
-    quantity: { type: Number, required: true },
     status: {
       type: String,
-      enum: ["available", "sold_out", "closed"],
-      default: "available",
+      enum: ["active", "used", "cancelled"],
+      default: "active",
     },
-    // status: {
-    //   type: String,
-    //   enum: ["active", "used", "canceled"],
-    //   default: "active",
-    // },
+    expiresAt: { type: Date }, // useful for checking ticket validity
   },
   {
     timestamps: true,
     minimize: false,
   }
 );
-
 
 // Define the event schema
 const eventSchema = new mongoose.Schema(
@@ -71,26 +65,27 @@ const eventSchema = new mongoose.Schema(
     description: { type: String, required: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
+    ticketTypes: [{ type: mongoose.Schema.Types.ObjectId, ref: "TicketType" }],
     startTime: {
       type: String,
       required: true,
       validate: {
-        validator: function(v) {
+        validator: function (v) {
           // Basic validation for HH:MM format
           return /^([01]\d|2[0-3]):([0-5]\d)$/.test(v);
         },
-        message: props => `${props.value} is not a valid time format!`
-      }
+        message: (props) => `${props.value} is not a valid time format!`,
+      },
     },
     endTime: {
       type: String,
       required: true,
       validate: {
-        validator: function(v) {
+        validator: function (v) {
           return /^([01]\d|2[0-3]):([0-5]\d)$/.test(v);
         },
-        message: props => `${props.value} is not a valid time format!`
-      }
+        message: (props) => `${props.value} is not a valid time format!`,
+      },
     },
     liked: { type: Boolean, default: false },
     eventType: {
@@ -135,10 +130,29 @@ const eventSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    categories : {
+    likedUsers: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    canceled: {
+      type: Boolean,
+      default: false,
+    },
+    categories: {
       type: String,
-      enum : ['business and networking', 'music and concert', 'sport and fitness', 'arts and culture', 'festival and fairs', 'fun and hangout'],
-      required : true
+      enum: [
+        "business and networking",
+        "music and concert",
+        "sport and fitness",
+        "arts and culture",
+        "festival and fairs",
+        "fun and hangout",
+      ],
+      required: true,
+    },
+    ticket: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Ticket",
     },
     image: {
       imageUrl: {
@@ -159,6 +173,11 @@ const eventSchema = new mongoose.Schema(
     tickets: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Ticket",
+      required: false,
+    },
+    ticketType: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TicketType",
       required: false,
     },
     limit: { type: Number, required: true },

@@ -18,10 +18,12 @@ const Logout = ({ onClose }) => {
 
   // ✅ Navigate only AFTER Redux state updates
   useEffect(() => {
-    if (!user) {
+    if (user === null) {
+      // show loading or do nothing
+    } else if (!user) {
       navigate("/login");
     }
-  }, [navigate]);
+  }, [user]);
 
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50 font-inter">

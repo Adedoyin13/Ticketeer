@@ -28,15 +28,18 @@ const formatDate = (dateString) => {
   });
 };
 
-const EventGrid = () => {
+const EventGrid = ({events}) => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate()
-  const { upcomingEvents, loading, error } = useSelector(
+  // const { upcomingEvents, loading, error } = useSelector(
+  //   (state) => state.events
+  // );
+  const { loading, error } = useSelector(
     (state) => state.events
   );
 
-  console.log(upcomingEvents);
+  // console.log(upcomingEvents);
 
   useEffect(() => {
     dispatch(getUpcomingEvents()); // Fetch user events on component mount
@@ -48,7 +51,7 @@ const EventGrid = () => {
   if (error) return toast.error("error");
 
   const handleNavigate = (eventId) => {
-    navigate(`/event-details/${eventId}`, {
+    navigate(`/view-event/${eventId}`, {
       state: { from: location.pathname }, // Save previous route
     });
   };
@@ -57,7 +60,7 @@ const EventGrid = () => {
     <section>
   <div className="flex w-full mt-6 font-inter px-4">
     <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 w-full gap-6 cursor-pointer">
-      {upcomingEvents.map((event, index) => {
+      {events.map((event, index) => {
         const backgroundImage = `url(${event.image.imageUrl})`;
         return (
           <div

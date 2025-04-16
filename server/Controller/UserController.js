@@ -13,12 +13,52 @@ require("./../Config/passport");
 const FRONTEND_URL = process.env.FRONTEND_URL;
 const crypto = require("crypto");
 const multer = require("multer");
-const { Event } = require("../Model/eventModel");
-const { sendUserRegisterMail, sendUserLogInMail, sendUserUpdateMail, sendUserDeleteMail, sendUserLogoutMail } = require("../Utils/sendEmail");
+const { Event, Ticket } = require("../Model/eventModel");
+const {
+  sendUserRegisterMail,
+  sendUserLogInMail,
+  sendUserUpdateMail,
+  sendUserDeleteMail,
+  sendUserLogoutMail,
+} = require("../Utils/sendEmail");
 const storage = multer.memoryStorage();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+
+const getInitials = (fullName) => {
+  const names = fullName.trim().split(" ");
+  const initials = names
+    .slice(0, 2)
+    .map((n) => n[0].toUpperCase())
+    .join("");
+  return initials;
+};
+
+const getRandomOrangeShade = () => {
+  const hue = 30; // Orange hue
+  const saturation = Math.floor(Math.random() * 20) + 80; // 80% - 100%
+  const lightness = Math.floor(Math.random() * 20) + 40; // 40% - 60%
+  return { h: hue, s: saturation, l: lightness };
+};
+
+const hslToHex = (h, s, l) => {
+  s /= 100;
+  l /= 100;
+
+  const k = (n) => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n) =>
+    Math.round(
+      255 * (l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1))))
+    )
+      .toString(16)
+      .padStart(2, "0");
+
+  return `${f(0)}${f(8)}${f(4)}`;
+};
 
 const DEFAULT_IMAGE_URL = process.env.DEFAULT_IMAGE_URL;
+// const DEFAULT_IMAGE_URL = `https://via.placeholder.com/150x150?text=${name}`;
 
 const registerUser = asyncHandler(async (req, res) => {
   try {
@@ -49,10 +89,15 @@ const registerUser = asyncHandler(async (req, res) => {
       password,
     });
 
-    // Save user to DB
-    // await user.save();
+    // Then use in your logic like this:
+    const initials = getInitials(name); // e.g. "TU"
+    const { h, s, l } = getRandomOrangeShade();
+    const bgColor = hslToHex(h, s, l); // e.g. "ffa94d"
+    const textColor = "FFFFFF";
 
-    // Assign a default profile picture
+    // Final URL
+    const DEFAULT_IMAGE_URL = `https://placehold.co/150x150/${bgColor}/${textColor}?text=${initials}&font=roboto`;
+
     const defaultProfilePicture = await ProfilePicture.create({
       userId: user._id,
       imageUrl: DEFAULT_IMAGE_URL, // Default profile image
@@ -65,7 +110,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // Generate authentication token
     const token = generateToken(user._id);
-    // console.log(token)
+
     // Set the cookie with the token
     res.cookie("token", token, {
       path: "/",
@@ -152,33 +197,119 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-const loginWithGoogle = async (req, res) => {
-  passport.authenticate(
-    "google",
-    { session: false },
-    async (err, user) => {
-      if (err || !user) {
-        return res.redirect(`${FRONTEND_URL}/login`);
-      }
+const googleLogin = asyncHandler(async (req, res) => {
+  try {
+    const { token } = req.body; // This token comes from the frontend after the user signs in with Google
 
-      const token = generateToken(user);
+    // console.log('Token received:', token);
 
-      res.cookie("token", token, {
-        httpOnly: true,
-        expires: new Date(Date.now() + 1000 * 86400), // 1 day
-        sameSite: "none",
-        secure: true,
+    // Verify the Google ID token using the OAuth2 client
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: GOOGLE_CLIENT_ID, // Verify the client ID matches
+    });
+
+    // Extract the user data from the Google token
+    const payload = ticket.getPayload();
+    const email = payload.email;
+
+    // Check if the user already exists in the database by email
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // If the user does not exist, create a new user
+      console.log("User does not exist. Creating new user...");
+
+      // Handle user creation with Google-specific data
+      user = new User({
+        name: payload.name,
+        email,
+        googleId: payload.sub, // Google-specific user ID
+        authType: "google", // Mark the user as authenticated with Google
       });
 
-      try {
-        await sendUserLogInMail({ name: user.name, email: user.email });
-      } catch (error) {
-        console.error("Failed to send login email:", error.message);
+      // Handle user profile photo
+      const photoUrl = payload.picture; // Google provides a profile picture URL
+
+      if (photoUrl) {
+        // Create a profile picture document and link it to the user
+        const profilePic = new ProfilePicture({
+          userId: user._id,
+          imageUrl: photoUrl,
+        });
+
+        await profilePic.save();
+        user.photo = profilePic._id; // Associate the photo with the user
       }
 
-      res.redirect(`${FRONTEND_URL}/dashboard`);
+      await user.save();
+      // console.log('New user created:', user);
     }
-  )(req, res);
+
+    // Create a JWT token for the user
+    const jwtToken = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.ACCESS_TOKEN, // Your JWT secret
+      { expiresIn: "1d" } // JWT expires in 1 day
+    );
+
+    res.cookie("token", jwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax", // or "None" if using cross-site cookies
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    // res.status(200).json({ user });
+
+    try {
+      await sendUserLogInMail({ name: user.name, email: user.email });
+    } catch (error) {
+      console.error("Failed to send login email:", error.message);
+    }
+
+    // Send the user data and JWT token in the response
+    res.status(200).json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        photo: user.photo,
+        authType: user.authType,
+      },
+      token: jwtToken,
+    });
+  } catch (error) {
+    console.error("Error during Google login:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+const loginWithGoogle = async (req, res) => {
+  passport.authenticate("google", { session: false }, async (err, user) => {
+    if (err || !user) {
+      return res.redirect(`${FRONTEND_URL}/login`);
+    }
+
+    const token = generateToken(user);
+
+    console.log(token);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 1000 * 86400), // 1 day
+      sameSite: "none",
+      secure: true,
+    });
+
+    try {
+      await sendUserLogInMail({ name: user.name, email: user.email });
+    } catch (error) {
+      console.error("Failed to send login email:", error.message);
+    }
+
+    res.redirect(`${FRONTEND_URL}/dashboard`);
+  })(req, res);
 };
 
 const googleAuth = passport.authenticate("google", {
@@ -392,7 +523,7 @@ const getProfilePicture = asyncHandler(async (req, res) => {
   }
 });
 
-const uploadProfilePicture = async (req, res) => {
+const uploadProfilePictur = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
@@ -450,6 +581,43 @@ const uploadProfilePicture = async (req, res) => {
       .json({ message: "Server error", error: error.message });
   }
 };
+
+const uploadProfilePicture = asyncHandler(async (req, res) => {
+  const userId = req.userId;
+  const file = req.file; // Assuming you’re using multer or base64 body
+
+  if (!file) {
+    return res.status(400).json({ message: "No image provided" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // 1. Delete old photo from Cloudinary if it exists
+  if (user.photo && user.photo.cloudinaryId) {
+    await cloudinary.uploader.destroy(user.photo.cloudinaryId);
+  }
+
+  // 2. Upload new photo
+  const result = await cloudinary.uploader.upload(file.path || file, {
+    folder: "profile_photos", // optional folder in Cloudinary
+  });
+
+  // 3. Update user with new photo data
+  user.photo = {
+    url: result.secure_url,
+    cloudinaryId: result.public_id,
+  };
+
+  await user.save();
+
+  res.status(200).json({
+    message: "Photo updated successfully",
+    photo: user.photo,
+  });
+});
 
 const updateProfilePicture = async (req, res) => {
   try {
@@ -524,18 +692,72 @@ const deleteProfilePicture = async (req, res) => {
 
 const getUser = asyncHandler(async (req, res) => {
   try {
-    const userId = req.userId; // Get ID from authenticated user
-    // console.log('User Id :' , userId)
-    const user = await User.findById(userId).populate("photo");
+    const userId = req.user._id; // Get user ID from auth middleware
+
+    // Fetch user information and exclude password from the response
+    const user = await User.findById(userId)
+      .select("-password") // Exclude password
+      .populate("photo") // Populate user's photo
+      .populate({
+        path: "ticket", // Populate ticket references
+        populate: [
+          {
+            path: "eventId",
+            select:
+              "title description eventType meetLink category location startDate startTime endDate endTime",
+          },
+          { path: "ticketTypeId", select: "type price description" },
+        ],
+      });
 
     if (!user) {
-      return res.status(404).json({ message: "User Not Found!" });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json(user);
+    // Send the user data along with their purchased tickets
+    return res.status(200).json({
+      user,
+    });
   } catch (error) {
     console.error(error);
-    return res.status(404).json({ message: "User not found" });
+    return res.status(500).json({ message: "Error fetching user data" });
+  }
+});
+
+const getUserTickets = asyncHandler(async (req, res) => {
+  try {
+    // Get logged-in user's ID from the request (auth middleware should set this)
+    const userId = req.userId;
+
+    // Fetch the tickets purchased by the user
+    const tickets = await Ticket.find({ userId })
+      .populate({
+        path: "eventId", // Populate event details related to the ticket
+        select:
+          "title description eventType meetLink category location startDate startTime endDate endTime",
+      })
+      .populate({
+        path: "ticketTypeId", // Populate ticket type details
+        select: "type price description",
+      });
+
+    // Check if the user has purchased any tickets
+    if (!tickets) {
+      return res
+        .status(404)
+        .json({ message: "No tickets found for this user" });
+    }
+
+    // Send response with the tickets and their event details
+    return res.status(200).json({
+      message: "Tickets fetched successfully",
+      tickets,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching user tickets:", error);
+    return res
+      .status(500)
+      .json({ message: "Error fetching user tickets", error: error.message });
   }
 });
 
@@ -594,7 +816,11 @@ const updateUser = asyncHandler(async (req, res) => {
         .json({ message: "Not authorized to update this user" });
     }
 
-    // Handle Password Change (If Requested)
+    const oldName = user.name;
+    const hadCustomPhoto = user.photo?.cloudinaryId ? true : false;
+    const oldCloudinaryId = user.photo?.cloudinaryId;
+
+    // Handle Password Change
     if (oldPassword && password) {
       const passwordIsCorrect = await bcrypt.compare(
         oldPassword,
@@ -603,10 +829,10 @@ const updateUser = asyncHandler(async (req, res) => {
       if (!passwordIsCorrect) {
         return res.status(400).json({ message: "Old password is incorrect" });
       }
-      user.password = password; // Hashing will be handled in pre-save middleware if set up
+      user.password = password;
     }
 
-    // Handle Profile Updates
+    // Update Fields
     if (name) user.name = name;
     if (location) user.location = location;
     if (interests) user.interests = interests;
@@ -618,13 +844,56 @@ const updateUser = asyncHandler(async (req, res) => {
       };
     }
 
-    // Handle Photo Update
+    // Handle Photo Update or Removal
     if (photo) {
-      user.photo.imageUrl = photo.imageUrl || user.photo.imageUrl;
-      user.photo.cloudinaryId = photo.cloudinaryId || user.photo.cloudinaryId;
-      user.photo.googleId = photo.googleId || user.photo.googleId;
-      user.photo.uploadedAt = new Date();
-      await user.photo.save();
+      const photoDoc = user.photo;
+
+      const newCloudinaryId = photo.cloudinaryId || null;
+      const photoWasDeleted = hadCustomPhoto && !newCloudinaryId;
+
+      // If user deleted uploaded photo -> remove from Cloudinary
+      if (photoWasDeleted && oldCloudinaryId) {
+        await cloudinary.uploader.destroy(oldCloudinaryId);
+      }
+
+      photoDoc.imageUrl = photo.imageUrl || photoDoc.imageUrl;
+      photoDoc.cloudinaryId = newCloudinaryId;
+      photoDoc.googleId = photo.googleId || photoDoc.googleId;
+      photoDoc.uploadedAt = new Date();
+      await photoDoc.save();
+
+      // If photo was removed, regenerate initials-based image
+      if (photoWasDeleted) {
+        const initials = getInitials(user.name);
+        const { h, s, l } = getRandomOrangeShade();
+        const bgColor = hslToHex(h, s, l);
+        const textColor = "FFFFFF";
+
+        const newImageUrl = `https://placehold.co/150x150/${bgColor}/${textColor}?text=${initials}&font=roboto`;
+
+        await ProfilePicture.findOneAndUpdate(
+          { userId: user._id },
+          { imageUrl: newImageUrl, cloudinaryId: null, googleId: null }
+        );
+      }
+    }
+
+    // Regenerate initials if name changed and no custom image exists
+    if (
+      oldName !== name &&
+      (!user.photo || !user.photo.cloudinaryId)
+    ) {
+      const initials = getInitials(name);
+      const { h, s, l } = getRandomOrangeShade();
+      const bgColor = hslToHex(h, s, l);
+      const textColor = "FFFFFF";
+
+      const newImageUrl = `https://placehold.co/150x150/${bgColor}/${textColor}?text=${initials}&font=roboto`;
+
+      await ProfilePicture.findOneAndUpdate(
+        { userId: user._id },
+        { imageUrl: newImageUrl }
+      );
     }
 
     await user.save();
@@ -647,7 +916,8 @@ const updateUser = asyncHandler(async (req, res) => {
           }
         : null,
     });
-    await sendUserUpdateMail({name, email})
+
+    await sendUserUpdateMail({ name: user.name, email: user.email });
   } catch (error) {
     console.error("Error updating user:", error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -674,6 +944,7 @@ const deleteUser = asyncHandler(async (req, res) => {
 
     // Delete all events created by this user
     await Event.deleteMany({ organizer: userId });
+    await ProfilePicture.deleteOne({ userId: userId });
 
     // Delete user
     await user.deleteOne();
@@ -750,10 +1021,12 @@ module.exports = {
   updateProfilePicture,
   deleteProfilePicture,
   getProfilePicture,
+  googleLogin,
   forgotPassword,
   resetPassword,
   loginWithGoogle,
   googleAuth,
+  getUserTickets,
   logoutUser,
   getUser,
   getUsers,
@@ -761,5 +1034,5 @@ module.exports = {
   updateUser,
   // changePassword,
   deleteUser,
-  getUserBookedEvents
+  getUserBookedEvents,
 };

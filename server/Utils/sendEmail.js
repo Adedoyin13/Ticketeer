@@ -37,7 +37,7 @@ const sendUserLogInMail = (data) => {
     if (err) {
       console.error("Error sending email:", err);
     } else {
-      console.log("Check-in email sent successfully", data.email);
+      console.log("Log-in email sent successfully", data.email);
     }
   });
 };
@@ -75,7 +75,7 @@ const sendUserRegisterMail = async (data) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("✅ Check-in email sent successfully to", data.email);
+    console.log("✅ Register email sent successfully to", data.email);
   } catch (err) {
     console.error("❌ Error sending check-in email:", err);
   }
@@ -114,7 +114,7 @@ const sendUserUpdateMail = async (data) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("✅ Check-in email sent successfully to", data.email);
+    console.log("✅ Update email sent successfully to", data.email);
   } catch (err) {
     console.error("❌ Error sending check-in email:", err);
   }
@@ -155,7 +155,7 @@ const sendUserLogoutMail = async (data) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("✅ Check-in email sent successfully to", data.email);
+    console.log("✅ Log out email sent successfully to", data.email);
   } catch (err) {
     console.error("❌ Error sending check-in email:", err);
   }
@@ -183,7 +183,7 @@ const sendUserDeleteMail = async (data) => {
 
         <p>We're sorry to see you go! 😔</p>
 
-        <p>Feel free to create a new account with us at <a href=${FRONTEND_URL}/login>ticketeer01@gmail.com</a>, we are alwas ready to welcome you</p>
+        <p>Feel free to create a new account with us at <a href=${FRONTEND_URL}/login>ticketeer01@gmail.com</a>, we are always ready to welcome you</p>
 
         <p>If you have any questions or need assistance, feel free to reach out to us at:</p>
         <p><strong>Ticketeer Support:</strong> <a href="mailto:ticketeer01@gmail.com">ticketeer01@gmail.com</a></p>
@@ -196,7 +196,7 @@ const sendUserDeleteMail = async (data) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("✅ Check-in email sent successfully to", data.email);
+    console.log("✅ Delete email sent successfully to", data.email);
   } catch (err) {
     console.error("❌ Error sending check-in email:", err);
   }

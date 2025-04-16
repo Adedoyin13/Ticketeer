@@ -1,6 +1,7 @@
 const Notification = require("../Model/notificationModel");
 const { User } = require("../Model/authModel");
 const expressAsyncHandler = require("express-async-handler");
+const { createEventReminderNotifications } = require("../Utils/cronJobs");
 
 // Endpoint to create a new notification
 const notification = expressAsyncHandler(async (req, res) => {
@@ -164,6 +165,17 @@ const createPurchaseNotification = async (userId, eventTitle) => {
     await notification.save();
   } catch (error) {
     console.error("Error creating purchase notification:", error);
+  }
+};
+
+const triggerReminder = async (req, res) => {
+  try {
+    console.log("Triggering event reminder notifications...");
+    await createEventReminderNotifications();
+    res.status(200).json({ message: "Notifications sent successfully." });
+  } catch (error) {
+    console.error('Error sending reminders:', error);
+    res.status(500).json({ message: 'Error sending reminders.' });
   }
 };
 

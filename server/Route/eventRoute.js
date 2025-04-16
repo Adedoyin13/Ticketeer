@@ -13,8 +13,10 @@ const {
   upcomingEvents,
   pastEvents,
   trendingEvents,
+  getAttendeesForEvent,
   buyTicket,
   getTicket,
+  cancelEvent,
   getOrganizerById,
   getTicketsSold,
   getUserEvents,
@@ -23,8 +25,13 @@ const {
   userUpcomingEvents,
   uploadEventImage,
   updateEventImage,
+  getUserCancelledEvents,
+  unCancelEvent,
   deleteEventImage,
-  getUserPastEvents
+  getUserPastEvents,
+  getMyTickets,
+  unlikeEvent,
+  likeEvent,
 } = require("../Controller/eventController");
 const { protectUser, organizerOnly } = require("../Middleware/authMiddleware");
 const upload = require("../Middleware/multer");
@@ -32,11 +39,17 @@ const upload = require("../Middleware/multer");
 router.post("/createEvent", protectUser, createEvent);
 router.get("/getEvent/:id", protectUser, getEvent);
 router.get("/getEvents", protectUser, getEvents);
+router.get("/attendees/:eventId", protectUser, getAttendeesForEvent);
 router.get("/getUserEvents", protectUser, getUserEvents);
 router.get("/liked-events/:eventId", protectUser, likeStatus);
 router.get("/liked-events", protectUser, getAllLikedEvents);
-router.patch("/updateEvent/:eventId", protectUser, organizerOnly, updateEvent);
-router.delete("/deleteEvent/:eventId", protectUser, organizerOnly, deleteEvent);
+router.patch("/updateEvent/:eventId", protectUser, updateEvent);
+router.delete("/deleteEvent/:eventId", protectUser, deleteEvent);
+router.patch("/cancelEvent/:eventId", protectUser, cancelEvent);
+router.get("/my/cancelled-events", protectUser, getUserCancelledEvents);
+router.patch("/uncancel/:eventId", protectUser, unCancelEvent);
+router.put("/like/:eventId", protectUser, likeEvent);
+router.put("/unlike/:eventId", protectUser, unlikeEvent);
 
 router.get("/upcoming-events", upcomingEvents);
 router.get("/my/upcoming-events", protectUser, userUpcomingEvents);
@@ -51,12 +64,13 @@ router.get("/tickets-sold/:eventId", getTicketsSold);
 
 // Ticket routes
 router.post("/create-ticket/:eventId", protectUser, createTicket);
-router.get("/getTicket/:eventId", protectUser, getTicket);
+router.get("/my-tickets", protectUser, getMyTickets);
+router.get("/getTicket/:ticketId", protectUser, getTicket);
 router.get("/getAllTickets/:eventId", protectUser, organizerOnly, getAllTickets);
-router.post("/tickets/purchase", purchaseTicket);
+router.post("/tickets/purchase", protectUser, purchaseTicket);
 
-router.post("/:eventId/upload-image", protectUser, upload.single("photo"), uploadEventImage);
-router.put("/:eventId/update-image", protectUser, upload.single("photo"), updateEventImage);
+router.post("/:eventId/upload-image", protectUser, upload.single("image"), uploadEventImage);
+router.put("/:eventId/update-image", protectUser, upload.single("image"), updateEventImage);
 router.delete("/:eventId/delete-photo", protectUser, deleteEventImage);
 
 module.exports = router;

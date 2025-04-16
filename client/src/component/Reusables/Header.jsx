@@ -9,6 +9,7 @@ import ProfileModal from "../Modals/UserModal/ProfileModal";
 import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "../../redux/reducers/userSlice";
 import Loader from "../Spinners/Loader";
+import { toast } from "react-toastify";
 
 
 const formatName = (namee) => {
@@ -22,6 +23,8 @@ const navLink = [
   { title: "Create ticket", route: "/create-ticket" },
   { title: "Events", route: "/event-list" },
   { title: "Manage event", route: "/manage-event" },
+  { title: "My events", route: "/my-events" },
+  { title: "My tickets", route: "/my-tickets" },
   { title: "Tickets", route: "/tickets" },
   { title: "Settings", route: "/settings" },
   { title: "Profile Update", route: "/settings/update" },
@@ -58,6 +61,7 @@ const Header = () => {
   };
 
   const { user, loading, error } = useSelector((state) => state.user);
+  console.log(user)
   const dispatch = useDispatch()
 
     useEffect(() => {
@@ -69,6 +73,10 @@ const Header = () => {
     if(loading) {
       return <Loader loading={loading}/>
     };  
+
+    if(error) {
+      return toast.error(error)
+    }
 
   return (
     <div className="w-full lg:fixed fixed top-0 left-0 right-0 z-10 font-inter bg-orange-100">
@@ -104,13 +112,13 @@ const Header = () => {
           <div className="flex gap-4 items-center" onClick={openProfileModal}>
             <div className="w-[50px] h-[50px] cursor-pointer overflow-hidden rounded-full bg-white">
               <img
-                src={user?.photo?.imageUrl}
+                src={user?.photo?.imageUrl || user?.photo}
                 alt="User image"
                 className="w-full h-full object-cover"
               />
             </div>
             {/* <p className="font-medium text-xl">{user?.name}</p> */}
-            <p className="font-medium text-xl">{formatName(user?.name)}</p>
+            <p className="font-medium text-xl">{formatName(user?.name) || user?.name}</p>
           </div>
         </div>
       </nav>

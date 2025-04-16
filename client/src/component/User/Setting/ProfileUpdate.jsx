@@ -138,7 +138,7 @@ const ProfileUpdate = () => {
             <div className="flex gap-4 items-center">
               <div className="w-[50px] h-[50px] overflow-hidden rounded-full bg-white">
                 <img
-                  src={formData?.photo?.imageUrl || profilePhoto || "user image"}
+                  src={formData?.photo?.imageUrl || profilePhoto || formData?.photo || "user image"}
                   alt={`${formData.name}'s image`}
                   className="w-full h-full object-cover"
                 />

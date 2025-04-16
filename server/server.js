@@ -11,10 +11,12 @@ const eventRoute = require("./Route/eventRoute");
 const locationRoute = require("./Route/location");
 const notificationRoute = require("./Route/notificationRoute");
 const passport = require("passport");
+const cron = require('node-cron');
 
 const http = require('http');
 const socketIo = require('socket.io');
 const { createEventReminderNotifications } = require("./Utils/cronJobs");
+const { createEventReminderMail } = require("./Utils/sendEventEmail");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -23,6 +25,11 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// cron.schedule('0 0 * * *', () => {
+//   console.log('Sending event reminder emails...');
+//   createEventReminderMail();
+// });
 
 app.use(
   cors({

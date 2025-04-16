@@ -6,7 +6,13 @@ const { check, validationResult } = require("express-validator");
 const nodemailer = require("nodemailer");
 const QRCode = require("qrcode");
 const mongoose = require("mongoose");
-const { sendCreateEventMail, sendCreateTicketMail } = require("../Utils/sendEventEmail");
+const {
+  sendCreateEventMail,
+  sendCreateTicketMail,
+  sendDeleteEventMail,
+  sendCancelEventMail,
+  sendReactivateEventMail,
+} = require("../Utils/sendEventEmail");
 const clientUrl = process.env.FRONTEND_URL;
 const DEFAULT_EVENT_IMAGE_URL = process.env.DEFAULT_EVENT_IMAGE_URL;
 const cloudinary = require("cloudinary").v2;
@@ -63,7 +69,7 @@ const createEvent = asyncHandler(async (req, res) => {
       }
     }
 
-    // Validate date and time
+    // // Validate date and time
     const now = new Date();
     const start = new Date(`${startDate}T${startTime}`);
     const end = new Date(`${endDate}T${endTime}`);
@@ -97,6 +103,8 @@ const createEvent = asyncHandler(async (req, res) => {
     });
 
     await newEvent.save();
+
+    // console.log()
 
     // Send event creation email
     if (req.user) {
@@ -159,7 +167,9 @@ const createTicket = asyncHandler(async (req, res) => {
     }
 
     // Check if the event has already started
-    const eventStartDateTime = new Date(`${event.startDate}T${event.startTime}`);
+    const eventStartDateTime = new Date(
+      `${event.startDate}T${event.startTime}`
+    );
     const currentDateTime = new Date();
     if (currentDateTime >= eventStartDateTime) {
       return res
@@ -197,6 +207,11 @@ const createTicket = asyncHandler(async (req, res) => {
 
     await ticketType.save();
 
+    // ✅ Link ticketType to event if your Event schema stores ticketTypes
+    event.ticketTypes = event.ticketTypes || [];
+    event.ticketTypes.push(ticketType._id);
+    await event.save();
+
     if (req.user) {
       const { name, email } = req.user;
       await sendCreateTicketMail({
@@ -225,13 +240,25 @@ const purchaseTicket = asyncHandler(async (req, res) => {
   session.startTransaction(); // Start transaction
 
   try {
-    const { userId, eventId, ticketTypeId } = req.body;
+    const { eventId, ticketTypeId } = req.body;
+    const userId = req.userId; // Get the logged-in user's ID
 
     // Validate user
     const user = await User.findById(userId).session(session);
     if (!user) {
       await session.abortTransaction();
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the user already has a ticket for this event
+    const existingTicket = await Ticket.findOne({ userId, eventId }).session(
+      session
+    );
+    if (existingTicket) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        message: "You have already purchased a ticket for this event",
+      });
     }
 
     // Validate ticket type and update quantity atomically
@@ -248,27 +275,38 @@ const purchaseTicket = asyncHandler(async (req, res) => {
         .json({ message: "Tickets sold out or invalid ticket type" });
     }
 
-    // Generate QR Code
-    const qrCodeData = `${userId}-${eventId}-${ticketTypeId}-${Date.now()}`;
-    const qrCode = await QRCode.toDataURL(qrCodeData);
-
-    // Create and save ticket
+    // Create the ticket and assign to the user
     const ticket = new Ticket({
       userId,
       eventId,
       ticketTypeId,
-      qrCode,
+      qrCode: `${userId}-${eventId}-${ticketTypeId}-${Date.now()}`,
     });
 
     await ticket.save({ session });
+
+    // Add the ticket ID to the user's ticket array
+    // Add the ticket ID to the user's ticket array
+    user.ticket.push(ticket._id);
+    // event.attendees.push(userId);
+    // await event.save();
+    await user.save({ session });
+
+    // Add the user as an attendee of the event
+    await Event.findByIdAndUpdate(
+      eventId,
+      { $addToSet: { attendees: userId } }, // Use $addToSet to avoid duplicates
+      { session }
+    );
 
     // Commit transaction
     await session.commitTransaction();
     session.endSession();
 
-    return res
-      .status(201)
-      .json({ message: "Ticket purchased successfully", ticket });
+    return res.status(201).json({
+      message: "Ticket purchased successfully",
+      ticket,
+    });
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
@@ -312,37 +350,39 @@ const purchaseTicket = asyncHandler(async (req, res) => {
 
 const getTicket = asyncHandler(async (req, res) => {
   try {
-    const { eventId } = req.params;
+    const { ticketId } = req.params;
 
-    // Ensure eventId is a valid ObjectId
-    // if (!mongoose.Types.ObjectId.isValid(eventId)) {
-    //   return res.status(400).json({ message: "Invalid event ID" });
-    // }
-    if (!eventId) {
-      return res.status(400).json({ message: "Invalid event ID" });
+    if (!ticketId) {
+      return res.status(400).json({ message: "Ticket ID is required" });
     }
 
-    const tickets = await Ticket.find({
-      eventId: new mongoose.Types.ObjectId(eventId),
-    })
-      .sort("-createdAt")
-      .populate("userId", "name email photo") // Populate user details
+    console.log(ticketId);
+
+    const ticket = await Ticket.findById(ticketId)
+      .populate({
+        path: "userId",
+        select: "name email photo",
+        populate: {
+          path: "photo", // Only if 'photo' is a reference field
+          select: "imageUrl cloudinaryId",
+        },
+      })
       .populate(
         "eventId",
         "title description eventType meetLink category location startDate startTime"
-      ) // Populate event details
-      .populate("ticketTypeId", "type price"); // Populate ticket type details
+      )
+      .populate("ticketTypeId", "type price");
 
-    if (!tickets || tickets.length === 0) {
-      return res.status(404).json({ message: "No tickets found" });
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found" });
     }
 
-    res.status(200).json(tickets);
+    res.status(200).json(ticket);
   } catch (error) {
-    console.error("❌ Error fetching tickets:", error);
+    console.error("❌ Error fetching ticket:", error);
     res
       .status(500)
-      .json({ message: "Error fetching tickets", error: error.message });
+      .json({ message: "Error fetching ticket", error: error.message });
   }
 });
 
@@ -356,32 +396,36 @@ const getAllTickets = asyncHandler(async (req, res) => {
     const eventObjectId = new mongoose.Types.ObjectId(eventId);
     console.log("🔍 Converted Event ID to ObjectId:", eventObjectId);
 
-    // Check if the event exists in the database
+    // Check if the event exists
     const eventExists = await Event.findById(eventObjectId);
     console.log("🔍 Event Exists:", eventExists ? "Yes" : "No");
 
-    // Check if any ticket exists for this eventId
-    const allTickets = await Ticket.find({})
-      // .populate({
-      //   path: "userId",
-      //   select: "name email photo",
-      //   populate: {
-      //     path: "photo",
-      //     select: "imageUrl cloudinaryId",
-      //   },
-      // })
+    if (!eventExists) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Get only the tickets for this event
+    const allTickets = await Ticket.find({ eventId: eventObjectId })
+      .populate({
+        path: "userId",
+        select: "name email photo",
+        populate: {
+          path: "photo",
+          select: "imageUrl cloudinaryId",
+        },
+      })
       .populate(
         "eventId",
         "title description eventType meetLink category location startDate startTime endDate endTime"
       )
       .populate("ticketTypeId", "type price description");
 
-    console.log("🎟️ Total Tickets in DB:", allTickets.length);
-
-    console.log("🧐 Query Used:", { eventId: eventObjectId });
+    console.log("🎟️ Total Tickets for this Event:", allTickets.length);
 
     if (allTickets.length === 0) {
-      return res.status(404).json({ message: "No tickets found" });
+      return res
+        .status(404)
+        .json({ message: "No tickets found for this event" });
     }
 
     return res.status(200).json(allTickets);
@@ -393,8 +437,10 @@ const getAllTickets = asyncHandler(async (req, res) => {
 
 const uploadEventImage = async (req, res) => {
   const { eventId } = req.params;
+  const userId = req.userId;
 
   try {
+    const user = await User.findById(userId);
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
@@ -403,6 +449,12 @@ const uploadEventImage = async (req, res) => {
     const event = await Event.findById(eventId);
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
+    }
+
+    if (event.organizer.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to update event image" });
     }
 
     // Delete old Cloudinary image if it exists
@@ -437,7 +489,7 @@ const uploadEventImage = async (req, res) => {
       image: event.image,
     });
   } catch (error) {
-    console.error(error);
+    console.log(error);
     return res
       .status(500)
       .json({ message: "Server error", error: error.message });
@@ -517,9 +569,10 @@ const deleteEventImage = async (req, res) => {
 };
 
 const getAllLikedEvents = asyncHandler(async (req, res) => {
+  const userId = req.userId;
   try {
     // Find all events where liked is true
-    const likedEvents = await Event.find({ organizer: req.userId, liked: true })
+    const likedEvents = await Event.find({ organizer: userId, liked: true })
       .populate({
         path: "organizer",
         select: "name email photo",
@@ -529,6 +582,7 @@ const getAllLikedEvents = asyncHandler(async (req, res) => {
           model: "ProfilePicture", // ✅ Ensure it references the correct model
         },
       })
+      .populate({ path: "ticketType", select: "type, quantity" })
       .sort("-createdAt");
 
     // Check if there are any liked events
@@ -566,13 +620,114 @@ const likeStatus = asyncHandler(async (req, res) => {
   }
 });
 
+const likeEvent = asyncHandler(async (req, res) => {
+  const { eventId } = req.params;
+  const userId = req.userId;
+
+  try {
+    // Find the event by ID
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Check if the event is in the past
+    const now = new Date();
+    const eventStartDateTime = new Date(
+      `${event.startDate}T${event.startTime}`
+    );
+
+    if (eventStartDateTime < now) {
+      return res.status(400).json({ message: "Cannot like a past event" });
+    }
+
+    // Check if the user has already liked the event
+    if (event?.likedUsers.includes(userId)) {
+      return res
+        .status(400)
+        .json({ message: "You have already liked this event" });
+    }
+
+    // Add the user to the likedUsers array
+    event?.likedUsers.push(userId);
+    event.liked = true;
+
+    // Save the event
+    await event.save();
+
+    return res.status(200).json({ message: "Event liked successfully", event });
+  } catch (error) {
+    console.error("Error liking event:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+const unlikeEvent = asyncHandler(async (req, res) => {
+  const { eventId } = req.params;
+  const userId = req.userId;
+
+  try {
+    // Find the event by ID
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Check if the event is in the past
+    const now = new Date();
+    const eventStartDateTime = new Date(
+      `${event.startDate}T${event.startTime}`
+    );
+
+    if (eventStartDateTime < now) {
+      return res.status(400).json({ message: "Cannot unlike a past event" });
+    }
+
+    // Check if the user has already unliked the event
+    if (!event.likedUsers.includes(userId)) {
+      return res.status(400).json({ message: "You have not liked this event" });
+    }
+
+    // Remove the user from the likedUsers array
+    event.likedUsers = event.likedUsers.filter((id) => id !== userId);
+    event.liked = event.likedUsers.length > 0; // If there are no liked users, set liked to false
+
+    // Save the event
+    await event.save();
+
+    return res
+      .status(200)
+      .json({ message: "Event unliked successfully", event });
+  } catch (error) {
+    console.error("Error unliking event:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Get all events
 const getEvents = asyncHandler(async (req, res) => {
   try {
     const events = await Event.find()
       .sort("-createdAt")
-      .populate("organizer", "name")
-      .populate("attendees", "name");
+      .populate({
+        path: "organizer",
+        select: "name email photo",
+        populate: {
+          path: "photo",
+          select: "imageUrl cloudinaryId",
+        },
+      })
+      .populate("ticket", "type")
+      .populate({
+        path: "attendees",
+        select: "name email photo",
+        populate: {
+          path: "photo",
+          select: "imageUrl cloudinaryId",
+        },
+      });
     if (!events) {
       return res.status(404).json({ message: "No events found" });
     }
@@ -597,6 +752,19 @@ const getUserEvents = asyncHandler(async (req, res) => {
         },
       })
       .populate({
+        path: "ticket",
+        select: "ticketTypeId userId eventId qrCode purchaseDate status",
+        populate: {
+          path: "photo image",
+          select: "imageUrl cloudinaryId",
+        },
+      })
+      .populate({
+        path: "ticketType",
+        select: "eventId type description price quantity",
+      })
+      .populate("ticket", "type")
+      .populate({
         path: "attendees",
         select: "name email photo",
         populate: {
@@ -618,9 +786,9 @@ const getUserEvents = asyncHandler(async (req, res) => {
 
 const upcomingEvents = async (req, res) => {
   try {
-    const upcomingEvents = await Event.find({
-      startDate: { $gt: new Date() },
-    })
+    const now = new Date();
+
+    const events = await Event.find()
       .populate({
         path: "organizer",
         select: "name email photo",
@@ -629,8 +797,53 @@ const upcomingEvents = async (req, res) => {
           select: "cloudinaryId imageUrl", // Select only necessary fields
         },
       })
+      .populate({
+        path: "ticket", // Populate ticket references
+        populate: [
+          {
+            path: "eventId",
+            select:
+              "title description eventType meetLink category location startDate startTime endDate endTime",
+          },
+          { path: "ticketTypeId", select: "type price description" },
+        ],
+      })
       .sort({ startDate: 1 }) // Ascending order (earliest first)
       .exec();
+
+    const upcomingEvents = events.filter((event) => {
+      try {
+        // Check if startDate and startTime exist
+        if (!event.startDate || !event.startTime) return false;
+
+        // Convert to ISO date string (just the date part)
+        const datePart = new Date(event.startDate).toISOString().split("T")[0]; // YYYY-MM-DD
+
+        // Normalize time format
+        let timePart = event.startTime.trim();
+        if (/^\d{2}:\d{2}$/.test(timePart)) {
+          timePart += ":00";
+        }
+
+        // Combine and create full datetime string in local time
+        const combined = `${datePart}T${timePart}`;
+
+        const eventDateTime = new Date(combined);
+
+        if (isNaN(eventDateTime.getTime())) {
+          throw new Error(`Invalid date-time: ${combined}`);
+        }
+
+        return eventDateTime > new Date();
+      } catch (err) {
+        console.error(
+          "Error parsing datetime for event:",
+          event?._id,
+          err.message
+        );
+        return false;
+      }
+    });
 
     return res.status(200).json(upcomingEvents);
   } catch (error) {
@@ -641,9 +854,11 @@ const upcomingEvents = async (req, res) => {
 
 const userUpcomingEvents = async (req, res) => {
   try {
-    const events = await Event.find({
+    const now = new Date();
+
+    // Get all events by the organizer
+    const allEvents = await Event.find({
       organizer: req.userId,
-      startDate: { $gt: new Date() },
     })
       .populate({
         path: "organizer",
@@ -653,13 +868,59 @@ const userUpcomingEvents = async (req, res) => {
           select: "cloudinaryId imageUrl",
         },
       })
-      .sort({ startDate: 1 })
+      .populate("ticket")
       .exec();
 
-    return res.status(200).json(events);
+    // Filter based on full datetime (startDate + startTime)
+    const upcomingEvents = allEvents.filter((event) => {
+      const fullStart = new Date(
+        `${event.startDate.toISOString().split("T")[0]}T${event.startTime}`
+      );
+      return fullStart > now;
+    });
+
+    // Sort by date
+    upcomingEvents.sort((a, b) => {
+      const aStart = new Date(
+        `${a.startDate.toISOString().split("T")[0]}T${a.startTime}`
+      );
+      const bStart = new Date(
+        `${b.startDate.toISOString().split("T")[0]}T${b.startTime}`
+      );
+      return aStart - bStart;
+    });
+
+    return res.status(200).json(upcomingEvents);
   } catch (error) {
     console.error("Error fetching upcoming events:", error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const getAttendeesForEvent = async (req, res) => {
+  const { eventId } = req.params;
+
+  try {
+    // Assuming you have a Ticket model where attendees are stored.
+    const event = await Event.find({ eventId })
+      .populate({
+        path: "attendee", // Assuming 'attendee' field exists in Ticket schema
+        select: "name email photo", // Selecting only necessary fields
+        populate: {
+          path: "photo", // Populating the user's profile picture
+          select: "imageUrl cloudinaryId", // Select only necessary fields from the photo model
+        },
+      })
+      .exec();
+
+    if (!event) {
+      return res.status(404).json({ message: "No attendees found" });
+    }
+
+    return res.status(200).json(event);
+  } catch (error) {
+    console.error("Error fetching attendees:", error);
+    return res.status(500).json({ message: "Failed to fetch attendees" });
   }
 };
 
@@ -669,6 +930,14 @@ const getEvent = asyncHandler(async (req, res) => {
     const event = await Event.findById(req.params.id)
       .populate({
         path: "organizer",
+        select: "name email photo userId",
+        populate: {
+          path: "photo",
+          select: "imageUrl cloudinaryId",
+        },
+      })
+      .populate({
+        path: "likedUsers",
         select: "name email photo",
         populate: {
           path: "photo",
@@ -693,6 +962,30 @@ const getEvent = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: error.message });
   }
 });
+
+const getMyTickets = async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ userId: req.userId })
+    .populate({
+      path: "eventId",
+      select: "title startDate startTime endDate endTime location image organizer eventType meetLink limit",
+      populate: {
+        path: "organizer",
+        select: "name email photo",
+        populate: {
+          path: "photo",
+          select: "imageUrl cloudinaryId",
+        },
+      },
+    })
+      .populate("ticketTypeId", "type price quantity");
+
+    res.status(200).json(tickets);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
 
 // Update an event
 const updateEvent = async (req, res) => {
@@ -803,49 +1096,201 @@ const updateEvent = async (req, res) => {
   }
 };
 
+const cancelEvent = asyncHandler(async (req, res) => {
+  const { eventId } = req.params;
+  const userId = req.userId;
+
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    if (event.organizer.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to cancel this event" });
+    }
+
+    const now = new Date();
+    const eventStartDateTime = new Date(
+      `${event.startDate}T${event.startTime}`
+    );
+
+    if (eventStartDateTime < now) {
+      return res.status(400).json({ message: "Cannot cancel past event" });
+    }
+
+    if (event.canceled) {
+      return res.status(400).json({ message: "Event is already canceled" });
+    }
+
+    event.canceled = true;
+    await event.save();
+
+    const user = await User.findById(userId); // Only if name/email not in token
+    await sendCancelEventMail({
+      name: user.name,
+      email: user.email,
+      title: event.title,
+    });
+
+    return res.status(200).json({
+      message: "Event canceled successfully",
+      event,
+    });
+  } catch (error) {
+    console.error("Cancel event error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+const unCancelEvent = asyncHandler(async (req, res) => {
+  const { eventId } = req.params;
+  const userId = req.userId;
+
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    if (event.organizer.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to resume this event" });
+    }
+
+    // Prevent un-cancelling past events
+    const now = new Date();
+    const eventStartDateTime = new Date(
+      `${event.startDate}T${event.startTime}`
+    );
+
+    if (eventStartDateTime < now) {
+      return res.status(400).json({ message: "Cannot resume a past event" });
+    }
+
+    if (!event.canceled) {
+      return res.status(400).json({ message: "Event is not canceled" });
+    }
+
+    event.canceled = false;
+    const updatedEvent = await event.save();
+
+    // Optionally: Send a confirmation email (if needed)
+    const user = await User.findById(userId); // Ensure we have updated user info if needed
+    await sendReactivateEventMail({
+      name: user.name,
+      email: user.email,
+      title: updatedEvent.title,
+    });
+
+    return res.status(200).json({
+      message: "Event resumed successfully",
+      event: updatedEvent,
+    });
+  } catch (error) {
+    console.error("Un-cancel event error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+const getUserCancelledEvents = asyncHandler(async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    const cancelledEvents = await Event.find({
+      organizer: userId,
+      canceled: true,
+    });
+
+    return res.status(200).json(cancelledEvents);
+  } catch (error) {
+    console.error("Failed to get cancelled events:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Delete an event
 const deleteEvent = asyncHandler(async (req, res) => {
   const { eventId } = req.params;
+  const userId = req.userId;
+
   try {
     const event = await Event.findById(eventId);
-    if (event) {
-      await event.deleteOne();
-      return res.status(200).json({ message: "Event deleted successfully" });
-    } else {
+    const user = await User.findById(userId);
+
+    if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
+
+    if (event.organizer.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to delete this event" });
+    }
+
+    const now = new Date();
+    const eventStartDateTime = new Date(
+      `${event.startDate}T${event.startTime}`
+    );
+
+    if (eventStartDateTime < now) {
+      return res.status(400).json({ message: "Cannot delete past event" });
+    }
+
+    // 🧹 Delete Cloudinary image if exists
+    if (event.image && event.image.cloudinaryId) {
+      await cloudinary.uploader.destroy(event.image.cloudinaryId);
+    }
+
+    // 🧹 Delete associated TicketTypes
+    await TicketType.deleteMany({ eventId });
+
+    // 🧹 Delete associated Tickets
+    await Ticket.deleteMany({ eventId });
+
+    // 🧹 Delete the event itself
+    await event.deleteOne();
+
+    // ✉️ Send confirmation email
+    await sendDeleteEventMail({
+      name: user.name,
+      email: user.email,
+      title: event.title,
+    });
+
+    return res.status(200).json({ message: "Event deleted successfully" });
   } catch (error) {
-    console.log(error);
-    return res.status(400).json({ message: error.message });
+    console.error("Error deleting event:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
 // Fetch past events
 const pastEvents = async (req, res) => {
   try {
-    // Ensure you are using the correct date field (e.g., startDate or endDate)
-    const pastEvents = await Event.find({
-      endDate: { $lte: new Date() },
-    })
+    const now = new Date();
+
+    const events = await Event.find()
       .populate({
         path: "organizer",
         select: "name email photo",
         populate: {
-          path: "photo", // Populate the ProfilePicture model
-          select: "imageUrl", // Select only imageUrl from ProfilePicture
-          model: "ProfilePicture", // ✅ Ensure it references the correct model
+          path: "photo",
+          select: "cloudinaryId imageUrl",
         },
       })
+      .populate("ticket", "type")
       .sort("-createdAt") // ✅ Moved before .exec()
       .exec();
 
-    // Loop through past events and update 'trending' field if necessary
-    for (let event of pastEvents) {
-      if (event.trending) {
-        event.trending = false;
-        await event.save();
-      }
-    }
+    const pastEvents = events.filter((event) => {
+      const eventDate = new Date(event.startDate).toISOString().split("T")[0]; // Get YYYY-MM-DD
+      const combinedDateTime = new Date(`${eventDate}T${event.startTime}`);
+      return combinedDateTime < now;
+    });
 
     return res.status(200).json(pastEvents);
   } catch (error) {
@@ -856,30 +1301,28 @@ const pastEvents = async (req, res) => {
 
 const getUserPastEvents = async (req, res) => {
   try {
+    const now = new Date();
     // Ensure you are using the correct date field (e.g., startDate or endDate)
-    const pastEvents = await Event.find({
+    const events = await Event.find({
       organizer: req.userId,
-      endDate: { $lte: new Date() },
     })
       .populate({
         path: "organizer",
         select: "name email photo",
         populate: {
-          path: "photo", // Populate the ProfilePicture model
-          select: "imageUrl", // Select only imageUrl from ProfilePicture
-          model: "ProfilePicture", // ✅ Ensure it references the correct model
+          path: "photo",
+          select: "cloudinaryId imageUrl",
         },
       })
+      .populate("ticket", "type")
       .sort("-createdAt") // ✅ Moved before .exec()
       .exec();
 
-    // Loop through past events and update 'trending' field if necessary
-    for (let event of pastEvents) {
-      if (event.trending) {
-        event.trending = false;
-        await event.save();
-      }
-    }
+    const pastEvents = events.filter((event) => {
+      const eventDate = new Date(event.startDate).toISOString().split("T")[0]; // Get YYYY-MM-DD
+      const combinedDateTime = new Date(`${eventDate}T${event.startTime}`);
+      return combinedDateTime < now;
+    });
 
     return res.status(200).json(pastEvents);
   } catch (error) {
@@ -905,7 +1348,7 @@ const getEventWithTicketById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const event = await Event.findById(id).populate("tickets");
+    const event = await Event.findById(id).populate("ticket");
 
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
@@ -1090,16 +1533,21 @@ const getTicketsSold = async (req, res) => {
 module.exports = {
   // validateCreateEvent,
   createEvent,
+  getMyTickets,
   likeStatus,
   getAllLikedEvents,
+  unlikeEvent,
+  likeEvent,
   getTicket,
   getEvents,
   getUserEvents,
+  cancelEvent,
   userUpcomingEvents,
   createTicket,
   purchaseTicket,
   uploadEventImage,
   updateEventImage,
+  getAttendeesForEvent,
   deleteEventImage,
   getEvent,
   updateEvent,
@@ -1108,6 +1556,8 @@ module.exports = {
   pastEvents,
   trendingEvents,
   buyTicket,
+  getUserCancelledEvents,
+  unCancelEvent,
   getAllTickets,
   getOrganizerById,
   getTicketsSold,

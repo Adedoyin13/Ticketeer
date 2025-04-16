@@ -14,9 +14,11 @@ const {
   updateUser,
   loginWithGoogle,
   getUserBookedEvents,
+  getUserTickets,
   googleAuth,
   // changePassword,
   loginStatus,
+  googleLogin,
   resetPassword,
   forgotPassword,
   getProfilePicture,
@@ -44,6 +46,7 @@ router.delete("/:userId/delete-photo", protectUser, deleteProfilePicture);
 
 // router.delete("/:userId", protectUser, deleteProfilePicture);
 router.get("/get-user", protectUser, getUser);
+router.get("/get-user-tickets", protectUser, getUserTickets);
 router.get("/get-users", protectUser, getUsers);
 router.post("/forgot-password", forgotPassword);
 router.patch("/reset-password/:resetToken", resetPassword);
@@ -54,8 +57,12 @@ router.delete("/delete-user", protectUser, deleteUser);
 router.post("/logout",protectUser, logoutUser);
 router.get("/booked-events/:userId", protectUser, getUserBookedEvents);
 
-router.get("/auth/google", googleAuth);
+// router.get("/auth/google", googleAuth);
 
 router.get("/auth/google/callback", loginWithGoogle);
+
+// POST Route to handle Google Login
+router.post('/auth/google', googleLogin);
+
 
 module.exports = router;

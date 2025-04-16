@@ -19,16 +19,21 @@ import "@fontsource/quicksand";
 import "@fontsource/poppins";
 import "@fontsource/montserrat";
 import { PersistGate } from "redux-persist/integration/react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <BrowserRouter>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <ToastContainer position="top-right" />
-          <App />
-        </PersistGate>
-      </Provider>
-    </BrowserRouter>
-  </StrictMode>
+  <GoogleOAuthProvider clientId={clientId}>
+    <StrictMode>
+      <BrowserRouter>
+        <Provider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <ToastContainer position="top-right" />
+            <App />
+          </PersistGate>
+        </Provider>
+      </BrowserRouter>
+    </StrictMode>
+  </GoogleOAuthProvider>
 );

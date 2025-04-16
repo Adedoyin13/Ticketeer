@@ -7,10 +7,9 @@ export const registerUser = createAsyncThunk(
   async (formData, { rejectWithValue }) => {
     try {
       const response = await api.post("/user/register", formData, { withCredentials: true });
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Registration failed");
+      return rejectWithValue(error.response?.data?.message || error.message || "Registration failed");
     }
   }
 );
@@ -18,14 +17,25 @@ export const registerUser = createAsyncThunk(
 // LOGIN
 export const loginUser = createAsyncThunk(
   "user/login",
-  async (formData, { rejectWithValue, dispatch }) => {
+  async (formData, { rejectWithValue }) => {
     try {
       const response = await api.post("/user/login", formData, { withCredentials: true });
-      console.log(response.data);
-      return response.data
-      // return dispatch(getUser()).unwrap();
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Login failed");
+      return rejectWithValue(error.response?.data?.message || error.message || "Login failed");
+    }
+  }
+);
+
+// LOGIN WITH GOOGLE
+export const loginWithGoogle = createAsyncThunk(
+  "user/loginWithGoogle",
+  async (token, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/user/auth/google", { token }, { withCredentials: true });
+      return response.data; // Return entire response for consistency
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message || "Google login failed");
     }
   }
 );
@@ -33,12 +43,11 @@ export const loginUser = createAsyncThunk(
 // LOGOUT
 export const logoutUser = createAsyncThunk(
   "user/logout",
-  async (_, { rejectWithValue, dispatch }) => {
+  async (_, { rejectWithValue }) => {
     try {
       await api.post("/user/logout", {}, { withCredentials: true });
-      dispatch(logout());
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Logout failed");
+      return rejectWithValue(error.response?.data?.message || error.message || "Logout failed");
     }
   }
 );
@@ -49,9 +58,10 @@ export const getUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get("/user/get-user", { withCredentials: true });
+      console.log(response.data)
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Failed to fetch user");
+      return rejectWithValue(error.response?.data?.message || error.message || "Failed to fetch user");
     }
   }
 );
@@ -59,13 +69,13 @@ export const getUser = createAsyncThunk(
 // UPDATE USER
 export const updateUser = createAsyncThunk(
   "user/update",
-  async (formData, { rejectWithValue, dispatch }) => {
+  async (eventData, { rejectWithValue, dispatch }) => {
     try {
-      const response = await api.put("/user/update-user", formData, { withCredentials: true });
+      const response = await api.put("/user/update-user", eventData, { withCredentials: true });
       dispatch(getUser());
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Update failed");
+      return rejectWithValue(error.response?.data?.message || error.message || "Update failed");
     }
   }
 );
@@ -77,17 +87,10 @@ export const uploadProfilePhoto = createAsyncThunk(
     try {
       const formData = new FormData();
       formData.append("photo", photoFile);
-      const response = await api.put("/user/update-photo", formData, {
-        // headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-      });
-      // dispatch(getUser());
-      console.log(response.data)
-      console.log(response.data.photo)
-      const photo =  { photo: response.data.profilePicture };
-      return photo;
+      const response = await api.put("/user/update-photo", formData, { withCredentials: true });
+      return response.data.profilePicture; // Assuming this is the photo object
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Upload failed");
+      return rejectWithValue(error.response?.data?.message || error.message || "Upload failed");
     }
   }
 );
@@ -100,7 +103,7 @@ export const deleteUser = createAsyncThunk(
       const response = await api.delete("/user/delete-user", { withCredentials: true });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Delete failed");
+      return rejectWithValue(error.response?.data?.message || error.message || "Delete failed");
     }
   }
 );
@@ -108,10 +111,11 @@ export const deleteUser = createAsyncThunk(
 // INITIAL STATE
 const initialState = {
   user: null,
+  token: null,
   isAuthenticated: false,
   loading: false,
   error: null,
-  status: false,
+  status: "idle", // idle | loading | succeeded | failed
 };
 
 // SLICE
@@ -121,7 +125,9 @@ const userSlice = createSlice({
   reducers: {
     logout: (state) => {
       state.user = null;
+      state.token = null;
       state.isAuthenticated = false;
+      state.status = "idle";
     },
     clearError: (state) => {
       state.error = null;
@@ -133,113 +139,129 @@ const userSlice = createSlice({
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.status = false;
+        state.status = "loading";
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.user = action.payload;
-        console.log(action.payload)
         state.isAuthenticated = true;
         state.loading = false;
-        state.status = true;
+        state.status = "succeeded";
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.status = false;
+        state.status = "failed";
       })
 
       // LOGIN
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.status = false;
+        state.status = "loading";
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.user = action.payload;
-        console.log(action.payload)
         state.isAuthenticated = true;
         state.loading = false;
-        state.status = true;
+        state.status = "succeeded";
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.status = false;
+        state.status = "failed";
+      })
+
+      // LOGIN WITH GOOGLE
+      .addCase(loginWithGoogle.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.status = "loading";
+      })
+      .addCase(loginWithGoogle.fulfilled, (state, action) => {
+        state.user = action.payload.user || action.payload;
+        state.token = action.payload.token || null;
+        state.isAuthenticated = true;
+        state.loading = false;
+        state.status = "succeeded";
+      })
+      .addCase(loginWithGoogle.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.status = "failed";
       })
 
       // LOGOUT
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
+        state.token = null;
         state.isAuthenticated = false;
+        state.status = "idle";
       })
 
       // GET USER
       .addCase(getUser.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.status = false;
+        state.status = "loading";
       })
       .addCase(getUser.fulfilled, (state, action) => {
-        state.user = action.payload;
+        state.user = action.payload.user || action.payload;
+        console.log(state.user)
         state.isAuthenticated = true;
         state.loading = false;
-        state.status = true;
+        state.status = "succeeded";
       })
       .addCase(getUser.rejected, (state, action) => {
         state.user = null;
+        state.token = null;
         state.isAuthenticated = false;
         state.error = action.payload;
         state.loading = false;
-        state.status = false;
+        state.status = "failed";
       })
 
       // UPDATE USER
       .addCase(updateUser.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.status = false;
+        state.status = "loading";
       })
-
       .addCase(updateUser.fulfilled, (state, action) => {
         state.user = action.payload;
-        state.status = true;
-      })
-
-      .addCase(updateUser.rejected, (state, action) => {
-        state.user = null;
-        state.error = action.payload;
         state.loading = false;
-        state.status = false;
+        state.status = "succeeded";
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.status = "failed";
       })
 
       // UPLOAD PHOTO
       .addCase(uploadProfilePhoto.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.status = false;
+        state.status = "loading";
       })
-      
       .addCase(uploadProfilePhoto.fulfilled, (state, action) => {
         state.loading = false;
-        state.status = true;
+        state.status = "succeeded";
         if (state.user) {
-          console.log(state.user)
           state.user.photo = action.payload;
-          console.log(action.payload)
-          console.log(action.payload.photo.profilePicture)
         }
       })
-      
       .addCase(uploadProfilePhoto.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Upload failed";
-        state.status = false;
-      })      
+        state.error = action.payload;
+        state.status = "failed";
+      })
 
       // DELETE USER
       .addCase(deleteUser.fulfilled, (state) => {
         state.user = null;
+        state.token = null;
         state.isAuthenticated = false;
+        state.status = "idle";
       });
   },
 });

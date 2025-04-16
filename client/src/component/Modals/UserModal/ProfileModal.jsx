@@ -8,7 +8,7 @@ import { useSelector } from "react-redux";
 
 const profileLink = [
   { link: "Tickets", route: "/dashboard" },
-  { link: "Edit Profile", route: "/settings/update" },
+  { link: "Edit Profile", route: "/settings/profile-update" },
   { link: "Settings", route: "/settings" },
   { link: "Log out", route: "/settings" },
 ];
@@ -37,7 +37,7 @@ const ProfileModal = ({ onClose, isOpen }) => {
         <div className="flex flex-col items-center gap-3">
           <div className="w-[100px] h-[100px] overflow-hidden rounded-full bg-white">
             <img
-              src={user?.photo?.imageUrl}
+              src={user?.photo?.imageUrl || user?.photo || import.meta.env.DEFAULT_IMAGE_URL}
               alt="User image"
               className="w-full h-full object-cover"
             />

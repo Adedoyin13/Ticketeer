@@ -1,8 +1,10 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const NotFound = () => {
+  const navigate = useNavigate();
+
   return (
     <motion.div
       className="min-h-screen flex flex-col items-center justify-center text-center px-4 bg-gray-100"
@@ -32,12 +34,12 @@ const NotFound = () => {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
       >
-        <Link
-          to="/"
-          className="px-6 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition duration-300"
-        >
-          Back to Home
-        </Link>
+        <button
+      onClick={() => navigate(-1)} // Go back one page in history
+      className="px-6 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition duration-300"
+    >
+      Go Back
+    </button>
       </motion.div>
     </motion.div>
   );

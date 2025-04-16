@@ -5,9 +5,6 @@ import { MdOutlineModeEdit } from "react-icons/md";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
-import EditEventModal from "../Modals/EventModal/EditEventModal";
-import { useSelector } from "react-redux";
-import EventDetails from "../Event/EventDetails";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -25,14 +22,14 @@ const formatTime = (timeString) => {
 
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString("en-US", {
-    weekday: "short",
+    weekday: "long",
     year: "numeric",
-    month: "short",
+    month: "long",
     day: "numeric",
   });
 };
 
-const CreateTicket = () => {
+const Ticket = () => {
   const { eventId } = useParams();
   console.log("Event ID from params:", eventId);
   const [ticketData, setTicketData] = useState({
@@ -47,16 +44,13 @@ const CreateTicket = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const { user } = useSelector((state) => state.user);
-
   useEffect(() => {
     const fetchEvent = async () => {
       try {
         const response = await axios.get(
-          `${SERVER_URL}/event/getEvent/${eventId}`,
-          { withCredentials: true }
+          `${SERVER_URL}/event/getEvent/${eventId}`, {withCredentials: true}
         );
-        console.log(response.data);
+        console.log(response.data)
         if (!response.data) {
           toast.error("Failed to fetch event data");
           throw new Error("Failed to fetch event data");
@@ -129,64 +123,27 @@ const CreateTicket = () => {
                   className="w-full h-full rounded-lg object-cover"
                 />
               </div>
-              {/* <button
-                className="hover:bg-orange-100 cursor-pointer p-2 rounded-lg"
-                // onClick={toggleModal}
-              >
+              <button className="hover:bg-orange-100 cursor-pointer p-2 rounded-lg">
                 <MdOutlineModeEdit size={20} />
-              </button> */}
+              </button>
             </div>
             <div className="space-y-1">
-              <p className="font-medium text-gray-900 text-base">
-                {event?.title}
-              </p>
+              <p className="font-medium text-gray-700 text-base">{event?.title}</p>
               <p className="font-normal text-gray-500 text-xs">
-                {event?.startDate &&
-                event?.startTime &&
-                event?.endDate &&
-                event?.endTime ? (
-                  <>
-                    {formatDate(event.startDate)}, {formatTime(event.startTime)}{" "}
-                    – <br /> {formatDate(event.endDate)}{" "}
-                    {formatTime(event.endTime)}
-                  </>
-                ) : (
-                  <span>Date & time info unavailable</span>
-                )}
+              {event?.location
+                  ? `${event.location[4]} ${event.location[3]}, ${event.location[2]} ${event.location[1]}, ${event.location[0]}`
+                  : "Location not available"}
+                  {formatDate(event?.startDate)}, {formatTime(event?.startTime)} - {formatDate(event?.endDate)} {formatTime(event?.endTime)}
+                Sun Mar 10, 2024 10:00 - Mon Mar 11 , 2024 12:00
               </p>
-              <p className="font-normal text-gray-500 text-xs">
-                {event.eventType === "virtual" ? (
-                  <>
-                    <a
-                      href={event.meetLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 underline"
-                    >
-                      Join Meeting
-                    </a>
-                  </>
-                ) : (
-                  <>
-                    {event?.location?.[2] && event?.location?.[1]
-                      ? `${event.location[2]}, ${event.location[1]}`
-                      : "Location unavailable"}{" "}
-                  </>
-                )}
-              </p>
-              <p className="font-medium text-gray-700 text-sm">
+              <p className="font-medium text-gray-700 text-base">
                 {event?.description}
               </p>
             </div>
           </div>
           <div className="flex flex-col gap-1 px-6 py-4 w-full bg-orange-300 shadow-md bg-opacity-50 rounded-xl">
             <p className="font-medium text-sm text-gray-700">Host</p>
-            <p className="font-medium text-base">
-              {user.name}{" "}
-              <span className="font-normal text-gray-500 text-xs">
-                {"(you)"}
-              </span>
-            </p>
+            <p className="font-medium">User</p>
           </div>
         </div>
         <div className="w-full flex flex-col gap-8 items-center">
@@ -265,10 +222,10 @@ const CreateTicket = () => {
                 />
               </div>
 
-              {/* <div className="py-2 px-8 bg-slate-500 flex gap-1 items-center text-white hover:bg-slate-600 rounded-md text-sm max-w-[250px]">
+              <div className="py-2 px-8 bg-slate-500 flex gap-1 items-center text-white hover:bg-slate-600 rounded-md text-sm max-w-[250px]">
                 <IoIosAdd size={30} />
                 <button>Add another ticket</button>
-              </div> */}
+              </div>
             </form>
           </div>
           <div className="flex justify-between w-full px-10 items-center">
@@ -292,4 +249,4 @@ const CreateTicket = () => {
   );
 };
 
-export default CreateTicket;
+export default Ticket;

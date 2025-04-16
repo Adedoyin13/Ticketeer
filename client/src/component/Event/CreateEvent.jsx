@@ -102,6 +102,11 @@ const CreateEvent = () => {
     }));
   };
 
+  const onImageSelect = (file) => {
+    console.log("Selected image file:", file);
+    // you can store it in state or send to backend
+  };
+
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -194,14 +199,12 @@ const CreateEvent = () => {
       setIsSubmitting(false);
     }
   };
-  
 
   return (
     <section className="bg-orange-100 py-28 font-inter px-10">
       <div className="flex justify-between px-10 gap-8">
-        <div className="flex flex-col gap-6 w-1/3 px-8 items-center">
+        {/* <div className="flex flex-col gap-6 w-1/3 px-8 items-center">
           <div className="relative w-full h-[200px]">
-            {/* Hidden file input */}
             <input
               id="eventImageInput"
               type="file"
@@ -210,14 +213,12 @@ const CreateEvent = () => {
               accept="image/*"
             />
 
-            {/* Event Image Preview */}
             <img
               src={previewImage} // Use a placeholder image if none is selected
               alt="Event image"
               className="w-full h-full border border-orange-400 rounded-lg object-cover"
             />
 
-            {/* Edit Icon Button */}
             <button
               onClick={handleEditClick}
               className="absolute top-2 right-2 bg-orange-50 p-2 rounded-lg shadow-lg hover:bg-orange-200 transition"
@@ -229,11 +230,12 @@ const CreateEvent = () => {
             <p className="font-medium text-sm text-gray-700">Host</p>
             <p className="font-medium">User</p>
           </div>
-        </div>
+        </div> */}
         <div className="w-full flex flex-col gap-8 items-center">
           <div className="bg-orange-300 shadow-md bg-opacity-50 rounded-lg w-full">
             <form>
               <div className="w-full flex flex-col gap-4 font-inter p-10">
+                <div className="flex gap-4">
                 <div className="flex flex-col gap-1 w-full">
                   <label htmlFor="title" className="font-medium pl-1">
                     Event title
@@ -275,6 +277,7 @@ const CreateEvent = () => {
                     </option>
                     <option value="fun and hangout">Fun and Hangout</option>
                   </select>
+                </div>
                 </div>
 
                 <div className="flex justify-between gap-2">
@@ -498,7 +501,7 @@ const CreateEvent = () => {
                     type="number"
                     id="limit"
                     name="limit"
-                    placeholder="eg: 20"
+                    placeholder="eg: 20 (guest limit should be equal to ticket quantity)"
                     className="bg-orange-50 p-2 rounded-lg border-b-2 w-full border-orange-400 focus:outline-none focus:border-orange-300"
                     required
                     onChange={handleInputChange}

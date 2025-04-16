@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
 import { MdEventBusy } from "react-icons/md";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { getUserUpcomingEvents } from "../../../redux/reducers/eventSlice";
 import { useDispatch, useSelector } from "react-redux";
-import Loader from "../../Spinners/Loader";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { getUserTickets, getUserUpcomingEvents } from "../../redux/reducers/eventSlice";
+import Loader from "../Spinners/Loader";
 import { toast } from "react-toastify";
 
 const formatTime = (timeString) => {
@@ -28,88 +28,103 @@ const formatDate = (dateString) => {
   });
 };
 
-const UpcomingEvents = ({ countries, states }) => {
+const MyTickets = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  const { userUpcomingEvents, loading, error } = useSelector(
-    (state) => state.events
-  );
-  console.log({ userUpcomingEvents });
+//   const { userUpcomingEvents, loading, error } = useSelector(
+//     (state) => state.events
+//   );
+//   console.log({ userUpcomingEvents });
 
   const { user, isAuthenticated } = useSelector((state) => state.user);
   // console.log({ user });
 
-   useEffect(() => {
-      if (isAuthenticated && user) {
-        dispatch(getUserUpcomingEvents());
-      }
-    }, [isAuthenticated, user, dispatch]);
+  const { userTickets, loading, error } = useSelector((state) => state.events);
+//   console.log({userTickets})
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+        dispatch(getUserTickets());
+    }
+  }, [isAuthenticated, user, dispatch]);
 
   // useEffect(() => {
   //   dispatch(getUserUpcomingEvents()); // Fetch user events on component mount
   // }, [dispatch]);
 
-  if (loading.userUpcomingEvents) {
-    return <Loader loading={loading.userUpcomingEvents} />;
+  if (loading.userTickets) {
+    return <Loader loading={loading.userTickets} />;
   }
   if (error) return toast.error("error");
 
+
+//   useEffect(() => {
+//     dispatch(getUserTickets());
+//   }, [dispatch]);
+
+//   if (loading) return <p>Loading tickets...</p>;
+//   if (error) return <p>Error: {error}</p>;
+
   const handleNavigate = (eventId) => {
-    navigate(`/event-details/${eventId}`, {
+    navigate(`/view-event/${eventId}`, {
       state: { from: location.pathname }, // Save previous route
     });
   };
 
   return (
-    <section className="mt-6">
+    <section className="mt-6 py-10 md:py-28 px-4 md:px-16 lg:px-20 bg-orange-100 min-h-screen font-inter">
       <div className="flex flex-col gap-6">
-        {Array.isArray(userUpcomingEvents) && userUpcomingEvents.length > 0 ? (
-          userUpcomingEvents.map((upcoming, index) => (
+        {Array.isArray(userTickets) && userTickets.length > 0 ? (
+          userTickets.map((upcoming, index) => (
             <div
               key={index}
-              className="border-l-4 border-orange-500 py-4 px-4 sm:px-6 flex flex-col gap-2 font-inter shadow-sm rounded-lg"
+              className="border-l-4 border-orange-500 py-4 px-4 sm:px-6 flex flex-col gap-3 font-inter shadow-md rounded-xl"
             >
               <p className="font-semibold text-lg text-gray-800">
-                {upcoming.startDate
-                  ? formatDate(upcoming.startDate)
+                {upcoming?.eventId?.startDate
+                  ? formatDate(upcoming?.eventId?.startDate)
                   : "Date not available"}
               </p>
 
-              <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 items-start lg:items-center bg-orange-300 bg-opacity-40 rounded-xl p-4">
-                <div className="flex-1 flex flex-col gap-3">
+              <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 items-start lg:items-center bg-orange-300 bg-opacity-30 rounded-xl p-4">
+                {/* Text content */}
+                <div className="flex-1 flex flex-col gap-4">
                   <div>
                     <p className="text-lg font-semibold text-gray-700">
-                      {formatTime(upcoming.startTime)}
+                      {formatTime(upcoming?.eventId?.startTime)}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {upcoming.eventType}
+                      {upcoming?.eventId?.eventType}
                     </p>
-                    <p className="text-xl font-bold text-gray-800">
-                      {upcoming.title}
+                    <p className="text-xl font-bold text-gray-900">
+                      {upcoming?.eventId?.title}
                     </p>
                   </div>
 
-                  <div className="flex gap-2 items-center mt-2">
-                    <div className="w-8 h-8 rounded-full overflow-hidden bg-white">
+                  <div className="flex gap-2 items-center">
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-white shadow">
                       <img
-                        src={upcoming?.organizer?.photo?.imageUrl || upcoming?.organizer?.photo}
+                        src={
+                          upcoming?.eventId?.organizer?.photo?.imageUrl ||
+                          upcoming?.eventId?.organizer?.photo
+                        }
                         alt="Organizer"
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <p className="text-sm text-gray-600">
-                      Hosted by {upcoming.organizer.name}{" "}
-                      {user?._id === upcoming?.organizer?._id && "(you)"}
+                    <p className="text-sm text-gray-700">
+                      Hosted by {upcoming?.eventId?.organizer.name}{" "}
+                      {user?._id === upcoming?.eventId?.organizer?._id && "(you)"}
                     </p>
                   </div>
 
-                  <div className="flex gap-2 items-center mt-2 text-gray-700">
-                    {upcoming.eventType === "virtual" ? (
+                  <div className="flex gap-2 items-center text-gray-800">
+                    {upcoming?.eventId?.eventType === "virtual" ? (
                       <>
                         <IoVideocamOutline size={20} />
                         <a
-                          href={upcoming.meetLink}
+                          href={upcoming?.eventId?.meetLink}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 underline text-sm"
@@ -120,22 +135,23 @@ const UpcomingEvents = ({ countries, states }) => {
                     ) : (
                       <>
                         <IoLocationOutline size={20} />
-                        <p className="text-sm">{`${upcoming.location[2]}, ${upcoming.location[1]}`}</p>
+                        <p className="text-sm">{`${upcoming?.eventId?.location[2]}, ${upcoming?.eventId?.location[1]}`}</p>
                       </>
                     )}
                   </div>
 
                   <button
-                    onClick={() => handleNavigate(upcoming._id)}
-                    className="mt-4 w-fit px-6 py-2 text-sm font-medium bg-slate-600 hover:bg-slate-700 text-white rounded-lg transition-colors"
+                    onClick={() => handleNavigate(upcoming?.eventId?._id)}
+                    className="mt-2 w-fit px-5 py-2 text-sm font-medium bg-slate-600 hover:bg-slate-700 text-white rounded-lg transition-all duration-200"
                   >
                     View Details
                   </button>
                 </div>
 
-                <div className="w-full lg:w-[250px] h-[200px] rounded-lg overflow-hidden">
+                {/* Event image */}
+                <div className="w-full sm:w-full lg:w-[250px] h-[200px] rounded-lg overflow-hidden shadow-md">
                   <img
-                    src={upcoming.image.imageUrl}
+                    src={upcoming?.eventId?.image.imageUrl}
                     alt="Event"
                     className="w-full h-full object-cover"
                   />
@@ -155,12 +171,12 @@ const UpcomingEvents = ({ countries, states }) => {
                 </p>
               </div>
               <div className="flex flex-wrap gap-4 items-center justify-center">
-                <Link to='/event-list'>
+                <Link to="/event-list">
                   <button className="px-6 py-2 bg-orange-400 text-white font-medium rounded-full text-sm hover:bg-orange-500 transition-colors">
                     Explore events
                   </button>
                 </Link>
-                <Link to='/create-event'>
+                <Link to="/create-event">
                   <button className="px-6 py-2 bg-slate-600 text-white rounded-md text-sm hover:bg-slate-700 transition-colors">
                     Create events
                   </button>
@@ -174,4 +190,4 @@ const UpcomingEvents = ({ countries, states }) => {
   );
 };
 
-export default UpcomingEvents;
+export default MyTickets;

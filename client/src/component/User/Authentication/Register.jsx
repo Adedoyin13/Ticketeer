@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "../../../redux/reducers/userSlice";
+import GoogleAuth from "./GoogleAuth";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -209,9 +210,10 @@ const Register = () => {
                 </button>
 
                 <p className="font-bold text-lg">OR</p>
-                <button onClick={handleGoogleLogin} className="bg-orange-50 p-3 rounded-full hover:bg-orange-100">
+                {/* <button onClick={handleGoogleLogin} className="bg-orange-50 p-3 rounded-full hover:bg-orange-100">
                   <FcGoogle size={30} />
-                </button>
+                </button> */}
+                <GoogleAuth/>
                 <p className="text-sm text-gray-600">
                   Already have an account?{" "}
                   <span className="text-orange-400 hover:text-orange-600">

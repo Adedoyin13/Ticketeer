@@ -12,13 +12,14 @@ const createEventReminderNotifications = async () => {
     // Loop through the upcoming events and create notifications for attendees and organizers
     for (const event of upcomingEvents) {
       const attendees = event.attendees;
-      const organizers = event.organizers;
+      const organizer = event.organizer;
 
       // Create notifications for attendees
       for (const attendee of attendees) {
-        const message = `Reminder: The event "${event.title}" is happening in ${Math.abs((new Date(event.startDate) - new Date()) / (1000 * 60 * 60 * 24))} days!`;
+        const daysLeft = Math.abs((new Date(event.startDate) - new Date()) / (1000 * 60 * 60 * 24));
+        const message = `Reminder: The event "${event.title}" is happening in ${daysLeft} days!`;
         const notification = new Notification({
-          userId: attendee.userId,
+          userId: attendee._id,
           message,
           type: 'eventReminder',
           isRead: false,
@@ -27,11 +28,12 @@ const createEventReminderNotifications = async () => {
         await notification.save();
       }
 
-      // Create notifications for organizers
-      for (const organizer of organizers) {
-        const message = `Reminder: Your event "${event.title}" is happening in ${Math.abs((new Date(event.startDate) - new Date()) / (1000 * 60 * 60 * 24))} days!`;
+      // Create notification for the organizer (assuming organizer is a single user, not an array)
+      if (organizer) {
+        const daysLeft = Math.abs((new Date(event.startDate) - new Date()) / (1000 * 60 * 60 * 24));
+        const message = `Reminder: Your event "${event.title}" is happening in ${daysLeft} days!`;
         const notification = new Notification({
-          userId: organizer.userId,
+          userId: organizer._id, // Assuming organizer is a single user
           message,
           type: 'eventReminder',
           isRead: false,
@@ -46,6 +48,9 @@ const createEventReminderNotifications = async () => {
 };
 
 // Schedule the job to check every day at midnight
-cron.schedule('0 0 * * *', createEventReminderNotifications);
+cron.schedule('0 0 * * *', () => {
+  console.log('Running event reminder notifications...');
+  createEventReminderNotifications();
+});
 
 module.exports = { createEventReminderNotifications };

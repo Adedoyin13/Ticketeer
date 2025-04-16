@@ -8,14 +8,13 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
 
-    password: {
-      type: String,
-      required: function () {
-        return !this.googleId; // Password only required if not using Google auth
-      },
-    },
+      password: {
+        type: String,
+        required: function () {
+          return this.authType === 'local';
+        },
+      },   
 
-    // ✅ This was missing
     googleId: {
       type: String,
       default: null,
@@ -27,10 +26,10 @@ const userSchema = new mongoose.Schema(
       default: 'local',
     },
 
-    location: { type: String, default: 'Nigeria' },
+    location: { type: String, default: '' },
 
     photo: {
-      type: mongoose.Schema.Types.Mixed,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'ProfilePicture',
     },
 
@@ -46,6 +45,8 @@ const userSchema = new mongoose.Schema(
       telegram: { type: String, default: '' },
       whatsapp: { type: String, default: '' },
     },
+
+    ticket: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Ticket' }],
 
     bookedEvents: [
       {
@@ -73,7 +74,7 @@ const ProfilePictureSchema = new mongoose.Schema({
 });
 
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
+  if (!this.isModified("password") || !this.password) {
     return next();
   }
 

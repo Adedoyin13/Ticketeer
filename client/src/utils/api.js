@@ -1,37 +1,39 @@
+// api.js
 import axios from "axios";
-import { logoutUser } from "../redux/reducers/userSlice";
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 const api = axios.create({
-  baseURL: SERVER_URL,
+  baseURL: import.meta.env.VITE_SERVER_URL,
   withCredentials: true,
 });
 
-// ✅ Use a function to set dispatch dynamically (fixes circular dependency)
-export const setupInterceptors = (dispatch) => {
-  api.interceptors.response.use(
-    (res) => res,
-    (error) => {
-      const status = error?.response?.status;
-      if (status === 401) {
-        dispatch(logoutUser());
-        window.location.href = "/login";
-      }
-      return Promise.reject(error);
-    }
-  );
+let store;
+
+export const injectStore = (_store) => {
+  store = _store;
 };
 
-// api.interceptors.response.use(
-//   (response) => response, 
-//   (error) => {
-//     if (error.response && error.response.status === 401) {
-//       dispatch(logoutUser()); // ✅ Dispatch logout properly
-//       window.location.href = "/login";
-//     }
-//     return Promise.reject(error);
-//   }
-// );
+api.interceptors.request.use((config) => {
+  const state = store?.getState();
+  const user = state?.user?.user;
+
+  if (user?.token) {
+    config.headers.Authorization = `Bearer ${user.token}`;
+  }
+
+  return config;
+});
+
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    const user = store?.getState()?.user?.user;
+
+    if (error.response?.status === 401 && user) {
+      store.dispatch({ type: "user/logout" }); // replace with your logout action
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export default api;

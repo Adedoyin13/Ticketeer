@@ -8,14 +8,14 @@ import Loader from "../Spinners/Loader";
 import { getUserEvents } from "../../redux/reducers/eventSlice";
 import { toast } from "react-toastify";
 
-const userEvents = ''
+// const userEvents = ''
 
 const Dashboard = () => {
   const dispatch = useDispatch();
 
   // ✅ Get user state
   const {
-    user,
+    user, isAuthenticated,
     loading: userLoading,
     error: userError,
   } = useSelector((state) => state.user);
@@ -34,11 +34,10 @@ const Dashboard = () => {
   console.log({userEvents})
 
   useEffect(() => {
-    if(user) {
+    if (isAuthenticated && user) {
       dispatch(getUserEvents());
     }
-  }, [dispatch]);
-
+  }, [isAuthenticated, user, dispatch]);
 
   if(!user) {
     return <Loader loading={userLoading}/>
@@ -51,6 +50,22 @@ const Dashboard = () => {
   // ✅ Handle separate error states
   if (userError) return toast.error(`Error fetching user: ${userError}`);
   if (eventsError) return toast.error(`Error fetching events: ${eventsError}`);
+
+  // const DEFAULT_IMAGE_URL = `https://via.placeholder.com/150x150?text=${encodeURIComponent(user.name)}`;
+  // const DEFAULT_IMAGE_URL = `https://placehold.co/150x150?text=${encodeURIComponent(name)}`;
+
+// console.log(DEFAULT_IMAGE_URL);  // Check the URL in the console to verify
+
+
+
+// const DEFAULT_IMAGE_URL = `https://placehold.co/150x150/${bgColor}/${textColor}?text=${initials}&font=roboto`;
+
+
+// const initials = getInitials(name);
+// const DEFAULT_IMAGE_URL = `https://placehold.co/150x150/EEE/333?text=${initials}&font=roboto`;
+// console.log(DEFAULT_IMAGE_URL); 
+
+
 
   return (
     <section className="bg-orange-100 py-28 font-inter">
@@ -74,7 +89,8 @@ const Dashboard = () => {
               <div className="flex flex-col gap-4 items-center">
                 <div className="w-14 h-14 overflow-hidden rounded-full">
                   <img
-                    src={user.photo?.imageUrl}
+                    src={user?.photo?.imageUrl}
+                    // src='https://placehold.co/150x150?text=Test%20User'
                     alt="User image"
                     className="w-full h-full object-cover"
                   />
@@ -107,7 +123,7 @@ const Dashboard = () => {
               <p className="text-sm md:text-base font-medium">Events Created</p>
             </div>
             <div className="flex flex-col gap-2 py-5 px-4 w-full h-[100px] items-center bg-orange-300 shadow-md bg-opacity-50 rounded-xl">
-              <p className="font-semibold text-lg md:text-xl">0</p>
+              <p className="font-semibold text-lg md:text-xl">{user?.ticket?.length}</p>
               <p className="text-sm md:text-base font-medium">
                 Tickets Purchased
               </p>

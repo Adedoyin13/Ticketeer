@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
 import loginImg from "./../../../assets/About-Show-Ticket.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FcGoogle } from "react-icons/fc";
 import PasswordInput from "../../Reusables/PasswordInput";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { loginUser } from "../../../redux/reducers/userSlice";
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+import GoogleAuth from "./GoogleAuth";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -15,7 +13,9 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { user, isAuthenticated, loading, error } = useSelector((state) => state.user);
+  const { user, isAuthenticated, loading, error } = useSelector(
+    (state) => state.user
+  );
 
   // Handle Input Change
   const handleInputChange = (e) => {
@@ -27,7 +27,10 @@ const Login = () => {
     e.preventDefault();
     try {
       const result = await dispatch(loginUser(formData)).unwrap();
-      console.log(result)
+      // sessionStorage.setItem('user', JSON.stringify(userData));
+  // Also store in cookies if needed for backend verification
+  // document.cookie = `sessionId=${userData.sessionId}; path=/; Secure; SameSite=Strict`;
+      console.log(result);
       toast.success("Login successful!");
       const redirectPath = location.state?.from?.pathname || "/dashboard";
       navigate(redirectPath, { replace: true });
@@ -37,14 +40,10 @@ const Login = () => {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && isAuthenticated) {
       navigate("/dashboard", { replace: true }); // Redirect after login
     }
-  }, [ navigate]);
-
-  const handleGoogleLogin = () => {
-    window.location.href = `${SERVER_URL}/user/auth/google`;
-  };
+  }, [navigate]);
 
   return (
     <div className="h-screen flex items-center justify-center py-8 md:py-20 bg-orange-50">
@@ -70,7 +69,10 @@ const Login = () => {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto flex flex-col gap-4 font-inter">
+            <form
+              onSubmit={handleSubmit}
+              className="w-full max-w-md mx-auto flex flex-col gap-4 font-inter"
+            >
               <div className="flex flex-col gap-1">
                 <label htmlFor="email" className="font-medium pl-1">
                   Email
@@ -82,7 +84,8 @@ const Login = () => {
                   placeholder="Please fill your email"
                   className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-200 focus:outline-none focus:border-orange-300"
                   required
-                  value={formData.email} onChange={handleInputChange}
+                  value={formData.email}
+                  onChange={handleInputChange}
                 />
               </div>
 
@@ -96,7 +99,8 @@ const Login = () => {
                   name="password"
                   required={true}
                   className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-200 focus:outline-none focus:border-orange-300 w-full"
-                  value={formData.password} onChange={handleInputChange}
+                  value={formData.password}
+                  onChange={handleInputChange}
                 />
               </div>
 
@@ -111,9 +115,11 @@ const Login = () => {
                   {loading ? "Logging in..." : "Login"}
                 </button>
                 <p className="font-bold text-lg">OR</p>
-                <button onClick={handleGoogleLogin} className="bg-orange-50 p-3 rounded-full hover:bg-orange-100">
+                {/* <button onClick={handleGoogleLogin} className="bg-orange-50 p-3 rounded-full hover:bg-orange-100">
                   <FcGoogle size={30} />
-                </button>
+                </button> */}
+
+                  <GoogleAuth/>
 
                 <p className="text-sm text-gray-600">
                   New to Ticketeer?{" "}
