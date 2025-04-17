@@ -39,8 +39,10 @@ const CreateTicket = () => {
     type: "",
     price: "",
     quantity: "",
+    description: "",
   });
   const [ticket, setTicket] = useState([]);
+  const [allTickets, setAllTickets] = useState([]);
   const [event, setEvent] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,96 +113,112 @@ const CreateTicket = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     createTicket();
   };
 
+  const handleAddAnotherTicket = () => {
+    // Validate required fields (basic check)
+    if (!ticketData.type || !ticketData.price || !ticketData.quantity) {
+      alert("Please fill in ticket type, price, and quantity.");
+      return;
+    }
+
+    // Add current ticket to the list
+    setAllTickets((prev) => [...prev, ticketData]);
+
+    // Reset the form for the next ticket
+    setTicketData({
+      type: "",
+      price: "",
+      quantity: "",
+      description: "",
+    });
+  };
+
   return (
-    <section className="bg-orange-100 py-28 font-inter px-10">
-      <div className="flex justify-between px-10 gap-8">
-        <div className="flex flex-col gap-6 w-1/3 px-8 items-center">
-          <div className="flex  flex-col gap-4 px-4 py-6 w-full bg-orange-300 shadow-md bg-opacity-50 rounded-xl">
-            <div className="flex justify-between items-start">
-              <div className="w-auto h-[75px]">
-                <img
-                  src={event?.image?.imageUrl}
-                  alt="User image"
-                  className="w-full h-full rounded-lg object-cover"
-                />
-              </div>
-              {/* <button
-                className="hover:bg-orange-100 cursor-pointer p-2 rounded-lg"
-                // onClick={toggleModal}
-              >
-                <MdOutlineModeEdit size={20} />
-              </button> */}
+    <section className="bg-orange-50 dark:bg-neutral-900 min-h-screen py-20 px-4 sm:px-8 md:px-12 lg:py-24 font-inter">
+      <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-10 border-t lg:border-t-0 lg:border-l lg:pl-10 border-orange-100 dark:border-neutral-800 pt-10 lg:pt-0">
+        {/* Event Summary Sidebar (Sticky) */}
+        <div className="flex flex-col gap-6 w-full lg:w-1/3 sticky top-24 h-fit">
+          <div className="bg-white dark:bg-neutral-800 shadow-lg rounded-3xl border border-orange-200 dark:border-neutral-700 p-6">
+            <div className="w-full h-[150px] overflow-hidden rounded-xl mb-4">
+              <img
+                src={event?.image?.imageUrl}
+                alt="Event"
+                className="w-full h-full object-cover rounded-xl"
+              />
             </div>
-            <div className="space-y-1">
-              <p className="font-medium text-gray-900 text-base">
+            <div className="space-y-2 text-gray-700 dark:text-gray-200">
+              <p className="font-semibold text-xl text-orange-600 dark:text-orange-400">
                 {event?.title}
               </p>
-              <p className="font-normal text-gray-500 text-xs">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {event?.startDate &&
                 event?.startTime &&
                 event?.endDate &&
                 event?.endTime ? (
                   <>
-                    {formatDate(event.startDate)}, {formatTime(event.startTime)}{" "}
-                    – <br /> {formatDate(event.endDate)}{" "}
+                    {formatDate(event.startDate)}, {formatTime(event.startTime)}
+                    <br />– {formatDate(event.endDate)}{" "}
                     {formatTime(event.endTime)}
                   </>
                 ) : (
                   <span>Date & time info unavailable</span>
                 )}
               </p>
-              <p className="font-normal text-gray-500 text-xs">
+              <p className="text-sm">
                 {event.eventType === "virtual" ? (
-                  <>
-                    <a
-                      href={event.meetLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 underline"
-                    >
-                      Join Meeting
-                    </a>
-                  </>
+                  <a
+                    href={event.meetLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 underline"
+                  >
+                    Join Meeting
+                  </a>
+                ) : event?.location?.[2] && event?.location?.[1] ? (
+                  `${event.location[2]}, ${event.location[1]}`
                 ) : (
-                  <>
-                    {event?.location?.[2] && event?.location?.[1]
-                      ? `${event.location[2]}, ${event.location[1]}`
-                      : "Location unavailable"}{" "}
-                  </>
+                  "Location unavailable"
                 )}
               </p>
-              <p className="font-medium text-gray-700 text-sm">
-                {event?.description}
-              </p>
+              <p className="text-sm">{event?.description}</p>
             </div>
           </div>
-          <div className="flex flex-col gap-1 px-6 py-4 w-full bg-orange-300 shadow-md bg-opacity-50 rounded-xl">
-            <p className="font-medium text-sm text-gray-700">Host</p>
-            <p className="font-medium text-base">
+
+          <div className="bg-white dark:bg-neutral-800 shadow-lg rounded-3xl border border-orange-200 dark:border-neutral-700 p-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Host</p>
+            <p className="font-semibold text-base text-gray-800 dark:text-gray-200">
               {user.name}{" "}
-              <span className="font-normal text-gray-500 text-xs">
-                {"(you)"}
+              <span className="text-gray-500 dark:text-gray-400 text-sm">
+                (you)
               </span>
             </p>
           </div>
         </div>
-        <div className="w-full flex flex-col gap-8 items-center">
-          <div className="bg-orange-300 shadow-md flex flex-col gap-6 bg-opacity-50 rounded-lg w-full p-10 text-gray-700">
-            <div className="flex flex-col gap-2 ">
-              <p className="font-semibold text-3xl">Tickets and payments</p>
-              <p className="font-medium text-base">
+
+        {/* Ticket Form */}
+        <div className="flex-1 flex flex-col gap-10">
+          <div className="bg-white dark:bg-neutral-800 shadow-lg rounded-3xl border border-orange-200 dark:border-neutral-700 p-8 space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                Tickets and Payments
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Set up your event tickets with debit/credit card & crypto
                 payment options
               </p>
             </div>
-            <form className="w-full flex flex-col gap-6 font-inter ">
-              <div className="flex flex-col gap-1 w-full">
-                <label htmlFor="type" className="font-medium pl-1">
+
+            <form className="space-y-6">
+              <div>
+                <label
+                  htmlFor="type"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
                   Ticket type
                 </label>
                 <input
@@ -208,40 +226,46 @@ const CreateTicket = () => {
                   id="type"
                   name="type"
                   placeholder="General admission"
-                  className="bg-orange-50 p-2 rounded-lg border-b-2 w-full border-orange-400 focus:outline-none focus:border-orange-300"
+                  className="w-full bg-orange-50 dark:bg-neutral-700 border border-orange-400 dark:border-neutral-600 text-gray-900 dark:text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
                   required
                   onChange={handleInputChange}
                   value={ticketData.type}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-5">
-                <div className="flex flex-col gap-1 w-full">
-                  <label htmlFor="price" className="font-medium pl-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    htmlFor="price"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >
                     Price
                   </label>
                   <input
                     type="number"
                     id="price"
                     name="price"
-                    placeholder="eg: 20"
-                    className="bg-orange-50 p-2 rounded-lg border-b-2 w-full border-orange-400 focus:outline-none focus:border-orange-300"
+                    placeholder="e.g. 20"
+                    className="w-full bg-orange-50 dark:bg-neutral-700 border border-orange-400 dark:border-neutral-600 text-gray-900 dark:text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
                     required
                     onChange={handleInputChange}
                     value={ticketData.price}
                   />
                 </div>
 
-                <div className="flex flex-col gap-1 w-full">
-                  <label htmlFor="quantity" className="font-medium pl-1">
+                <div>
+                  <label
+                    htmlFor="quantity"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >
                     Quantity
                   </label>
                   <input
                     type="number"
                     id="quantity"
                     name="quantity"
-                    placeholder="eg: 50"
-                    className="bg-orange-50 p-2 rounded-lg border-b-2 w-full border-orange-400 focus:outline-none focus:border-orange-300"
+                    placeholder="e.g. 50"
+                    className="w-full bg-orange-50 dark:bg-neutral-700 border border-orange-400 dark:border-neutral-600 text-gray-900 dark:text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
                     required
                     onChange={handleInputChange}
                     value={ticketData.quantity}
@@ -249,39 +273,64 @@ const CreateTicket = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1 w-full">
-                <label htmlFor="description" className="font-medium pl-1">
+              <div>
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
                   Description (optional)
                 </label>
                 <textarea
-                  type="text"
                   id="description"
                   name="description"
-                  placeholder="description"
-                  className="bg-orange-50 p-2 rounded-lg border-b-2 w-full min-h-[100px] max-h-[150px] border-orange-400 focus:outline-none focus:border-orange-300"
-                  required
+                  placeholder="Description"
+                  rows="4"
+                  className="w-full bg-orange-50 dark:bg-neutral-700 border border-orange-400 dark:border-neutral-600 text-gray-900 dark:text-white rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"
                   onChange={handleInputChange}
                   value={ticketData.description}
                 />
               </div>
 
-              {/* <div className="py-2 px-8 bg-slate-500 flex gap-1 items-center text-white hover:bg-slate-600 rounded-md text-sm max-w-[250px]">
-                <IoIosAdd size={30} />
-                <button>Add another ticket</button>
-              </div> */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleAddAnotherTicket}
+                  aria-label="Add another ticket"
+                  className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-base font-medium px-6 py-3 rounded-full transition duration-200"
+                >
+                  <IoIosAdd size={20} />
+                  Add another ticket
+                </button>
+              </div>
             </form>
           </div>
-          <div className="flex justify-between w-full px-10 items-center">
-            <div className="flex gap-2 items-center justify-center">
+
+          {allTickets.length > 0 && (
+            <div className="bg-white dark:bg-neutral-800 shadow-lg rounded-3xl border border-orange-200 dark:border-neutral-700 p-6">
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                Tickets Added:
+              </h4>
+              <ul className="list-disc pl-5 text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                {allTickets.map((ticket, index) => (
+                  <li key={index}>
+                    {ticket.type} — ${ticket.price} — Qty: {ticket.quantity}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <p>Create</p>
               <IoIosArrowForward />
               <p>Buy tickets</p>
-              {/* <IoIosArrowForward />
-              <p className="text-gray-500">Publish</p> */}
             </div>
             <button
               onClick={handleSubmit}
-              className="py-3 px-8 bg-slate-500 text-white text-center hover:bg-slate-600 rounded-md text-sm max-w-[200px]"
+              aria-label="Create event"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-full transition"
             >
               Create
             </button>

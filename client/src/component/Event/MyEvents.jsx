@@ -20,8 +20,8 @@ const MyEvents = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const openEditModal = () => {
     setEditModalOpen(true);
@@ -85,138 +85,168 @@ const MyEvents = () => {
   if (loading.userEvents) return <Loader loading={loading.userEvents} />;
 
   return (
-    <section className="font-inter bg-orange-100 min-h-screen">
-      <div className="w-full py-28 px-4 sm:px-6 md:px-10 lg:px-20">
-        {/* Search Bar */}
-        <div className="border-b border-gray-300 mb-5">
-          <div className="bg-customGradient p-1 rounded-xl">
-            <div className="flex flex-col sm:flex-row items-center justify-between w-full py-3 px-4 bg-orange-100 rounded-xl text-slate-500">
-              <div className="flex items-center gap-2 w-full relative">
-                <IoIosSearch size={20} />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-transparent w-full outline-none text-sm text-gray-800 placeholder-gray-500 pr-8"
-                  placeholder="Search by name, location, date, category, or time"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm("")}
-                    className="absolute right-0 text-gray-400 hover:text-red-500 px-2"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
+    <section className="font-inter bg-orange-50 dark:bg-zinc-900 min-h-screen py-20 px-4 sm:px-6 md:px-10 lg:px-20">
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 shadow-sm rounded-xl p-3">
+          <div className="flex items-center gap-3">
+            <IoIosSearch
+              size={20}
+              className="text-gray-500 dark:text-zinc-400"
+            />
+            <div className="relative flex-grow">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full text-sm px-3 py-2 bg-transparent placeholder-gray-400 dark:placeholder-zinc-500 text-gray-800 dark:text-zinc-100 outline-none"
+                placeholder="Search by name, location, date, category, or time"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-red-500"
+                >
+                  ×
+                </button>
+              )}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Events Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-[800px] w-full table-auto border-collapse">
-            <thead className="border-b border-gray-400 text-gray-700">
-              <tr>
-                {["Event", "Date", 'Time', "Event Type", "Location", "Meet Link", "Event Capacity", "Actions"].map((title) => (
-                  <th key={title} className="text-left px-4 py-3 font-medium text-sm md:text-base whitespace-nowrap">
-                    {title}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEvents && filteredEvents.length > 0 ? (
-                filteredEvents.map((event, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-300 hover:bg-orange-200 transition-colors duration-200 cursor-pointer"
-                    onClick={() => handleNavigate(event._id)}
+      {/* Events Table */}
+      <div className="overflow-x-auto bg-white dark:bg-zinc-800 shadow-md rounded-xl border border-gray-200 dark:border-zinc-700">
+        <table className="min-w-[800px] w-full table-auto">
+          <thead className="bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-zinc-200 text-sm">
+            <tr>
+              {[
+                "Event",
+                "Date",
+                "Time",
+                "Event Type",
+                "Location",
+                "Meet Link",
+                "Capacity",
+                "Actions",
+              ].map((title) => (
+                <th
+                  key={title}
+                  className="px-5 py-4 text-left font-semibold whitespace-nowrap"
+                >
+                  {title}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredEvents && filteredEvents.length > 0 ? (
+              filteredEvents.map((event, index) => (
+                <tr
+                  key={index}
+                  className="border-t border-zinc-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                  onClick={() => handleNavigate(event._id)}
+                >
+                  <td className="px-5 py-4 text-sm">
+                    <div className="flex items-center gap-3">
+                      <img
+                        className="rounded-full w-10 h-10 object-cover shadow-sm"
+                        src={event.image?.imageUrl}
+                        alt="event"
+                      />
+                      <span className="font-medium text-gray-800 dark:text-zinc-100">
+                        {event.title}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-4 text-sm text-gray-600 dark:text-zinc-400">
+                    {formatDate(event.startDate)}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-gray-600 dark:text-zinc-400">
+                    {event.startTime}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-gray-600 dark:text-zinc-400 capitalize">
+                    {event.eventType}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-gray-600 dark:text-zinc-400">
+                    {event.eventType === "physical"
+                      ? `${event.location[2]}, ${event.location[1]}`
+                      : "-"}
+                  </td>
+                  <td className="px-5 py-4 text-sm">
+                    {event.eventType === "virtual" ? (
+                      <a
+                        href={event.meetLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Join Meeting
+                      </a>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-gray-600 dark:text-zinc-400">
+                    {event.limit}
+                  </td>
+                  <td
+                    className="px-5 py-4 text-sm"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <td className="px-4 py-4 text-sm whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <img
-                          className="rounded-full w-[40px] h-[40px] object-cover shadow-sm"
-                          src={event.image?.imageUrl}
-                          alt="event"
-                        />
-                        <span className="text-sm font-medium">{event.title}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-sm whitespace-nowrap">
-                      {formatDate(event.startDate)}
-                    </td>
-                    <td className="px-4 py-4 text-sm whitespace-nowrap">
-                      {event.startTime}
-                    </td>
-                    <td className="px-4 py-4 text-sm whitespace-nowrap capitalize">
-                      {event.eventType}
-                    </td>
-                    <td className="px-4 py-4 text-sm whitespace-nowrap">
-                      {event.eventType === "physical"
-                        ? `${event.location[2]}, ${event.location[1]}`
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-4 text-sm whitespace-nowrap">
-                      {event.eventType === "virtual" ? (
-                        <a
-                          href={event.meetLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-500 underline"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Join Meeting
-                        </a>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="px-4 py-4 text-sm whitespace-nowrap">{event.limit}</td>
-                    <td
-                      className="px-4 py-4 text-sm whitespace-nowrap"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="flex gap-3 items-center text-gray-600">
-                        <MdModeEditOutline className="hover:text-blue-600 cursor-pointer" size={20} onClick={openEditModal}/>
-                        <RiDeleteBin5Line className="hover:text-red-600 cursor-pointer" size={20} onClick={openDeleteModal}/>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7}>
-                    <div className="flex flex-col items-center gap-6 w-full justify-center px-6 py-10 bg-orange-100 bg-opacity-60 rounded-xl shadow-sm">
-                      <MdEventBusy size={100} className="text-gray-400" />
-                      <div className="flex flex-col gap-2 text-center">
-                        <p className="font-semibold text-xl text-gray-800">No events found</p>
-                        <p className="text-sm text-gray-600">
-                          Try adjusting your search or create a new event!
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap gap-4 items-center justify-center">
-                        <Link to="/event-list">
-                          <button className="px-6 py-2 bg-orange-400 text-white font-medium rounded-full text-sm hover:bg-orange-500 transition-colors">
-                            Explore events
-                          </button>
-                        </Link>
-                        <Link to="/create-event">
-                          <button className="px-6 py-2 bg-slate-600 text-white rounded-full text-sm hover:bg-slate-700 transition-colors">
-                            Create events
-                          </button>
-                        </Link>
-                      </div>
+                    <div className="flex gap-3 items-center text-gray-500 dark:text-zinc-400">
+                      <MdModeEditOutline
+                        className="hover:text-orange-600 cursor-pointer"
+                        size={20}
+                        onClick={openEditModal}
+                      />
+                      <RiDeleteBin5Line
+                        className="hover:text-red-600 cursor-pointer"
+                        size={20}
+                        onClick={openDeleteModal}
+                      />
                     </div>
                   </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={8}>
+                  <div className="flex flex-col items-center justify-center text-center px-8 py-12">
+                    <MdEventBusy
+                      size={80}
+                      className="text-gray-300 dark:text-zinc-500 mb-4"
+                    />
+                    <p className="text-lg font-semibold text-gray-800 dark:text-zinc-100 mb-2">
+                      No events found
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-zinc-400 mb-6">
+                      Try adjusting your search or create a new event.
+                    </p>
+                    <div className="flex gap-4 flex-wrap justify-center">
+                      <Link to="/event-list">
+                        <button className="px-5 py-2 bg-orange-600 text-white rounded-full text-sm hover:bg-orange-700 transition">
+                          Explore events
+                        </button>
+                      </Link>
+                      <Link to="/create-event">
+                        <button className="px-5 py-2 bg-gray-700 dark:bg-zinc-700 text-white rounded-full text-sm hover:bg-gray-800 dark:hover:bg-zinc-800 transition">
+                          Create event
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
-      {editModalOpen && <EditEventModal onClose={closeEditModal}/>}
-      {deleteModalOpen && <DeleteEvent onClose={closeDeleteModal}/>}
+
+      {/* Modals */}
+      {editModalOpen && <EditEventModal onClose={closeEditModal} />}
+      {deleteModalOpen && <DeleteEvent onClose={closeDeleteModal} />}
     </section>
   );
 };

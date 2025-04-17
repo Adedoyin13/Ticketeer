@@ -8,106 +8,133 @@ import Logout from "../../Modals/UserModal/Logout";
 import DeleteAccount from "../../Modals/UserModal/DeleteAccount";
 
 const Settings = () => {
-  const [shareModal, setShareModal] = useState(false)
-  const [logoutModal, setLogoutModal] = useState(false)
-  const [deleteModal, setDeleteModal] = useState(false)
+  const [shareModal, setShareModal] = useState(false);
+  const [logoutModal, setLogoutModal] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
 
   const openShareModal = () => {
-    setShareModal(true)
-  }
+    setShareModal(true);
+  };
 
   const closeShareModal = () => {
-    setShareModal(false)
-  }
+    setShareModal(false);
+  };
 
   const openLogoutModal = () => {
-    setLogoutModal(true)
-  }
+    setLogoutModal(true);
+  };
 
   const closeLogoutModal = () => {
-    setLogoutModal(false)
-  }
+    setLogoutModal(false);
+  };
 
   const openDeleteModal = () => {
-    setDeleteModal(true)
-  }
+    setDeleteModal(true);
+  };
 
   const closeDeleteModal = () => {
-    setDeleteModal(false)
-  }
+    setDeleteModal(false);
+  };
 
   return (
-    <div className="flex justify-center items-center bg-orange-100 h-screen">
-      <div className="relative flex flex-col gap-2 py-6 px-1 rounded-xl shadow-lg bg-orange-300 bg-opacity-50">
-        <Link to='/settings/profile-update'>
-          <div className="flex justify-between items-center hover:bg-orange-100 rounded-lg gap-4 w-full pr-8 py-2 cursor-pointer">
-            <div className="flex justify-between items-center w-full gap-4 px-10">
-              <button>
-                <MdLogout size={25} />
-              </button>
-              <div className="flex flex-col items-start ">
-                <p className="font-medium text-xl">Edit Profile</p>
-                <p className="font-normal text-lg">
-                  Update your informations to fit accurately
+    <div className="flex justify-center items-center bg-orange-50 dark:bg-zinc-900 min-h-screen px-4">
+      <div className="w-full max-w-md bg-white dark:bg-zinc-800/60 bg-opacity-70 dark:bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4 transition-all">
+        {/* Profile Update */}
+        <Link to="/settings/profile-update">
+          <div className="flex items-center justify-between hover:bg-orange-100 dark:hover:bg-zinc-700 rounded-xl px-4 py-3 cursor-pointer transition">
+            <div className="flex items-center gap-4">
+              <MdLogout
+                size={24}
+                className="text-slate-700 dark:text-zinc-200"
+              />
+              <div className="flex flex-col">
+                <p className="text-base font-semibold text-slate-800 dark:text-zinc-100">
+                  Edit Profile
+                </p>
+                <p className="text-sm text-slate-600 dark:text-zinc-400">
+                  Update your information
                 </p>
               </div>
             </div>
-            <button>
-              <IoIosArrowForward size={25} />
-            </button>
+            <IoIosArrowForward
+              size={22}
+              className="text-slate-500 dark:text-zinc-400"
+            />
           </div>
         </Link>
 
-        <div className="flex justify-between items-center hover:bg-orange-100 rounded-lg gap-5 w-full pr-8 py-2 cursor-pointer" onClick={openShareModal}>
-          <div className="flex justify-between items-center gap-4 px-10">
-            <button>
-              <MdOutlineIosShare size={25} />
-            </button>
-            <div className="flex flex-col items-start ">
-              <p className="font-medium text-xl">Share</p>
-              <p className="font-normal text-lg">
-                Share across to a wide rage of audience
+        {/* Share */}
+        <div
+          onClick={openShareModal}
+          className="flex items-center justify-between hover:bg-orange-100 dark:hover:bg-zinc-700 rounded-xl px-4 py-3 cursor-pointer transition"
+        >
+          <div className="flex items-center gap-4">
+            <MdOutlineIosShare
+              size={24}
+              className="text-slate-700 dark:text-zinc-200"
+            />
+            <div className="flex flex-col">
+              <p className="text-base font-semibold text-slate-800 dark:text-zinc-100">
+                Share
+              </p>
+              <p className="text-sm text-slate-600 dark:text-zinc-400">
+                Reach a wide audience
               </p>
             </div>
           </div>
-          <button>
-            <IoIosArrowForward size={25} />
-          </button>
+          <IoIosArrowForward
+            size={22}
+            className="text-slate-500 dark:text-zinc-400"
+          />
         </div>
 
-        <div className="flex justify-between items-center hover:bg-orange-100 rounded-lg gap-5 w-full pr-8 py-2 cursor-pointer" onClick={openLogoutModal}>
-          <div className="flex justify-between items-center gap-4 px-10">
-            <button>
-              <MdModeEdit size={25} />
-            </button>
-            <div className="flex flex-col items-start ">
-              <p className="font-medium text-xl">Log out</p>
-              <p className="font-normal text-lg">See you in a while</p>
+        {/* Logout */}
+        <div
+          onClick={openLogoutModal}
+          className="flex items-center justify-between hover:bg-orange-100 dark:hover:bg-zinc-700 rounded-xl px-4 py-3 cursor-pointer transition"
+        >
+          <div className="flex items-center gap-4">
+            <MdModeEdit
+              size={24}
+              className="text-slate-700 dark:text-zinc-200"
+            />
+            <div className="flex flex-col">
+              <p className="text-base font-semibold text-slate-800 dark:text-zinc-100">
+                Log out
+              </p>
+              <p className="text-sm text-slate-600 dark:text-zinc-400">
+                See you soon
+              </p>
             </div>
           </div>
-          <button>
-            <IoIosArrowForward size={25} />
-          </button>
+          <IoIosArrowForward
+            size={22}
+            className="text-slate-500 dark:text-zinc-400"
+          />
         </div>
 
-        <div className="flex justify-between items-center hover:bg-orange-100 rounded-lg gap-5 w-full pr-8 py-2 cursor-pointer" onClick={openDeleteModal}>
-          <div className="flex justify-between items-center gap-4 px-10 text-red-600">
-            <button>
-              <RiDeleteBinLine size={25} />
-            </button>
-            <div className="flex flex-col items-start">
-              <p className="font-medium text-xl">Delete account</p>
-              <p className="font-normal text-lg">We're sorry to see you go</p>
+        {/* Delete Account */}
+        <div
+          onClick={openDeleteModal}
+          className="flex items-center justify-between hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl px-4 py-3 cursor-pointer transition"
+        >
+          <div className="flex items-center gap-4 text-red-600 dark:text-red-500">
+            <RiDeleteBinLine size={24} />
+            <div className="flex flex-col">
+              <p className="text-base font-semibold">Delete Account</p>
+              <p className="text-sm">We're sorry to see you go</p>
             </div>
           </div>
-          <button>
-            <IoIosArrowForward size={25} />
-          </button>
+          <IoIosArrowForward
+            size={22}
+            className="text-red-500 dark:text-red-400"
+          />
         </div>
       </div>
-      {shareModal && <ShareModal onClose={closeShareModal}/>}
-      {logoutModal && <Logout onClose={closeLogoutModal}/>}
-      {deleteModal && <DeleteAccount onClose={closeDeleteModal}/>}
+
+      {shareModal && <ShareModal onClose={closeShareModal} />}
+      {logoutModal && <Logout onClose={closeLogoutModal} />}
+      {deleteModal && <DeleteAccount onClose={closeDeleteModal} />}
     </div>
   );
 };

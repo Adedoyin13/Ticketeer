@@ -28,16 +28,14 @@ const formatDate = (dateString) => {
   });
 };
 
-const EventGrid = ({events}) => {
+const EventGrid = ({ events }) => {
   const dispatch = useDispatch();
   const location = useLocation();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   // const { upcomingEvents, loading, error } = useSelector(
   //   (state) => state.events
   // );
-  const { loading, error } = useSelector(
-    (state) => state.events
-  );
+  const { loading, error } = useSelector((state) => state.events);
 
   // console.log(upcomingEvents);
 
@@ -57,34 +55,47 @@ const EventGrid = ({events}) => {
   };
 
   return (
-    <section>
-  <div className="flex w-full mt-6 font-inter px-4">
-    <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 w-full gap-6 cursor-pointer">
-      {events.map((event, index) => {
-        const backgroundImage = `url(${event.image.imageUrl})`;
-        return (
-          <div
-            key={index}
-            className="w-full h-[200px] flex items-end shadow-md rounded-2xl overflow-hidden p-2 transform transition-all hover:scale-105 hover:shadow-xl duration-300"
-            onClick={() => handleNavigate(event._id)}
-            style={{ backgroundImage }}
-          >
-            <div className="bg-orange-200 flex justify-between items-center w-full rounded-lg bg-opacity-60 p-3 backdrop-blur-sm">
-              <div className="flex flex-col gap-1 text-black">
-                <p className="font-semibold">{event.title}</p>
-                <p className="text-sm">{formatDate(event.startDate)}</p>
-              </div>
-              <div className="flex justify-center items-center bg-slate-400 rounded-lg h-[40px] w-[50px] px-3">
-                <p className="text-white font-bold">{event.limit}</p>
+    <section className="w-full px-4 sm:px-6 md:px-10 font-inter mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {events.map((event, index) => {
+          return (
+            <div
+              key={index}
+              onClick={() => handleNavigate(event._id)}
+              className="relative h-[220px] rounded-2xl overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg transition duration-300"
+            >
+              {/* Background image */}
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{
+                  backgroundImage: `url(${
+                    event.image.imageUrl || "/default-image.png"
+                  })`,
+                }}
+              />
+
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition duration-300 backdrop-blur-sm" />
+
+              {/* Content */}
+              <div className="relative z-10 flex items-end h-full px-2 py-2">
+                <div className="bg-white dark:bg-zinc-900 bg-opacity-80 dark:bg-opacity-80 w-full rounded-xl p-3 flex justify-between items-center backdrop-blur-md">
+                  <div className="flex flex-col text-gray-800 dark:text-zinc-200">
+                    <p className="font-semibold text-base sm:text-lg line-clamp-1">
+                      {event.title}
+                    </p>
+                    <p className="text-sm">{formatDate(event.startDate)}</p>
+                  </div>
+                  <div className="flex justify-center items-center bg-orange-400 text-white font-bold rounded-md h-10 w-12 text-center text-sm">
+                    {event?.ticketTypes.map((pr) => pr.price)}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
-  </div>
-</section>
-
+          );
+        })}
+      </div>
+    </section>
   );
 };
 

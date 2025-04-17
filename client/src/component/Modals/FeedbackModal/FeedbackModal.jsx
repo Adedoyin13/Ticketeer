@@ -1,62 +1,84 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaUserSlash } from "react-icons/fa";
 import { IoIosSearch } from "react-icons/io";
+import img from "./../../../assets/default-img.png";
 
 const feedback = [
   {
     name: "User",
     email: "user@gmail.com",
     comment:
-      "The event is a very educative one, kudos to the host. The event is a very educative one, kudos to the host. The event is a very educative one, kudos to the host",
+      "The event is a very educative one, kudos to the host. The event is a very educative one, kudos to the host.",
+    rating: "",
+  },
+  {
+    name: "Jane Doe",
+    email: "jane@example.com",
+    comment: "Amazing organization, loved the venue!",
     rating: "",
   },
 ];
 
 const FeedbackModal = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredFeedback = feedback.filter(
+    ({ name, email, comment }) =>
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      comment.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50 font-inter">
-      <div className="flex flex-col items-center gap-6 px-8 py-10 rounded-lg shadow-lg relative w-1/3 bg-orange-300 text-center">
-        <div className="bg-customGradient p-1 rounded-xl flex items-center w-full mb-5">
-          <div className="flex flex-col sm:flex-row items-center justify-between w-full py-3 px-4 bg-orange-100 rounded-xl text-slate-500">
-            <form className="flex gap-2 w-full">
-              <button className="">
-                <IoIosSearch />
-              </button>
-              <input
-                type="text"
-                className="bg-transparent w-full outline-none"
-                placeholder="Search by event name, location, date, or category"
-                name="search"
-              />
-            </form>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 font-inter">
+      <div className="w-full max-w-2xl mx-4 md:mx-auto bg-white rounded-2xl shadow-2xl p-6 md:p-10 flex flex-col gap-6 relative">
+
+        {/* Search Bar */}
+        <div className="w-full">
+          <form className="flex items-center bg-zinc-100 px-4 py-2 rounded-xl gap-2">
+            <IoIosSearch className="text-zinc-500" size={22} />
+            <input
+              type="text"
+              placeholder="Search feedback by name, email, or comment"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent w-full outline-none text-sm text-zinc-700"
+            />
+          </form>
         </div>
 
-        <div className="flex flex-col gap-2 w-full">
-                    {feedback.map((event, index) => (
-                      <div
-                        key={index}
-                        className="flex gap-2 cursor-pointer hover:bg-orange-50 w-full rounded-lg py-2 px-4 border-gray-400 border"
-                      >
-                        <div className="w-[25px] h-[25px] overflow-hidden rounded-full bg-white">
-                          <img
-                            src={img}
-                            alt="User image"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <p>{event.organizer}</p>
-                      </div>
-                    ))}
-                  </div>
-
-        {/* <div className="flex flex-col gap-4 items-center text-gray-700">
-          <FaUserSlash size={75} className="" />
-          <div className="flex flex-col gap-1">
-            <p>No attendee yet</p>
-            <p>You do not have any attendee yet for this event</p>
-          </div>
-        </div> */}
+        {/* Feedback List */}
+        <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto scrollbar-thin pr-2">
+          {filteredFeedback.length > 0 ? (
+            filteredFeedback.map((entry, index) => (
+              <div
+                key={index}
+                className="flex gap-4 p-4 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition"
+              >
+                <div className="min-w-[40px] h-[40px] overflow-hidden rounded-full bg-zinc-200">
+                  <img
+                    src={img}
+                    alt={`${entry.name}'s profile`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="text-left flex-1">
+                  <p className="font-semibold text-zinc-800">{entry.name}</p>
+                  <p className="text-sm text-zinc-500">{entry.email}</p>
+                  <p className="text-sm text-zinc-700 mt-2 leading-snug">
+                    {entry.comment}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-10 text-zinc-500">
+              <FaUserSlash size={60} />
+              <p className="font-medium text-lg">No feedback found</p>
+              <p className="text-sm">Try adjusting your search terms</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

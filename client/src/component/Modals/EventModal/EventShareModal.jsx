@@ -33,115 +33,87 @@ const EventShareModal = ({ eventId, eventName, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50 font-inter text-slate-800 px-10">
-      <div className="flex flex-col gap-8 py-4 px-4 sm:px-8 rounded-lg shadow-lg bg-orange-300 text-center w-full max-w-[500px]">
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 font-inter text-slate-800 dark:text-zinc-100 px-4 sm:px-10">
+      <div className="flex flex-col gap-6 py-6 px-6 sm:px-8 rounded-2xl shadow-xl bg-white dark:bg-zinc-900 w-full max-w-[500px] text-center border border-zinc-200 dark:border-zinc-700">
         {/* Modal Header */}
-        <div className="flex justify-between items-center py-2 px-2 sm:px-4 gap-5 border-b border-slate-700">
+        <div className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-700 pb-4">
           <div className="flex items-center gap-3">
-            <button>
-              <TfiWorld size={32} />
-            </button>
-            <p className="font-semibold text-2xl">Share Link</p>
+            <TfiWorld size={28} className="text-orange-500" />
+            <p className="font-semibold text-xl text-slate-700 dark:text-zinc-100">
+              Share Link
+            </p>
           </div>
-          <div
-            className="hover:bg-orange-100 cursor-pointer p-4 w-14 h-14 rounded-lg items-center flex justify-center"
+          <button
             onClick={onClose}
+            className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-2 rounded-full transition"
           >
-            <IoClose size={40} />
-          </div>
+            <IoClose size={28} />
+          </button>
         </div>
 
-        {/* Social Icons Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-12 px-2 sm:px-6">
-          {/* Whatsapp */}
-          <div className="flex flex-col gap-2 items-center">
-            <a
-              href={shareLinks.whatsapp}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-green-500"
-            >
-              <button className="text-green-700">
-                <BsWhatsapp size={40} />
-              </button>
-            </a>
-            <p>Whatsapp</p>
-          </div>
-
-          {/* Twitter (X) */}
-          <div className="flex flex-col gap-2 items-center">
-            <a href={shareLinks.x} target="_blank" rel="noopener noreferrer">
-              <button className="">
-                <FaXTwitter size={40} />
-              </button>
-            </a>
-            <p>X</p>
-          </div>
-
-          {/* Facebook */}
-          <div className="flex flex-col gap-2 items-center">
-            <a
-              href={shareLinks.facebook}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600"
-            >
-              <button className="text-blue-500 bg-white rounded-full">
-                <FaFacebook size={40} />
-              </button>
-            </a>
-            <p>Facebook</p>
-          </div>
-
-          {/* Telegram */}
-          <div className="flex flex-col gap-2 items-center">
-            <a
-              href={shareLinks.telegram}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500"
-            >
-              <button className="text-blue-400 bg-white rounded-full">
-                <SiTelegram size={40} />
-              </button>
-            </a>
-            <p>Telegram</p>
-          </div>
-
-          {/* LinkedIn */}
-          <div className="flex flex-col gap-2 items-center">
-            <a
-              href={shareLinks.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-700"
-            >
-              <FaLinkedin size={40} />
-            </a>
-            <p>LinkedIn</p>
-          </div>
-
-          {/* Google */}
-          <div className="flex flex-col gap-2 items-center">
-            <a
-              href={shareLinks.google}
-              target="_blank"
-              rel="noopener noreferrer"
-              className=""
-            >
-              <FcGoogle size={40} />
-            </a>
-            <p>Google</p>
-          </div>
+        {/* Social Icons */}
+        <div className="grid grid-cols-3 sm:grid-cols-3 gap-6 px-2 sm:px-4">
+          {[
+            {
+              icon: <BsWhatsapp size={28} />,
+              label: "WhatsApp",
+              href: shareLinks.whatsapp,
+              color: "text-green-500",
+            },
+            {
+              icon: <FaXTwitter size={28} />,
+              label: "X",
+              href: shareLinks.x,
+              color: "text-black dark:text-white",
+            },
+            {
+              icon: <FaFacebook size={28} />,
+              label: "Facebook",
+              href: shareLinks.facebook,
+              color: "text-blue-600",
+            },
+            {
+              icon: <SiTelegram size={28} />,
+              label: "Telegram",
+              href: shareLinks.telegram,
+              color: "text-blue-500",
+            },
+            {
+              icon: <FaLinkedin size={28} />,
+              label: "LinkedIn",
+              href: shareLinks.linkedin,
+              color: "text-blue-700",
+            },
+            {
+              icon: <FcGoogle size={28} />,
+              label: "Google",
+              href: shareLinks.google,
+              color: "",
+            },
+          ].map((item, index) => (
+            <div key={index} className="flex flex-col items-center gap-2">
+              <a
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center transition ${item.color}`}
+              >
+                {item.icon}
+              </a>
+              <p className="text-sm text-slate-600 dark:text-zinc-300">
+                {item.label}
+              </p>
+            </div>
+          ))}
         </div>
 
-        {/* Copy Link Button */}
-        <div className="flex items-center justify-center text-white">
+        {/* Copy Link */}
+        <div className="flex justify-center">
           <button
             onClick={copyToClipboard}
-            className="flex items-center gap-2 py-2 px-4 bg-slate-500 hover:bg-slate-600 rounded-md text-sm md:max-w-[200px]"
+            className="flex items-center gap-2 py-2 px-5 bg-slate-600 hover:bg-slate-700 text-white rounded-md text-sm shadow-sm transition"
           >
-            <AiOutlineLink size={20} />
+            <AiOutlineLink size={18} />
             Copy Link
           </button>
         </div>

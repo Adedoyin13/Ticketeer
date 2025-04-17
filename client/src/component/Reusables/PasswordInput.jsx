@@ -11,7 +11,7 @@ const PasswordInput = ({placeholder, id, name, required, className, value, onCha
   return (
     <div className="relative">
       <input type={showPassword ? 'text' : 'password'} placeholder={placeholder} id={id} name={name} required={required} className={`${className} pr-10`} value={value} onChange={onChange} onPaste={onPaste}/>
-      <button type="button" className="absolute top-1/2 right-2 transform -translate-y-1/2 cursor-pointer" onClick={togglePassword}>
+      <button type="button" className="absolute top-1/2 right-2 transform -translate-y-1/2 cursor-pointer dark:text-orange-500" onClick={togglePassword}>
         {showPassword ? (<AiOutlineEyeInvisible size={20} />) : (<AiOutlineEye size={20} />)}
       </button>
     </div>

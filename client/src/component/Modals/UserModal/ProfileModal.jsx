@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 const profileLink = [
-  { link: "Tickets", route: "/dashboard" },
+  { link: "Tickets", route: "/my-tickets" },
   { link: "Edit Profile", route: "/settings/profile-update" },
   { link: "Settings", route: "/settings" },
   { link: "Log out", route: "/settings" },
@@ -21,49 +21,66 @@ const iconMap = {
 };
 
 const ProfileModal = ({ onClose, isOpen }) => {
-  const user = useSelector((state) => state.user.user);
+  const { user } = useSelector((state) => state.user);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-end items-start z-50 font-inter">
-      <div className="flex flex-col gap-6 py-4 px-5 rounded-lg shadow-lg bg-orange-300 text-center w-[90%] max-w-[350px] mt-5 mr-5 self-start max-h-[80vh]">
-        {/* Close Button - Positioned in the top-right corner */}
-        <button className="absolute top-6 right-6 hover:bg-orange-100 cursor-pointer p-2 rounded-lg">
-          <IoClose size={25} onClick={onClose} />
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-end items-start z-50 font-inter">
+      <div className="relative w-[90%] max-w-sm mt-6 mr-6 rounded-xl bg-white dark:bg-zinc-900 text-center shadow-xl p-6 max-h-[85vh] overflow-y-auto">
+        {/* Close Button */}
+        <button
+          className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-white transition"
+          onClick={onClose}
+        >
+          <IoClose size={24} />
         </button>
 
-        {/* User Image & Info */}
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-[100px] h-[100px] overflow-hidden rounded-full bg-white">
+        {/* User Info */}
+        <div className="flex flex-col items-center gap-4 mt-4">
+          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-orange-300 shadow-md bg-orange-100 dark:bg-orange-200/10">
             <img
-              src={user?.photo?.imageUrl || user?.photo || import.meta.env.DEFAULT_IMAGE_URL}
-              alt="User image"
+              src={
+                user?.photo?.imageUrl ||
+                user?.photo ||
+                import.meta.env.DEFAULT_IMAGE_URL
+              }
+              alt="User"
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="flex flex-col items-center gap-1">
-            <p className="font-medium text-lg">{user.name}</p>
-            <p className="text-gray-700">{user.email}</p>
+          <div className="text-center">
+            <p className="text-lg font-semibold text-zinc-800 dark:text-zinc-100">
+              {user.name}
+            </p>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              {user.email}
+            </p>
           </div>
         </div>
 
+        {/* Divider */}
+        <div className="my-5 border-t border-zinc-200 dark:border-zinc-700"></div>
+
         {/* Profile Links */}
-        <div className="flex flex-col items-center gap-2 w-full">
+        <div className="flex flex-col gap-3">
           {profileLink?.map(({ link, route }, index) => {
-            const IconComponent = iconMap[link] || FaUser; // Default icon if no match
+            const Icon = iconMap[link] || FaUser;
             return (
-              <Link to={route} key={index} className="w-full" onClick={onClose}>
-                <div className="flex justify-between items-center bg-orange-50 hover:bg-orange-100 transition-colors duration-700 ease-in-out cursor-pointer w-full gap-5 p-4 rounded-md shadow-md">
-                  <div className="flex items-center gap-3">
-                    <IconComponent size={20} className="text-gray-600" />{" "}
-                    {/* Icon */}
-                    <p className="text-gray-800">{link}</p>
-                  </div>
-                  <button className="text-gray-600 hover:text-gray-900">
-                    <IoIosArrowForward size={20} />
-                  </button>
+              <Link
+                to={route}
+                key={index}
+                onClick={onClose}
+                className="flex justify-between items-center px-4 py-3 rounded-lg bg-orange-50 hover:bg-orange-100 dark:bg-orange-200/10 dark:hover:bg-orange-300/10 transition duration-300"
+              >
+                <div className="flex items-center gap-3 text-zinc-700 dark:text-zinc-200">
+                  <Icon size={20} />
+                  <span className="text-sm font-medium">{link}</span>
                 </div>
+                <IoIosArrowForward
+                  size={20}
+                  className="text-zinc-400 dark:text-zinc-500"
+                />
               </Link>
             );
           })}

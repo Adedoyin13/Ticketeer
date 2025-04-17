@@ -3,136 +3,103 @@ import { IoArrowBackOutline } from "react-icons/io5";
 
 const EditTicketModal = () => {
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-end items-start z-50 font-inter">
-      <div className="flex flex-col gap-2 py-4 px-2 rounded-lg shadow-lg bg-orange-300 w-[90%] max-w-[500px] mt-5 mr-5 self-start max-h-[90vh]">
-        {/* Header - Fixed */}
-        <div className="flex gap-4 px-4 py-2 items-center border-b text-gray-800 border-slate-700 sticky top-0 bg-orange-300 z-10">
-          <button className="hover:bg-orange-100 cursor-pointer p-4 w-14 h-14 rounded-lg">
-            {/* <IoClose size={25} onClick={onClose} /> */}
-            <IoArrowBackOutline size={20} />
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-end items-start z-50 font-inter dark:bg-zinc-900 dark:bg-opacity-70">
+      <div className="flex flex-col w-[90%] max-w-[500px] mt-6 mr-4 sm:mr-6 bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh]">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200 dark:border-zinc-700 sticky top-0 bg-white dark:bg-zinc-800 z-10">
+          <button className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-lg transition">
+            <IoArrowBackOutline
+              size={22}
+              className="text-gray-700 dark:text-zinc-200"
+            />
           </button>
-          <p className="font-medium text-lg">Edit ticket</p>
+          <p className="text-lg font-semibold text-gray-800 dark:text-zinc-100">
+            Edit Ticket
+          </p>
         </div>
 
-        {/* Scrollable Notifications (without scrollbar) */}
-        <div className="flex flex-col gap-2 w-full mt-4 overflow-y-auto max-h-[70vh] px-2 scrollbar-hide">
-          <form className="w-full flex flex-col gap-4 font-inter px-5">
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="type" className="font-medium pl-1">
-                Ticket type
+        {/* Form */}
+        <div className="overflow-y-auto px-5 pt-4 pb-6 scrollbar-hide">
+          <form className="flex flex-col gap-5 text-sm">
+            {/* Ticket Type */}
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="type"
+                className="font-medium text-gray-700 dark:text-zinc-200"
+              >
+                Ticket Type
               </label>
               <input
-                type="text"
                 id="type"
                 name="type"
+                type="text"
                 placeholder="General Admission"
-                className="bg-orange-50 p-2 rounded-lg border-b-2 w-full border-orange-400 focus:outline-none focus:border-orange-300"
+                className="bg-gray-50 dark:bg-zinc-700 dark:text-zinc-100 border border-gray-300 dark:border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
                 required
               />
             </div>
 
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="price" className="font-medium pl-1">
+            {/* Price */}
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="price"
+                className="font-medium text-gray-700 dark:text-zinc-200"
+              >
                 Price
               </label>
               <input
-                type="number"
                 id="price"
                 name="price"
-                placeholder="eg: 20"
-                className="bg-orange-50 p-2 rounded-lg border-b-2 w-full border-orange-400 focus:outline-none focus:border-orange-300"
+                type="number"
+                placeholder="e.g., 20"
+                className="bg-gray-50 dark:bg-zinc-700 dark:text-zinc-100 border border-gray-300 dark:border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
                 required
               />
             </div>
 
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="quantity" className="font-medium pl-1">
+            {/* Quantity */}
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="quantity"
+                className="font-medium text-gray-700 dark:text-zinc-200"
+              >
                 Quantity
               </label>
               <input
-                type="number"
                 id="quantity"
                 name="quantity"
-                placeholder="eg: 50"
-                className="bg-orange-50 p-2 rounded-lg border-b-2 w-full border-orange-400 focus:outline-none focus:border-orange-300"
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="minPerUser" className="font-medium pl-1">
-                Min per user
-              </label>
-              <input
                 type="number"
-                id="minPerUser"
-                name="minPerUser"
-                placeholder="eg: 1"
-                className="bg-orange-50 p-2 rounded-lg border-b-2 w-full border-orange-400 focus:outline-none focus:border-orange-300"
+                placeholder="e.g., 50"
+                className="bg-gray-50 dark:bg-zinc-700 dark:text-zinc-100 border border-gray-300 dark:border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
                 required
               />
             </div>
 
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="maxPerUser" className="font-medium pl-1">
-                Max per user
-              </label>
-              <input
-                type="number"
-                id="maxPerUser"
-                name="maxPerUser"
-                placeholder="eg: 5"
-                className="bg-orange-50 p-2 rounded-lg border-b-2 w-full border-orange-400 focus:outline-none focus:border-orange-300"
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="saleStart" className="font-medium pl-1">
-                Sale starts
-              </label>
-              <input
-                type="date"
-                id="saleStart"
-                name="saleStart"
-                className="bg-orange-50 p-2 rounded-lg border-b-2 w-full border-orange-400 text-gray-400 focus:outline-none focus:border-orange-300"
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="saleEnd" className="font-medium pl-1">
-                Sale ends
-              </label>
-              <input
-                type="date"
-                id="saleEnd"
-                name="saleEnd"
-                className="bg-orange-50 p-2 rounded-lg border-b-2 w-full border-orange-400 text-gray-400 focus:outline-none focus:border-orange-300"
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="description" className="font-medium pl-1">
-                Description (optional)
+            {/* Description */}
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="description"
+                className="font-medium text-gray-700 dark:text-zinc-200"
+              >
+                Description{" "}
+                <span className="text-gray-400 dark:text-zinc-400">
+                  (optional)
+                </span>
               </label>
               <textarea
-                type="text"
                 id="description"
                 name="description"
-                placeholder="description"
-                className="bg-orange-50 p-2 rounded-lg border-b-2 w-full min-h-[100px] max-h-[150px] border-orange-400 focus:outline-none focus:border-orange-300"
-                required
+                placeholder="Additional info about this ticket"
+                className="bg-gray-50 dark:bg-zinc-700 dark:text-zinc-100 border border-gray-300 dark:border-zinc-600 rounded-lg px-3 py-2 min-h-[100px] max-h-[150px] resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"
               />
             </div>
           </form>
         </div>
 
-        {/* Fixed "Clear All" Button */}
-        <div className="sticky bottom-0 flex items-center justify-center bg-orange-300 py-1">
-          <button className="py-3 px-10 bg-slate-500 text-white text-center hover:bg-slate-600 rounded-md text-sm max-w-[250px]">
-            Update
+        {/* Footer Button */}
+        <div className="sticky bottom-0 w-full bg-white dark:bg-zinc-800 border-t border-gray-200 dark:border-zinc-700 px-5 py-3">
+          <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium transition">
+            Update Ticket
           </button>
         </div>
       </div>

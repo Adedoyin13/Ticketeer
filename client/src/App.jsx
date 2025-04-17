@@ -32,6 +32,10 @@ import MyEvents from "./component/Event/MyEvents";
 import ScrollToTop from "./component/Layouts/ScrollToTop";
 import EventView from "./component/Event/EventView";
 import MyTickets from "./component/Ticket/MyTickets";
+import Loader from "./component/Spinners/Loader";
+import EditTicketModal from "./component/Modals/TicketModal/EditTicketModal";
+import FeedbackModal from "./component/Modals/FeedbackModal/FeedbackModal";
+import SplashScreen from "./component/Spinners/SplashScreen";
 
 function App() {
   const dispatch = useDispatch();
@@ -94,6 +98,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/auth-success" element={<AuthSuccess />} />
+        <Route path="/edit-ticket" element={<EditTicketModal />} />
+        <Route path="/feedback" element={<FeedbackModal />} />
+        <Route path="/SplashScreen" element={<SplashScreen />} />
   
         {/* Protected Routes */}
         <Route
@@ -134,6 +141,14 @@ function App() {
                 <MyTickets />
               </UserLayout>
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-tickets"
+          element={
+              <UserLayout>
+                <Loader />
+              </UserLayout>
           }
         />
         <Route

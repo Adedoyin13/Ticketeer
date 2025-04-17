@@ -20,7 +20,9 @@ import "@fontsource/poppins";
 import "@fontsource/montserrat";
 import { PersistGate } from "redux-persist/integration/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { loadSavedTheme } from "./theme.js";
 
+loadSavedTheme()
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 createRoot(document.getElementById("root")).render(

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BsQuote } from "react-icons/bs";
 import { FaStar, FaRegStar } from "react-icons/fa6";
@@ -9,6 +9,8 @@ import music from './../../assets/Music.png'
 import arts from './../../assets/Arts.png'
 import review from './../../assets/Client-Reviews.png'
 import designer from './../../assets/Designer-image.png'
+import SplashScreen from "../Spinners/SplashScreen";
+import { TfiTicket } from "react-icons/tfi";
 
 const cards = [
   {
@@ -31,6 +33,18 @@ const cards = [
 ];
 
 const Home = () => {
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500); // duration of splash
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showSplash) return <SplashScreen onComplete={() => {}} />;
+
   return (
     <div className="bg-orange-50 pb-20 flex flex-col gap-20 items-center">
       {/* Hero Section */}
@@ -56,6 +70,12 @@ const Home = () => {
             </button>
           </Link>
         </div>
+      </div>
+
+      <div>
+     <div className="">
+     <TfiTicket />
+     </div>
       </div>
 
       {/* Card Slider Section */}

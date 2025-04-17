@@ -296,105 +296,92 @@ const EventDetails = () => {
   console.log("Event Details:", eventDetails);
 
   return (
-    <section className="bg-orange-100 py-24 md:py-28 font-inter">
-      <div className="flex flex-col px-4 sm:px-6 md:px-10 gap-5 max-w-7xl mx-auto">
-        {/* Back Button */}
-        <button onClick={handleBack}>
-          <FaArrowLeft size={20} />
+    <section className="bg-orange-50 dark:bg-zinc-900 py-24 md:py-28 font-inter text-gray-800 dark:text-zinc-100">
+      <div className="flex flex-col px-4 sm:px-6 md:px-10 gap-6 max-w-7xl mx-auto">
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 text-sm text-gray-600 dark:text-zinc-300 hover:text-black dark:hover:text-white active:text-orange-600 transition w-[50px]"
+        >
+          <FaArrowLeft size={18} />
+          Back
         </button>
 
-        {/* Event Title + Description */}
-        <div className="flex flex-col gap-4 text-gray-700">
-          <p className="font-semibold text-2xl sm:text-3xl">
-            {eventDetails.title}
-          </p>
-
+        <div className="flex flex-col gap-3">
+          <p className="text-3xl font-bold">{eventDetails.title}</p>
           {isUpcoming() ? (
-            <div className="flex flex-col gap-1 text-base sm:text-lg">
+            <div className="text-base text-gray-600 dark:text-zinc-300">
               <p>{eventDetails.description}</p>
-              <p className="flex flex-col gap-1 text-base sm:text-lg">
+              <p className="mt-1 text-sm font-medium text-primary/80">
                 {eventDetails.categories}
               </p>
             </div>
           ) : (
-            <div>
-              <p className="font-semibold text-lg text-gray-600">
-                This event has ended!
-              </p>
-              <p className="text-gray-500 font-medium text-sm">
+            <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-600 rounded-lg px-4 py-3 text-sm text-red-700 dark:text-red-200">
+              <p className="font-semibold">This event has ended!</p>
+              <p className="text-xs mt-1">
                 Thank you for hosting, we hope it was a success!
               </p>
             </div>
           )}
-
-          <p>
-            {eventDetails?.canceled && (
-              <span className="text-red-500 font-bold">Canceled</span>
-            )}
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-          <button
-            onClick={openAttendeeModal}
-            className="flex gap-3 items-center border border-orange-500 bg-orange-300 bg-opacity-50 px-6 py-3 sm:px-10 rounded-lg"
-          >
-            <FaRegUser size={20} />
-            Check in Guest
-          </button>
-
-          <button
-            onClick={openShareModal}
-            className="flex gap-3 items-center border border-orange-500 bg-orange-300 bg-opacity-50 px-6 py-3 sm:px-10 rounded-lg"
-          >
-            <IoShareSocialOutline size={20} />
-            Share event
-          </button>
-
-          {eventDetails?.organizer?._id === user._id && isUpcoming() && (
-            <>
-              {eventDetails?.canceled === false ? (
-                <button
-                  onClick={openCancelModal}
-                  className="flex gap-3 items-center border border-orange-500 bg-orange-300 bg-opacity-50 px-6 py-3 sm:px-10 rounded-lg"
-                >
-                  <TbCancel className="text-red-500" size={20} />
-                  Cancel event
-                </button>
-              ) : (
-                <button
-                  onClick={openReactivateModal}
-                  className="flex gap-3 items-center border border-orange-500 bg-orange-300 bg-opacity-50 px-6 py-3 sm:px-10 rounded-lg"
-                >
-                  Resume Event
-                </button>
-              )}
-
-              <button
-                onClick={openDeleteModal}
-                className="flex gap-3 items-center border border-orange-500 bg-orange-300 bg-opacity-50 px-6 py-3 sm:px-10 rounded-lg"
-              >
-                <RiDeleteBin5Line className="text-red-500" size={20} />
-                Delete event
-              </button>
-            </>
+          {eventDetails?.canceled && (
+            <span className="text-red-500 font-bold">Canceled</span>
           )}
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Image */}
-          <div className="">
-            <div className="relative w-full lg:w-[300px] h-[200px] sm:h-[200px] rounded-lg p-2 bg-orange-300 bg-opacity-50 overflow-hidden border border-orange-500 shadow-md">
+        <div className="flex flex-wrap gap-4">
+          {[
+            {
+              label: "Check in Guest",
+              icon: <FaRegUser size={18} />,
+              onClick: openAttendeeModal,
+            },
+            {
+              label: "Share event",
+              icon: <IoShareSocialOutline size={18} />,
+              onClick: openShareModal,
+            },
+            eventDetails?.canceled === false && {
+              label: "Cancel event",
+              icon: <TbCancel size={18} />,
+              onClick: openCancelModal,
+            },
+            eventDetails?.canceled && {
+              label: "Resume Event",
+              onClick: openReactivateModal,
+            },
+            {
+              label: "Delete event",
+              icon: <RiDeleteBin5Line size={18} />,
+              onClick: openDeleteModal,
+            },
+          ]
+            .filter(Boolean)
+            .map((btn, i) => (
+              <button
+                key={i}
+                onClick={btn.onClick}
+                className="bg-orange-50 dark:bg-zinc-800 border border-orange-200 dark:border-zinc-700 hover:bg-orange-100 dark:hover:bg-zinc-700 hover:text-orange-800 rounded-lg px-4 py-3 text-sm text-orange-700 dark:text-orange-300 flex gap-2"
+              >
+                {btn.icon}
+                {btn.label}
+              </button>
+            ))}
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-5 mt-2">
+          <div className="w-full lg:w-[300px] h-auto rounded-xl bg-orange-300 dark:bg-zinc-800 bg-opacity-50 border border-orange-400 dark:border-zinc-700 shadow-md p-3 relative">
+            <div className="w-full h-[200px] rounded-lg overflow-hidden relative">
               <img
                 src={profilePhoto || eventDetails?.image?.imageUrl}
                 alt={`${eventDetails.title}'s image`}
                 className="w-full h-full object-cover rounded-lg"
               />
               {eventDetails?.organizer?._id === user._id && isUpcoming() && (
-                <button className="absolute top-2 right-2 bg-white bg-opacity-80 hover:bg-orange-300 text-gray-700 p-2 rounded-full shadow-md transition">
-                  {/* <MdOutlineEdit size={20} /> */}
-
+                <label
+                  htmlFor="photoUpload"
+                  className="absolute top-2 right-2 bg-white dark:bg-zinc-700 hover:bg-orange-300 dark:hover:bg-zinc-600 text-gray-700 dark:text-zinc-200 p-2 rounded-full shadow-md cursor-pointer transition"
+                >
+                  <MdOutlineEdit size={20} />
                   <input
                     type="file"
                     accept="image/*"
@@ -402,94 +389,66 @@ const EventDetails = () => {
                     hidden
                     id="photoUpload"
                   />
-                  <label
-                    htmlFor="photoUpload"
-                    className="flex items-center gap-1 cursor-pointer"
-                  >
-                    <MdOutlineEdit size={20} />
-                  </label>
-                </button>
+                </label>
               )}
             </div>
-
             {eventDetails?.organizer?._id === user._id && isUpcoming() && (
-              <div className="flex items-center mt-5 justify-center w-full">
+              <div className="mt-4 flex justify-center">
                 <button
                   type="button"
                   onClick={handlePhotoUpload}
-                  className={`py-3 px-14 text-white rounded-md text-sm max-w-[200px] bg-slate-500 hover:bg-slate-600`}
+                  className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-md text-sm transition"
                   disabled={isUpdateDisabled}
                 >
                   Update
-                  {/* {isUpdateDisabled ? "Updating image..." : "Update"} */}
                 </button>
               </div>
             )}
           </div>
 
-          {/* Recap */}
-          <div className="bg-orange-300 bg-opacity-50 flex-1 border border-orange-400 rounded-lg px-4 sm:px-6 pt-6 pb-4">
-            <div className="flex justify-between items-center mb-4">
-              <p className="font-semibold">EVENT RECAP</p>
+          <div className="bg-orange-300 dark:bg-zinc-800 bg-opacity-50 flex-1 border border-orange-400 dark:border-zinc-700 rounded-xl p-6 shadow-md">
+            <div className="flex justify-between items-center mb-6">
+              <p className="font-semibold text-base">EVENT RECAP</p>
               {eventDetails?.organizer?._id === user._id && isUpcoming() && (
                 <button
-                  className="hover:bg-orange-300 p-2 rounded-lg"
+                  className="hover:bg-orange-300 dark:hover:bg-zinc-700 p-2 rounded-lg"
                   onClick={openEditModal}
                 >
                   <MdOutlineEdit size={20} />
                 </button>
               )}
             </div>
-
-            <div className="flex gap-4 text-gray-700 items-center">
+            <div className="flex gap-4 items-center text-gray-700 dark:text-zinc-300 mb-4">
               <MdOutlineCalendarMonth size={24} />
-              <div className="flex flex-col gap-1 border-b border-gray-700 py-2 w-full">
-                <p>
-                  {eventDetails.startDate
-                    ? formatDate(eventDetails.startDate)
-                    : "Date not available"}
-                </p>
-                <p>
-                  {eventDetails.startTime
-                    ? formatTime(eventDetails.startTime)
-                    : "Time not available"}
-                </p>
+              <div className="flex flex-col gap-1 py-2 w-full border-b border-gray-700 dark:border-zinc-600">
+                {/* <p>{formatDate(eventDetails.startDate)}</p>
+                <p>{formatTime(eventDetails.startTime)}</p> */}
               </div>
             </div>
 
             {eventDetails.eventType === "virtual" ? (
-              isUpcoming() ? (
-                <div className="flex gap-4 items-center text-gray-700 mt-4">
-                  <IoVideocamOutline size={24} />
-                  <a
-                    href={eventDetails.meetLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-500 underline border-b border-gray-700 py-2 w-full"
-                  >
-                    Join Meeting
-                  </a>
-                </div>
-              ) : (
-                <div className="flex gap-4 items-center text-gray-700 mt-4">
-                  <IoVideocamOutline size={24} />
-                  <p className="text-sm border-b border-gray-700 py-2 w-full">
-                    Meet ended
-                  </p>
-                </div>
-              )
+              <div className="flex gap-4 items-center text-gray-700 dark:text-zinc-300 mt-4">
+                <IoVideocamOutline size={24} />
+                <a
+                  href={eventDetails.meetLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-500 underline flex flex-col gap-1 py-2 w-full border-b border-gray-700 dark:border-zinc-600"
+                >
+                  Join Meeting
+                </a>
+              </div>
             ) : (
-              <div className="flex gap-4 text-gray-700 items-center mt-4">
+              <div className="flex gap-4 items-center text-gray-700 dark:text-zinc-300 mt-4">
                 <IoLocationOutline size={24} />
-                <p className="py-2 border-b w-full border-gray-700">
-                  {eventDetails?.location
-                    ? `${eventDetails.location[4]} ${eventDetails.location[3]}, ${eventDetails.location[2]} ${eventDetails.location[1]}, ${eventDetails.location[0]}`
-                    : "Location not available"}
+                <p className="py-2 w-full border-b flex flex-col gap-1 border-gray-700 dark:border-zinc-600">
+                  {eventDetails?.location?.join(", ") ||
+                    "Location not available"}
                 </p>
               </div>
             )}
 
-            <div className="flex gap-4 text-gray-700 items-center mt-4">
+            <div className="flex gap-4 items-center text-gray-700 dark:text-zinc-300 mt-4">
               <FaRegUser size={24} />
               <p>
                 {eventDetails?.attendees?.length}{" "}
@@ -500,13 +459,12 @@ const EventDetails = () => {
             </div>
           </div>
 
-          {/* Feedback */}
           <div className="flex-1">
             {Array.isArray(feedbacks) && feedbacks.length > 0 ? (
               feedbacks.map((feedback, index) => (
                 <div
                   key={index}
-                  className="bg-orange-300 bg-opacity-50 border border-orange-400 rounded-lg px-4 sm:px-6 pt-6 pb-4 mb-4"
+                  className="bg-orange-300 dark:bg-zinc-800 bg-opacity-50 border border-orange-400 dark:border-zinc-700 rounded-lg p-6 mb-6 text-gray-700 dark:text-zinc-300"
                 >
                   <div className="flex gap-3 items-center">
                     <div className="w-[50px] h-[50px] overflow-hidden rounded-full bg-white">
@@ -518,7 +476,9 @@ const EventDetails = () => {
                     </div>
                     <div>
                       <p className="font-semibold text-lg">{feedback.name}</p>
-                      <p className="text-gray-700 text-sm">{feedback.email}</p>
+                      <p className="text-gray-700 dark:text-zinc-400 text-sm">
+                        {feedback.email}
+                      </p>
                     </div>
                   </div>
                   <p className="text-sm mt-3">{feedback.comment}</p>
@@ -530,10 +490,10 @@ const EventDetails = () => {
                 </div>
               ))
             ) : (
-              <div className="text-center flex flex-col items-center justify-center gap-4 bg-orange-300 bg-opacity-50 border border-orange-400 rounded-lg px-6 pt-6 pb-4">
+              <div className="text-center flex flex-col items-center justify-center gap-4 bg-orange-300 dark:bg-zinc-800 bg-opacity-50 border border-orange-400 dark:border-zinc-700 rounded-lg px-6 pt-6 pb-4 text-gray-700 dark:text-zinc-300">
                 <MdFeedback size={75} />
                 <p>No feedback yet</p>
-                <p className="text-sm text-center">
+                <p className="text-sm text-center text-gray-600 dark:text-zinc-400">
                   You do not have any feedback yet for this event
                 </p>
               </div>
@@ -541,8 +501,7 @@ const EventDetails = () => {
           </div>
         </div>
 
-        {/* Event Link */}
-        <div className="flex justify-between gap-4 border border-orange-500 bg-orange-300 bg-opacity-50 px-4 py-4 rounded-lg">
+        <div className="flex justify-between gap-4 bg-orange-300 dark:bg-zinc-800 bg-opacity-50 px-4 py-4 rounded-lg shadow-md text-gray-700 dark:text-zinc-300">
           <div className="flex gap-2 items-center">
             <IoLinkOutline size={20} />
             <p className="break-all text-sm sm:text-base">{CLIENT_URL}</p>
@@ -552,27 +511,25 @@ const EventDetails = () => {
           </button>
         </div>
 
-        {/* NFT Section */}
-        <div className="flex flex-col sm:flex-row justify-between gap-4 border border-orange-500 bg-orange-300 bg-opacity-50 px-4 py-4 rounded-lg">
+        <div className="flex flex-col sm:flex-row justify-between gap-4 bg-orange-300 dark:bg-zinc-800 bg-opacity-50 px-4 py-4 rounded-lg shadow-md text-gray-700 dark:text-zinc-300">
           <div className="flex gap-4 items-center">
             <VscBug size={25} />
             <div className="flex flex-col">
               <p className="font-medium text-base">No collectible found</p>
-              <p className="text-sm">
+              <p className="text-xs">
                 You can attach NFTs & rewards for your guests to claim
               </p>
             </div>
           </div>
           {isUpcoming() && (
-            <button className="px-4 sm:px-10 py-2 bg-orange-400 text-white font-medium rounded-full text-sm hover:bg-orange-500">
+            <button className="px-4 sm:px-10 py-2 bg-orange-400 dark:bg-orange-600 text-white font-medium rounded-full text-sm hover:bg-orange-500 dark:hover:bg-orange-700">
               Add collectible
             </button>
           )}
         </div>
 
-        {/* Hosted By */}
-        <div className="flex flex-col gap-3 border border-orange-500 bg-orange-300 bg-opacity-50 px-4 py-4 rounded-lg">
-          <p className="font-medium text-sm">HOSTED BY</p>
+        <div className="flex flex-col gap-3 bg-orange-300 dark:bg-zinc-800 bg-opacity-50 px-4 py-4 rounded-lg shadow-md text-gray-700 dark:text-zinc-300">
+          <p className="font-semibold text-xs">HOSTED BY</p>
           <div className="flex gap-2 items-center">
             <div className="w-[24px] h-[24px] overflow-hidden rounded-full bg-white">
               <img
@@ -586,6 +543,7 @@ const EventDetails = () => {
         </div>
       </div>
 
+      {/* Modals */}
       {attendeeModalOpen && (
         <AttendeeModal
           onClose={closeAttendeeModal}

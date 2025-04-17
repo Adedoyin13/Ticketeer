@@ -371,7 +371,7 @@ const getTicket = asyncHandler(async (req, res) => {
         "eventId",
         "title description eventType meetLink category location startDate startTime"
       )
-      .populate("ticketTypeId", "type price");
+      .populate("ticketTypeId", "type price description quantity");
 
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
@@ -794,55 +794,46 @@ const upcomingEvents = async (req, res) => {
         select: "name email photo",
         populate: {
           path: "photo",
-          select: "cloudinaryId imageUrl", // Select only necessary fields
+          select: "cloudinaryId imageUrl",
         },
       })
       .populate({
-        path: "ticket", // Populate ticket references
+        path: "ticket",
         populate: [
           {
             path: "eventId",
             select:
               "title description eventType meetLink category location startDate startTime endDate endTime",
           },
-          { path: "ticketTypeId", select: "type price description" },
         ],
       })
-      .sort({ startDate: 1 }) // Ascending order (earliest first)
+      .populate("ticketTypes", "type price description quantity")
+      .populate("tickets", "userId eventId qrCode purchaseDate ticketTypeId")
+      .sort({ startDate: 1 })
       .exec();
 
+    // Filter safely
     const upcomingEvents = events.filter((event) => {
-      try {
-        // Check if startDate and startTime exist
-        if (!event.startDate || !event.startTime) return false;
+      if (!event.startDate || !event.startTime) return false;
 
-        // Convert to ISO date string (just the date part)
-        const datePart = new Date(event.startDate).toISOString().split("T")[0]; // YYYY-MM-DD
+      const fullStart = new Date(
+        `${event.startDate.toISOString().split("T")[0]}T${event.startTime}`
+      );
+      return fullStart > now;
+    });
 
-        // Normalize time format
-        let timePart = event.startTime.trim();
-        if (/^\d{2}:\d{2}$/.test(timePart)) {
-          timePart += ":00";
-        }
+    // Sort safely
+    upcomingEvents.sort((a, b) => {
+      if (!a.startDate || !a.startTime || !b.startDate || !b.startTime)
+        return 0;
 
-        // Combine and create full datetime string in local time
-        const combined = `${datePart}T${timePart}`;
-
-        const eventDateTime = new Date(combined);
-
-        if (isNaN(eventDateTime.getTime())) {
-          throw new Error(`Invalid date-time: ${combined}`);
-        }
-
-        return eventDateTime > new Date();
-      } catch (err) {
-        console.error(
-          "Error parsing datetime for event:",
-          event?._id,
-          err.message
-        );
-        return false;
-      }
+      const aStart = new Date(
+        `${a.startDate.toISOString().split("T")[0]}T${a.startTime}`
+      );
+      const bStart = new Date(
+        `${b.startDate.toISOString().split("T")[0]}T${b.startTime}`
+      );
+      return aStart - bStart;
     });
 
     return res.status(200).json(upcomingEvents);
@@ -868,7 +859,8 @@ const userUpcomingEvents = async (req, res) => {
           select: "cloudinaryId imageUrl",
         },
       })
-      .populate("ticket")
+      .populate("ticketTypes", "type price description quantity")
+      .populate("tickets", "userId eventId qrCode purchaseDate ticketTypeId")
       .exec();
 
     // Filter based on full datetime (startDate + startTime)
@@ -966,18 +958,19 @@ const getEvent = asyncHandler(async (req, res) => {
 const getMyTickets = async (req, res) => {
   try {
     const tickets = await Ticket.find({ userId: req.userId })
-    .populate({
-      path: "eventId",
-      select: "title startDate startTime endDate endTime location image organizer eventType meetLink limit",
-      populate: {
-        path: "organizer",
-        select: "name email photo",
+      .populate({
+        path: "eventId",
+        select:
+          "title startDate startTime endDate endTime location image organizer eventType meetLink limit",
         populate: {
-          path: "photo",
-          select: "imageUrl cloudinaryId",
+          path: "organizer",
+          select: "name email photo",
+          populate: {
+            path: "photo",
+            select: "imageUrl cloudinaryId",
+          },
         },
-      },
-    })
+      })
       .populate("ticketTypeId", "type price quantity");
 
     res.status(200).json(tickets);

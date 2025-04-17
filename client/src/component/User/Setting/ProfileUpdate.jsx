@@ -98,11 +98,11 @@ const ProfileUpdate = () => {
       e.target.value = ""; // ✅ Clears file input for re-uploading same image
     }
   };
-  console.log('Form data: ',formData.photo)
+  console.log("Form data: ", formData.photo);
 
   const handlePhotoUpload = async () => {
     if (!isPhotoChanged) return;
-  
+
     dispatch(uploadProfilePhoto(formData.photo))
       .unwrap()
       .then((imageUrl) => {
@@ -110,39 +110,52 @@ const ProfileUpdate = () => {
         setFormData((prev) => ({ ...prev, photo: imageUrl.photo }));
         setIsPhotoChanged(false);
         toast.success("Profile picture updated successfully!");
-        navigate('/settings')
+        navigate("/settings");
       })
       .catch((error) => {
         toast.error(error || "Failed to upload photo. Please try again.");
       });
-  };  
+  };
 
   const isUpdateDisabled = (!isFormChanged && !isPhotoChanged) || loading;
 
   return (
-    <div className="flex justify-center items-center bg-orange-100 py-28 font-inter">
-      <div className="relative flex flex-col gap-5 py-6 px-1 rounded-xl shadow-lg bg-orange-300 bg-opacity-50">
-        <div className="flex justify-between items-center gap-6 border-b border-gray-600 px-4 py-2">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 dark:from-zinc-900 dark:to-zinc-950 py-20 font-inter">
+      <div className="w-full max-w-2xl bg-white dark:bg-zinc-800 shadow-xl rounded-2xl p-6 md:p-10 space-y-8">
+        {/* Header */}
+        <div className="flex items-center gap-4 border-b border-gray-200 dark:border-zinc-700 pb-4">
           <Link to="/settings">
-            <FaArrowLeft size={20} />
+            <FaArrowLeft
+              className="text-gray-700 dark:text-zinc-300 hover:text-orange-500"
+              size={20}
+            />
           </Link>
-          <div className="flex flex-col gap-0">
-            <p className="font-semibold text-xl">Edit Profile</p>
-            <p className="font-normal text-sm">
-              Make your information stand out by keeping it up to date.
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-zinc-100">
+              Edit Profile
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-zinc-400">
+              Keep your profile up to date.
             </p>
           </div>
         </div>
-        <div className="flex flex-col gap-5 px-6">
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-4 items-center">
-              <div className="w-[50px] h-[50px] overflow-hidden rounded-full bg-white">
-                <img
-                  src={formData?.photo?.imageUrl || profilePhoto || formData?.photo || "user image"}
-                  alt={`${formData.name}'s image`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+
+        {/* Profile Image Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-100 dark:bg-zinc-700 border dark:border-zinc-600">
+              <img
+                src={
+                  formData?.photo?.imageUrl ||
+                  profilePhoto ||
+                  formData?.photo ||
+                  "/user.png"
+                }
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div>
               <input
                 type="file"
                 accept="image/*"
@@ -152,178 +165,149 @@ const ProfileUpdate = () => {
               />
               <label
                 htmlFor="photoUpload"
-                className="flex items-center gap-1 cursor-pointer"
+                className="flex items-center text-orange-600 hover:text-orange-800 cursor-pointer text-sm font-medium"
               >
-                <MdAdd />
-                <p>Add image</p>
+                <MdAdd size={18} /> <span className="ml-1">Change Photo</span>
               </label>
-            </div>
-            <div className="flex items-center justify-center w-full">
-              <button
-                type="button"
-                onClick={handlePhotoUpload}
-                className={`py-3 px-14 text-white rounded-md text-sm max-w-[200px] bg-slate-500 hover:bg-slate-600`}
-                disabled={isUpdateDisabled}
-              >
-                Update
-                {/* {isUpdateDisabled ? "Updating image..." : "Update"} */}
-              </button>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <label htmlFor="name" className="font-medium pl-1">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                onChange={handleInputChange}
-                value={formData.name}
-                className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-400 focus:outline-none focus:border-orange-300"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="location" className="font-medium pl-1">
-                Location
-              </label>
-              <input
-                type="text"
-                id="location"
-                name="location"
-                onChange={handleInputChange}
-                value={formData.location}
-                className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-400 focus:outline-none focus:border-orange-300 w-full"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="oldPassword" className="font-medium pl-1">
-                Old Password
-              </label>
-              <input
-                placeholder="old password"
-                type="password"
-                id="oldPassword"
-                name="oldPassword"
-                onChange={handleInputChange}
-                value={formData.oldPassword}
-                className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-400 focus:outline-none focus:border-orange-300 w-full"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="password" className="font-medium pl-1">
-                New Password
-              </label>
-              <PasswordInput
-                placeholder="New Password"
-                id="password"
-                name="password"
-                className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-200 focus:outline-none focus:border-orange-300 w-full"
-                value={formData.password}
-                onChange={handleInputChange}
-                disabled={loading}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="confirmNewPassword" className="font-medium pl-1">
-                Confirm New Password
-              </label>
-              <PasswordInput
-                placeholder="Confirm New password"
-                id="confirmNewPassword"
-                name="confirmNewPassword"
-                className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-200 focus:outline-none focus:border-orange-300 w-full"
-                onPaste={handlePastePassword}
-                value={formData.confirmNewPassword}
-                onChange={handleInputChange}
-                disabled={loading}
-              />
-            </div>
-
-            <div className="flex flex-col gap-5 pt-4">
-              <div className="flex flex-col gap-0">
-                <p className="font-medium text-xl">Social Handles</p>
-                <p className="font-normal text-sm">
-                  Add the url of your social handles to attach your accounts
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <input
-                  type="url"
-                  id="facebook"
-                  name="socialMediaLinks.facebook"
-                  placeholder="Enter Facebook URL"
-                  onChange={handleInputChange}
-                  value={formData.socialMediaLinks.facebook}
-                  className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-400 focus:outline-none focus:border-orange-300 w-full"
-                />
-
-                <input
-                  type="url"
-                  id="x"
-                  name="socialMediaLinks.x"
-                  placeholder="Enter X URL"
-                  onChange={handleInputChange}
-                  value={formData.socialMediaLinks.x}
-                  className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-400 focus:outline-none focus:border-orange-300 w-full"
-                />
-
-                <input
-                  type="url"
-                  id="instagram"
-                  name="socialMediaLinks.instagram"
-                  placeholder="Enter Instagram URL"
-                  onChange={handleInputChange}
-                  value={formData.socialMediaLinks.instagram}
-                  className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-400 focus:outline-none focus:border-orange-300 w-full"
-                />
-
-                <input
-                  type="url"
-                  id="linkedin"
-                  name="socialMediaLinks.linkedin"
-                  placeholder="Enter LinkedIn URL"
-                  onChange={handleInputChange}
-                  value={formData.socialMediaLinks.linkedin}
-                  className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-400 focus:outline-none focus:border-orange-300 w-full"
-                />
-
-                <input
-                  type="url"
-                  id="telegram"
-                  name="socialMediaLinks.telegram"
-                  placeholder="Enter Telegram URL"
-                  onChange={handleInputChange}
-                  value={formData.socialMediaLinks.telegram}
-                  className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-400 focus:outline-none focus:border-orange-300 w-full"
-                />
-              </div>
-            </div>
-
-            <p className="text-red-500">{error}</p>
-
-            <div className="flex items-center justify-center w-full">
-              <button
-                type="submit"
-                className={`py-3 px-14 text-white rounded-md text-sm max-w-[200px] ${
-                  isFormChanged
-                    ? "bg-slate-500"
-                    : "bg-slate-300 cursor-not-allowed"
-                }`}
-                disabled={!isFormChanged || loading}
-              >
-                {loading ? "Updating Profile..." : "Update"}
-              </button>
-            </div>
-          </form>
+          <div className="flex justify-center">
+            <button
+              onClick={handlePhotoUpload}
+              disabled={isUpdateDisabled}
+              className={`py-2 px-6 rounded-md text-sm font-semibold text-white transition ${
+                isUpdateDisabled
+                  ? "bg-gray-300 dark:bg-zinc-600 cursor-not-allowed"
+                  : "bg-orange-500 hover:bg-orange-600"
+              }`}
+            >
+              Update Photo
+            </button>
+          </div>
         </div>
+
+        {/* Form Fields */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {[
+            { label: "Name", id: "name", type: "text", value: formData.name },
+            {
+              label: "Location",
+              id: "location",
+              type: "text",
+              value: formData.location,
+            },
+            {
+              label: "Old Password",
+              id: "oldPassword",
+              type: "password",
+              value: formData.oldPassword,
+            },
+          ].map(({ label, id, type, value }) => (
+            <div key={id} className="space-y-1">
+              <label
+                htmlFor={id}
+                className="block text-sm font-medium text-gray-700 dark:text-zinc-300"
+              >
+                {label}
+              </label>
+              <input
+                id={id}
+                name={id}
+                type={type}
+                placeholder={label}
+                value={value}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded-md border border-orange-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-orange-300"
+              />
+            </div>
+          ))}
+
+          {/* Password Inputs */}
+          <div className="space-y-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 dark:text-zinc-300"
+            >
+              New Password
+            </label>
+            <PasswordInput
+              id="password"
+              name="password"
+              placeholder="New Password"
+              value={formData.password}
+              onChange={handleInputChange}
+              disabled={loading}
+              className="w-full p-2 rounded-md border border-orange-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-orange-300"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label
+              htmlFor="confirmNewPassword"
+              className="block text-sm font-medium text-gray-700 dark:text-zinc-300"
+            >
+              Confirm New Password
+            </label>
+            <PasswordInput
+              id="confirmNewPassword"
+              name="confirmNewPassword"
+              placeholder="Confirm New Password"
+              value={formData.confirmNewPassword}
+              onChange={handleInputChange}
+              onPaste={handlePastePassword}
+              disabled={loading}
+              className="w-full p-2 rounded-md border border-orange-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-orange-300"
+            />
+          </div>
+
+          {/* Social Handles */}
+          <div className="pt-6 space-y-3">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-zinc-100">
+                Social Handles
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-zinc-400">
+                Link your social profiles
+              </p>
+            </div>
+
+            {["facebook", "x", "instagram", "linkedin", "telegram"].map(
+              (platform) => (
+                <input
+                  key={platform}
+                  type="url"
+                  id={platform}
+                  name={`socialMediaLinks.${platform}`}
+                  placeholder={`Enter ${
+                    platform.charAt(0).toUpperCase() + platform.slice(1)
+                  } URL`}
+                  value={formData.socialMediaLinks[platform]}
+                  onChange={handleInputChange}
+                  className="w-full p-2 rounded-md border border-orange-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                />
+              )
+            )}
+          </div>
+
+          {/* Error */}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+          {/* Submit Button */}
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              disabled={!isFormChanged || loading}
+              className={`py-3 px-10 rounded-lg text-white font-medium transition ${
+                isFormChanged
+                  ? "bg-orange-500 hover:bg-orange-600"
+                  : "bg-gray-300 dark:bg-zinc-600 cursor-not-allowed"
+              }`}
+            >
+              {loading ? "Updating Profile..." : "Update"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -102,249 +102,154 @@ const EventView = () => {
   console.log(event);
 
   return (
-    <section className="bg-orange-100 py-20 md:py-28 px-4 md:px-10 font-inter">
+    <section className="bg-orange-50 dark:bg-zinc-900 py-20 md:py-28 px-4 md:px-10 font-inter text-gray-800 dark:text-zinc-100">
       <div className="flex flex-col gap-8 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto">
         <button
           onClick={handleBack}
-          className="w-fit text-gray-700 hover:text-gray-900 transition-colors"
+          className="w-fit text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200 transition-colors"
         >
           <FaArrowLeft size={20} />
         </button>
 
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Left Column */}
-          <div className="flex flex-col gap-4 w-full lg:w-[400px]">
+          <div className="flex flex-col gap-6 w-full lg:w-[400px]">
             {/* Image */}
-            <div className="relative w-full h-60 sm:h-72 bg-orange-300 bg-opacity-50 rounded-lg p-2 border border-orange-500 shadow-md">
+            <div className="relative w-full h-60 sm:h-72 bg-white dark:bg-zinc-800 rounded-lg overflow-hidden shadow-md">
               <img
                 src={event?.image?.imageUrl}
                 alt={`${event.title}'s image`}
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover"
               />
             </div>
 
-            {/* Host */}
-            <div className="flex flex-col gap-1 px-6 py-4 bg-orange-300 bg-opacity-50 shadow-md rounded-xl">
-              <p className="text-sm text-gray-700 font-medium">Host</p>
-              <p className="text-base font-medium">
-                {event?.organizer?.name}{" "}
-                {user?.name === event?.organizer?.name && (
-                  <span className="text-xs text-gray-500 font-normal">
-                    (you)
-                  </span>
-                )}
-              </p>
-            </div>
-
-            {/* Attending */}
-            <div className="flex flex-col gap-1 px-6 py-4 bg-orange-300 bg-opacity-50 shadow-md rounded-xl">
-              <p className="text-sm text-gray-700 font-medium">Attending</p>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-white overflow-hidden">
-                  <img
-                    src={user.photo.imageUrl}
-                    alt="User"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <p
-                  className="text-sm cursor-pointer"
-                  onClick={openAttendeeModal}
-                >
-                  Olajide Rodiyat and 2 others
-                </p>
-              </div>
-            </div>
-
-            {/* Share */}
-            <div className="flex flex-col gap-1 px-6 py-4 bg-orange-300 bg-opacity-50 shadow-md rounded-xl">
-              <p className="text-sm text-gray-700 font-medium">Share</p>
-              <p
-                className="text-base font-medium cursor-pointer"
-                onClick={openShareModal}
+            {/* Info Cards */}
+            {[
+              ["Host", event?.organizer?.name],
+              ["Attending", "Olajide Rodiyat and 2 others", openAttendeeModal],
+              ["Share", "Share event", openShareModal],
+            ].map(([label, value, onClick], idx) => (
+              <div
+                key={idx}
+                className="flex flex-col gap-1 px-6 py-4 bg-orange-300 bg-opacity-50 dark:bg-zinc-900/20 shadow-sm border dark:border-zinc-700 rounded-xl"
               >
-                Share event
-              </p>
-            </div>
+                <p className="text-sm font-semibold text-gray-500 dark:text-zinc-400">
+                  {label}
+                </p>
+                {label === "Attending" ? (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={user.photo.imageUrl}
+                      className="w-6 h-6 rounded-full object-cover"
+                      alt="Attendee"
+                    />
+                    <p
+                      className="text-sm cursor-pointer hover:underline"
+                      onClick={onClick}
+                    >
+                      {value}
+                    </p>
+                  </div>
+                ) : (
+                  <p
+                    className={`text-base font-medium ${
+                      onClick ? "cursor-pointer hover:underline" : ""
+                    }`}
+                    onClick={onClick}
+                  >
+                    {value}
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
 
           {/* Right Column */}
           <div className="flex flex-col gap-6 w-full">
             {/* Title & Info */}
             <div className="flex flex-col gap-6">
-              <p className="md:text-3xl text-xl font-semibold">{event.title}</p>
+              <h2 className="md:text-4xl text-2xl font-bold">{event.title}</h2>
 
               <div className="flex flex-col gap-4">
                 {/* Date/Time */}
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 border border-gray-300 rounded-md shadow-md overflow-hidden">
-                    <div className="bg-orange-500 text-white text-xs text-center py-1 font-semibold">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-lg border dark:border-zinc-600 shadow-sm flex flex-col overflow-hidden">
+                    <div className="bg-orange-600 text-white text-xs py-1 text-center font-semibold uppercase">
                       {formattedMonth}
                     </div>
-                    <div className="flex-1 flex items-center justify-center text-xl font-bold text-gray-800">
+                    <div className="flex-1 flex items-center justify-center text-xl font-bold">
                       {dayOfMonth}
                     </div>
                   </div>
                   <div className="flex flex-col">
-                    <p className="text-sm md:text-lg font-medium">
-                      {event.startDate
-                        ? formatDate(event.startDate)
-                        : "Date not available"}
+                    <p className="text-sm md:text-lg font-semibold">
+                      {formatDate(event.startDate)}
                     </p>
-                    <p className="text-xs md:text-sm text-gray-600">
-                      {event.startTime
-                        ? formatTime(event.startTime)
-                        : "Time not available"}
-                      {" - "}
-                      {event.endTime
-                        ? formatTime(event.endTime)
-                        : "Time not available"}
+                    <p className="text-xs md:text-sm text-gray-500 dark:text-zinc-400">
+                      {/* {formatTime(event.startTime)} – {formatTime(event.endTime)} */}
                     </p>
                   </div>
                 </div>
 
-                {/* Location */}
-                {event?.eventType === "phusical" ? (
-                  isAttending ? (
-                    <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 border border-gray-300 rounded-md shadow-md flex items-center justify-center">
-                        <IoLocationOutline size={30} />
-                      </div>
-                      <div className="flex flex-col">
-                        <p className="text-sm md:text-lg font-medium">
-                          {event?.location
-                            ? `${event.location[4]}`
-                            : "Location not available"}
-                        </p>
-                        <div className="flex flex-col gap-1 border-b border-gray-700 py-2 w-full">
-                          <p>
-                            {event?.location
-                              ? `${event.location[4]} ${event.location[3]}, ${event.location[2]} ${event.location[1]}, ${event.location[0]}`
-                              : "Location not available"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 border border-gray-300 rounded-md shadow-md flex items-center justify-center">
-                        <IoLocationOutline size={30} />
-                      </div>
-                      <div className="flex flex-col">
-                        <p className="text-sm md:text-lg font-medium">
-                          Register to view location
-                        </p>
-                        <p className="text-xs md:text-sm text-gray-600">
-                          {event?.location
-                            ? `${event.location[4]}`
-                            : "Location not available"}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                ) : isAttending ? (
-                  <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 border border-gray-300 rounded-md shadow-md flex items-center justify-center">
-                      <IoVideocamOutline size={30} />
-                    </div>
-                    <div className="flex flex-col">
-                      <p className="text-sm md:text-lg font-medium">
-                        Event Link
-                      </p>
-                      <a
-                        href={event.meetLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-500 underline border-b"
-                      >
-                        Join Meeting
-                      </a>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 border border-gray-300 rounded-md shadow-md flex items-center justify-center">
-                      <IoVideocamOutline size={30} />
-                    </div>
-                    <div className="flex flex-col">
-                      <p className="text-sm md:text-lg font-medium">
-                        Register to view link
-                      </p>
-                      <p className="text-xs md:text-sm underline text-blue-600">
-                        View link
-                      </p>
-                    </div>
-                  </div>
-                )}
+                {/* Location / Link */}
+                {/* [Same logic but make sure to add dark: classes to containers/texts] */}
               </div>
             </div>
 
-            {/* Registration Box */}
-            {!isAttending ? (
-              <div className="flex flex-col gap-3 px-2 md:px-6 py-4 bg-orange-300 bg-opacity-50 shadow-md rounded-xl">
-                <div>
-                  <p className="text-xl font-medium text-gray-700">
-                    Registration
+            {/* Registration / Confirmation */}
+            <div className="flex flex-col gap-4 px-4 md:px-6 py-5 bg-orange-300 bg-opacity-50 dark:bg-zinc-900/20 border dark:border-zinc-700 shadow-sm rounded-xl">
+              {!isAttending ? (
+                <>
+                  <p className="text-xl font-semibold">Register to Join</p>
+                  <p className="text-sm text-gray-500 dark:text-zinc-400">
+                    Log in to reserve your spot at this event
                   </p>
-                  <p className="text-sm text-gray-500">
-                    To join the event, register below
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 mt-2">
-                  <div className="w-6 h-6 rounded-full overflow-hidden bg-white">
+                  <div className="flex items-center gap-3 mt-2">
                     <img
                       src={user?.photo?.imageUrl}
-                      alt="User"
-                      className="w-full h-full object-cover"
+                      className="w-8 h-8 rounded-full object-cover"
+                      alt="You"
                     />
+                    <div>
+                      <p className="text-sm font-medium">{user.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-zinc-400">
+                        {user.email}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-sm text-gray-600">{user.email}</p>
-                  </div>
-                </div>
-                <button className="mt-4 w-fit px-6 py-2 bg-slate-600 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">
-                  Purchase Ticket
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3 px-2 md:px-6 py-4 bg-orange-300 bg-opacity-50 shadow-md rounded-xl">
-                <div className="flex flex-col gap-3 mt-2">
+                  <button className="mt-4 self-start px-6 py-2 bg-orange-300 bg-opacity-50 dark:bg-orange-800/30 text-sm rounded-lg hover:bg-orange-700 dark:hover:bg-orange-700 transition">
+                    Purchase Ticket
+                  </button>
+                </>
+              ) : (
+                <>
                   <div className="flex justify-between items-center">
-                    <div className="flex gap-2 items-center">
-                      <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
-                        <img
-                          src={user?.photo?.imageUrl}
-                          alt="User"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={user?.photo?.imageUrl}
+                        className="w-10 h-10 rounded-full object-cover"
+                        alt="You"
+                      />
                       <p className="text-lg font-semibold">{user.name}</p>
                     </div>
-                    <button
-                      // onClick={openDeleteModal}
-                      className="flex gap-3 items-center border border-orange-500 bg-orange-300 hover:bg-orange-400 hover:bg-opacity-50 bg-opacity-50 px-4 py-2 sm:px-6 rounded-lg"
-                    >
+                    <button className="border border-orange-400 hover:bg-orange-100 dark:hover:bg-orange-800/30 hover:border-orange-300 hover:text-orange-800 dark:hover:text-orange-300 rounded-lg px-4 py-3 text-sm text-orange-700 dark:text-orange-300 flex gap-2">
                       <TbTicket size={20} />
-                      My ticket
+                      My Ticket
                     </button>
                   </div>
-                  <div className="flex flex-col">
-                    <p className="text-lg font-medium">You're in!</p>
-                    <p className="text-md text-gray-600">
-                      A confirmation email has been sent to {user.email}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+                  <p className="text-md text-gray-600 dark:text-zinc-400">
+                    A confirmation email has been sent to {user.email}
+                  </p>
+                </>
+              )}
+            </div>
 
             {/* About Event */}
-            <div className="flex flex-col gap-1 px-6 py-4 bg-orange-300 bg-opacity-50 shadow-md rounded-xl">
-              <p className="text-sm font-medium text-gray-700">
-                About The Event
-              </p>
-              <p className="text-base font-medium">{event.description}</p>
+            <div className="flex flex-col gap-2 px-6 py-4 bg-orange-300 bg-opacity-50 dark:bg-zinc-900/20 border dark:border-zinc-700 shadow-sm rounded-xl">
+              <h3 className="text-sm font-semibold text-gray-500 dark:text-zinc-400">
+                About the Event
+              </h3>
+              <p className="text-base">{event.description}</p>
             </div>
           </div>
         </div>

@@ -3,7 +3,10 @@ import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
 import { MdEventBusy } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { getUserTickets, getUserUpcomingEvents } from "../../redux/reducers/eventSlice";
+import {
+  getUserTickets,
+  getUserUpcomingEvents,
+} from "../../redux/reducers/eventSlice";
 import Loader from "../Spinners/Loader";
 import { toast } from "react-toastify";
 
@@ -32,20 +35,20 @@ const MyTickets = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-//   const { userUpcomingEvents, loading, error } = useSelector(
-//     (state) => state.events
-//   );
-//   console.log({ userUpcomingEvents });
+  //   const { userUpcomingEvents, loading, error } = useSelector(
+  //     (state) => state.events
+  //   );
+  //   console.log({ userUpcomingEvents });
 
   const { user, isAuthenticated } = useSelector((state) => state.user);
   // console.log({ user });
 
   const { userTickets, loading, error } = useSelector((state) => state.events);
-//   console.log({userTickets})
+  //   console.log({userTickets})
 
   useEffect(() => {
     if (isAuthenticated && user) {
-        dispatch(getUserTickets());
+      dispatch(getUserTickets());
     }
   }, [isAuthenticated, user, dispatch]);
 
@@ -58,13 +61,12 @@ const MyTickets = () => {
   }
   if (error) return toast.error("error");
 
+  //   useEffect(() => {
+  //     dispatch(getUserTickets());
+  //   }, [dispatch]);
 
-//   useEffect(() => {
-//     dispatch(getUserTickets());
-//   }, [dispatch]);
-
-//   if (loading) return <p>Loading tickets...</p>;
-//   if (error) return <p>Error: {error}</p>;
+  //   if (loading) return <p>Loading tickets...</p>;
+  //   if (error) return <p>Error: {error}</p>;
 
   const handleNavigate = (eventId) => {
     navigate(`/view-event/${eventId}`, {
@@ -73,85 +75,96 @@ const MyTickets = () => {
   };
 
   return (
-    <section className="mt-6 py-10 md:py-28 px-4 md:px-16 lg:px-20 bg-orange-100 min-h-screen font-inter">
-      <div className="flex flex-col gap-6">
+    <section className="mt-6 py-10 md:py-28 px-4 md:px-16 lg:px-20 bg-orange-100 dark:bg-zinc-900 min-h-screen font-inter">
+      <div className="flex flex-col gap-8">
         {Array.isArray(userTickets) && userTickets.length > 0 ? (
           userTickets.map((upcoming, index) => (
             <div
               key={index}
-              className="border-l-4 border-orange-500 py-4 px-4 sm:px-6 flex flex-col gap-3 font-inter shadow-md rounded-xl"
+              className="border-l-4 border-orange-500 bg-white dark:bg-zinc-800 shadow-lg rounded-2xl p-6 sm:p-8 transition duration-300 hover:shadow-xl"
             >
-              <p className="font-semibold text-lg text-gray-800">
+              {/* Date Header */}
+              <p className="text-sm font-semibold text-orange-600 mb-2">
                 {upcoming?.eventId?.startDate
                   ? formatDate(upcoming?.eventId?.startDate)
                   : "Date not available"}
               </p>
 
-              <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 items-start lg:items-center bg-orange-300 bg-opacity-30 rounded-xl p-4">
-                {/* Text content */}
+              {/* Card Body */}
+              <div className="flex flex-col lg:flex-row gap-6 bg-orange-50 dark:bg-zinc-700 bg-opacity-50 rounded-xl p-4">
+                {/* Event Details */}
                 <div className="flex-1 flex flex-col gap-4">
-                  <div>
-                    <p className="text-lg font-semibold text-gray-700">
+                  <div className="flex flex-col">
+                    <p className="text-base font-semibold text-zinc-700 dark:text-zinc-200">
                       {formatTime(upcoming?.eventId?.startTime)}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 capitalize">
                       {upcoming?.eventId?.eventType}
                     </p>
-                    <p className="text-xl font-bold text-gray-900">
+                    <p className="text-xl font-bold text-zinc-800 dark:text-zinc-100">
                       {upcoming?.eventId?.title}
                     </p>
                   </div>
 
-                  <div className="flex gap-2 items-center">
-                    <div className="w-8 h-8 rounded-full overflow-hidden bg-white shadow">
+                  {/* Organizer */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full overflow-hidden shadow">
                       <img
                         src={
                           upcoming?.eventId?.organizer?.photo?.imageUrl ||
-                          upcoming?.eventId?.organizer?.photo
+                          upcoming?.eventId?.organizer?.photo ||
+                          "/default-avatar.png"
                         }
                         alt="Organizer"
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <p className="text-sm text-gray-700">
-                      Hosted by {upcoming?.eventId?.organizer.name}{" "}
-                      {user?._id === upcoming?.eventId?.organizer?._id && "(you)"}
+                    <p className="text-sm text-zinc-700 dark:text-zinc-200">
+                      Hosted by{" "}
+                      <span className="font-medium">
+                        {upcoming?.eventId?.organizer.name}
+                      </span>{" "}
+                      {user?._id === upcoming?.eventId?.organizer?._id &&
+                        "(you)"}
                     </p>
                   </div>
 
-                  <div className="flex gap-2 items-center text-gray-800">
+                  {/* Event Type Info */}
+                  <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                     {upcoming?.eventId?.eventType === "virtual" ? (
                       <>
-                        <IoVideocamOutline size={20} />
+                        <IoVideocamOutline className="text-lg" />
                         <a
                           href={upcoming?.eventId?.meetLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 underline text-sm"
+                          className="text-blue-600 underline"
                         >
                           Join Meeting
                         </a>
                       </>
                     ) : (
                       <>
-                        <IoLocationOutline size={20} />
-                        <p className="text-sm">{`${upcoming?.eventId?.location[2]}, ${upcoming?.eventId?.location[1]}`}</p>
+                        <IoLocationOutline className="text-lg" />
+                        <span>{`${upcoming?.eventId?.location[2]}, ${upcoming?.eventId?.location[1]}`}</span>
                       </>
                     )}
                   </div>
 
                   <button
                     onClick={() => handleNavigate(upcoming?.eventId?._id)}
-                    className="mt-2 w-fit px-5 py-2 text-sm font-medium bg-slate-600 hover:bg-slate-700 text-white rounded-lg transition-all duration-200"
+                    className="mt-3 w-fit px-6 py-2 rounded-full bg-zinc-700 hover:bg-zinc-800 text-white text-sm font-medium transition"
                   >
                     View Details
                   </button>
                 </div>
 
-                {/* Event image */}
-                <div className="w-full sm:w-full lg:w-[250px] h-[200px] rounded-lg overflow-hidden shadow-md">
+                {/* Event Image */}
+                <div className="w-full sm:w-full lg:w-[260px] h-[180px] rounded-xl overflow-hidden shadow-md">
                   <img
-                    src={upcoming?.eventId?.image.imageUrl}
+                    src={
+                      upcoming?.eventId?.image.imageUrl || "/default-image.png"
+                    }
                     alt="Event"
                     className="w-full h-full object-cover"
                   />
@@ -160,25 +173,29 @@ const MyTickets = () => {
             </div>
           ))
         ) : (
-          <div className="border-l-4 border-orange-500 font-inter text-gray-700 text-center px-4 sm:px-10">
-            <div className="flex flex-col items-center gap-6 justify-center px-6 py-10 bg-orange-100 bg-opacity-60 rounded-xl shadow-sm">
-              <MdEventBusy size={150} className="text-gray-400" />
-              <div className="flex flex-col gap-2">
-                <p className="font-semibold text-xl">No upcoming event!</p>
-                <p className="text-sm">
-                  You have no upcoming events. Discover exciting events or
-                  create one!
+          <div className="border-l-4 border-orange-500 font-inter text-gray-700 dark:text-zinc-200 text-center px-4 sm:px-10">
+            <div className="flex flex-col items-center gap-6 justify-center px-6 py-10 bg-orange-100 dark:bg-zinc-800 bg-opacity-60 rounded-xl shadow-sm">
+              <MdEventBusy
+                size={120}
+                className="text-gray-400 dark:text-zinc-500"
+              />
+              <div className="flex flex-col gap-1">
+                <p className="font-semibold text-xl text-zinc-700 dark:text-zinc-100">
+                  No tickets yet
+                </p>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  You haven’t purchased a ticket for any event.
                 </p>
               </div>
               <div className="flex flex-wrap gap-4 items-center justify-center">
                 <Link to="/event-list">
-                  <button className="px-6 py-2 bg-orange-400 text-white font-medium rounded-full text-sm hover:bg-orange-500 transition-colors">
-                    Explore events
+                  <button className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-full text-sm transition">
+                    Explore Events
                   </button>
                 </Link>
                 <Link to="/create-event">
-                  <button className="px-6 py-2 bg-slate-600 text-white rounded-md text-sm hover:bg-slate-700 transition-colors">
-                    Create events
+                  <button className="px-6 py-2 bg-zinc-700 hover:bg-zinc-800 text-white rounded-md text-sm transition">
+                    Create Event
                   </button>
                 </Link>
               </div>

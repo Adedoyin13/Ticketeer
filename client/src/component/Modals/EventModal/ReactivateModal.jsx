@@ -1,24 +1,27 @@
 import React from "react";
 
-const ReactivateModal = ({onReactivate, onClose}) => {
+const ReactivateModal = ({ onReactivate, onClose }) => {
   return (
-    <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50 font-inter">
-      <div className="flex flex-col items-center gap-8 px-8 py-16 rounded-lg shadow-lg relative w-1/3 bg-orange-300 text-center">
-        <p className="font-semibold text-xl">
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 font-inter px-4">
+      <div className="flex flex-col items-center gap-6 px-6 sm:px-10 py-10 rounded-2xl shadow-xl w-full max-w-md bg-white dark:bg-zinc-900 text-center border border-zinc-200 dark:border-zinc-700 relative">
+        {/* Confirmation Message */}
+        <p className="font-semibold text-lg sm:text-xl text-slate-800 dark:text-zinc-100">
           Are you sure you want to re-activate this event?
         </p>
-        <div className="flex gap-4">
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 w-full">
           <button
-            className="bg-slate-500 py-2 px-6 sm:px-10 text-base text-white rounded-md hover:bg-slate-600 transition-colors w-full md:w-auto md:max-w-[200px]"
             onClick={onReactivate}
+            className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-6 rounded-md transition w-full sm:w-1/2"
           >
-            Yes
+            Yes, Reactivate
           </button>
           <button
-            className="bg-slate-500 py-2 px-6 sm:px-10 text-base text-white rounded-md hover:bg-slate-600 transition-colors w-full md:w-auto md:max-w-[200px]"
             onClick={onClose}
+            className="bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-100 py-2 px-6 rounded-md transition w-full sm:w-1/2"
           >
-            No
+            No, Go Back
           </button>
         </div>
       </div>

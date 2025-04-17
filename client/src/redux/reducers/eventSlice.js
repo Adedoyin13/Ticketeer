@@ -336,9 +336,9 @@ const eventSlice = createSlice({
     //   localStorage.setItem('likedEvents', JSON.stringify(state.likedEvents));
     // },
 
-    setLikedEvents: (state, action) => {
-      state.likedEvents = action.payload;
-    },
+    // setLikedEvents: (state, action) => {
+    //   state.likedEvents = action.payload;
+    // },
   },
   extraReducers: (builder) => {
     builder
