@@ -18,6 +18,7 @@ const {
   googleAuth,
   // changePassword,
   loginStatus,
+  updateThemeMode,
   googleLogin,
   resetPassword,
   forgotPassword,
@@ -60,6 +61,8 @@ router.get("/booked-events/:userId", protectUser, getUserBookedEvents);
 // router.get("/auth/google", googleAuth);
 
 router.get("/auth/google/callback", loginWithGoogle);
+
+router.put('/theme', protectUser, updateThemeMode); // make sure authenticateUser middleware is used
 
 // POST Route to handle Google Login
 router.post('/auth/google', googleLogin);

@@ -2,18 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* light mode */
-:root {
-  --color-background: #ffffff;
-  --color-surface: #f9fafb;
-  --color-text: #1f2937;
-  --color-text-muted: #6b7280;
+html,
+body,
+#root {
+  height: 100%;
 }
 
-/* dark mode */
-.dark {
-  --color-background: #18181b;
-  --color-surface: #27272a;
-  --color-text: #f4f4f5;
-  --color-text-muted: #a1a1aa;
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
 }

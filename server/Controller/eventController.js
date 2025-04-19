@@ -123,69 +123,104 @@ const createEvent = asyncHandler(async (req, res) => {
   }
 });
 
+const checkAndUpdateTicketStatus = async (ticketType) => {
+  const event = await Event.findById(ticketType.eventId);
+  if (!event || !event.startDate || !event.startTime) return;
+
+  const now = new Date();
+  const datePart = new Date(event.startDate).toISOString().split("T")[0];
+  const eventStartDateTime = new Date(`${datePart}T${event.startTime}`);
+
+  if (now >= eventStartDateTime && ticketType.status !== "closed") {
+    ticketType.status = "closed";
+    await ticketType.save();
+  }
+};
+
 const createTicket = asyncHandler(async (req, res) => {
   try {
-    const { type, price, quantity, description } = req.body;
+    const { type, price, totalQuantity, description } = req.body;
     const { eventId } = req.params;
+    const userId = req.userId;
+    const user = await User.findById(userId);
 
     if (!eventId) {
       return res.status(400).json({ message: "Event ID is required" });
     }
 
-    if (!type || price == null || quantity == null) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (!type || !price || !totalQuantity) {
+      return res.status(400).json({ message: "Required fields are missing!" });
     }
 
-    // Validate quantity
-    const ticketQuantity = Number(quantity);
-    if (isNaN(ticketQuantity) || ticketQuantity <= 0) {
-      return res
-        .status(400)
-        .json({ message: "Quantity must be a valid number greater than 0" });
+    const ticketQuantity = Number(totalQuantity);
+    if (!Number.isInteger(ticketQuantity) || ticketQuantity <= 0) {
+      return res.status(400).json({
+        message: "Quantity must be a valid integer greater than 0",
+      });
     }
 
-    // Validate price
     const ticketPrice = Number(price);
     if (isNaN(ticketPrice) || ticketPrice < 0) {
-      return res
-        .status(400)
-        .json({ message: "Price must be a valid non-negative number" });
+      return res.status(400).json({
+        message: "Price must be a valid non-negative number",
+      });
     }
 
-    // Get the event
+    if (description && description.length > 300) {
+      return res.status(400).json({
+        message: "Description must not exceed 300 characters",
+      });
+    }
+
     const eventObjectId = new mongoose.Types.ObjectId(eventId);
     const event = await Event.findById(eventObjectId);
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // Check guest limit
+    // ✅ Only the organizer of the event can create ticket types
+    if (!user || user._id.toString() !== event.organizer.toString()) {
+      return res.status(403).json({
+        message: "You are not authorized to create tickets for this event.",
+      });
+    }
+
     if (!event.limit || event.limit <= 0) {
-      return res
-        .status(400)
-        .json({ message: "Guest limit is not set for this event" });
+      return res.status(400).json({
+        message: "Guest limit is not set for this event",
+      });
     }
 
-    // Check if the event has already started
-    const eventStartDateTime = new Date(
-      `${event.startDate}T${event.startTime}`
-    );
     const currentDateTime = new Date();
+    const datePart = new Date(event.startDate).toISOString().split("T")[0];
+    const eventStartDateTime = new Date(`${datePart}T${event.startTime}`);
+
     if (currentDateTime >= eventStartDateTime) {
-      return res
-        .status(400)
-        .json({ message: "Ticket sales closed. Event has already started." });
+      return res.status(400).json({
+        message: "Ticket sales closed. Event has already started.",
+      });
     }
 
-    // Aggregate existing ticket quantities
+    // 🔒 Enforce uniqueness of type per event
+    const existingType = await TicketType.findOne({
+      eventId: eventObjectId,
+      type: type.trim(),
+    });
+
+    if (existingType) {
+      return res.status(400).json({
+        message: `Ticket type "${type}" already exists for this event.`,
+      });
+    }
+
+    // 🧮 Aggregate total tickets for this event
     const totalTickets = await TicketType.aggregate([
       { $match: { eventId: eventObjectId } },
-      { $group: { _id: null, totalQuantity: { $sum: "$quantity" } } },
+      { $group: { _id: null, totalQuantity: { $sum: "$totalQuantity" } } },
     ]);
 
     const existingTickets =
       totalTickets.length > 0 ? Number(totalTickets[0].totalQuantity) : 0;
-
     const newTotal = existingTickets + ticketQuantity;
 
     if (newTotal > event.limit) {
@@ -196,28 +231,41 @@ const createTicket = asyncHandler(async (req, res) => {
 
     const ticketStatus = newTotal === event.limit ? "sold_out" : "available";
 
+    // ✅ Now create the ticketType
     const ticketType = new TicketType({
       eventId: eventObjectId,
-      type,
+      type: type.trim(),
       price: ticketPrice,
-      quantity: ticketQuantity,
+      totalQuantity: ticketQuantity,
+      availableQuantity: ticketQuantity,
+      soldQuantity: 0,
       description,
       status: ticketStatus,
     });
 
     await ticketType.save();
 
-    // ✅ Link ticketType to event if your Event schema stores ticketTypes
+    // ✅ Now you can call this safely
+    await checkAndUpdateTicketStatus(ticketType);
+
+    // 🔄 Link to event
     event.ticketTypes = event.ticketTypes || [];
     event.ticketTypes.push(ticketType._id);
+
+    // 🛑 Mark event as sold out if needed
+    if (newTotal === event.limit) {
+      event.status = "sold_out";
+    }
+
     await event.save();
 
+    // 📧 Email Notification (optional)
     if (req.user) {
       const { name, email } = req.user;
       await sendCreateTicketMail({
         name,
         email,
-        title: event.title, // ✅ properly pass event title
+        title: event.title,
       });
     }
 
@@ -234,14 +282,24 @@ const createTicket = asyncHandler(async (req, res) => {
   }
 });
 
-// Purchase a ticket
 const purchaseTicket = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
-  session.startTransaction(); // Start transaction
+  session.startTransaction();
 
   try {
     const { eventId, ticketTypeId } = req.body;
-    const userId = req.userId; // Get the logged-in user's ID
+    const userId = req.userId;
+
+    // Validate IDs
+    if (
+      !mongoose.Types.ObjectId.isValid(eventId) ||
+      !mongoose.Types.ObjectId.isValid(ticketTypeId)
+    ) {
+      await session.abortTransaction();
+      return res
+        .status(400)
+        .json({ message: "Invalid Event ID or Ticket Type ID" });
+    }
 
     // Validate user
     const user = await User.findById(userId).session(session);
@@ -250,32 +308,70 @@ const purchaseTicket = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Validate event
+    const event = await Event.findById(eventId).session(session);
+    if (!event) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Check if event has already started
+    const now = new Date();
+    const datePart = new Date(event.startDate).toISOString().split("T")[0];
+    const eventStartDateTime = new Date(`${datePart}T${event.startTime}`);
+    if (now >= eventStartDateTime) {
+      await session.abortTransaction();
+      return res
+        .status(400)
+        .json({ message: "Event has already started. Ticket sales closed." });
+    }
+
     // Check if the user already has a ticket for this event
     const existingTicket = await Ticket.findOne({ userId, eventId }).session(
       session
     );
     if (existingTicket) {
       await session.abortTransaction();
-      return res.status(400).json({
-        message: "You have already purchased a ticket for this event",
-      });
+      return res
+        .status(400)
+        .json({ message: "You already purchased a ticket for this event" });
     }
 
-    // Validate ticket type and update quantity atomically
-    const ticketType = await TicketType.findOneAndUpdate(
-      { _id: ticketTypeId, eventId, quantity: { $gt: 0 } }, // Ensure ticket is available
-      { $inc: { quantity: -1 } }, // Decrease quantity by 1
-      { new: true, session } // Return updated document and use session
-    );
+    // Validate ticket type
+    const ticketType = await TicketType.findOne({
+      _id: ticketTypeId,
+      eventId,
+    }).session(session);
 
     if (!ticketType) {
       await session.abortTransaction();
-      return res
-        .status(400)
-        .json({ message: "Tickets sold out or invalid ticket type" });
+      return res.status(404).json({ message: "Ticket type not found" });
     }
 
-    // Create the ticket and assign to the user
+    console.log(ticketType);
+
+    // Check if ticket is available and status is valid
+    if (
+      ticketType.availableQuantity <= 0 ||
+      ticketType.status === "sold_out" ||
+      ticketType.status === "closed"
+    ) {
+      await session.abortTransaction();
+      return res.status(400).json({ message: "Ticket is not available" });
+    }
+
+    // Update ticketType quantity and sold count atomically
+    ticketType.availableQuantity -= 1;
+    ticketType.soldQuantity = (ticketType.soldQuantity || 0) + 1;
+
+    // Update status if sold out
+    if (ticketType.availableQuantity === 0) {
+      ticketType.status = "sold_out";
+    }
+
+    await ticketType.save({ session });
+
+    // Create ticket
     const ticket = new Ticket({
       userId,
       eventId,
@@ -285,21 +381,18 @@ const purchaseTicket = asyncHandler(async (req, res) => {
 
     await ticket.save({ session });
 
-    // Add the ticket ID to the user's ticket array
-    // Add the ticket ID to the user's ticket array
+    // Save ticket to user
+    user.ticket = user.ticket || [];
     user.ticket.push(ticket._id);
-    // event.attendees.push(userId);
-    // await event.save();
     await user.save({ session });
 
-    // Add the user as an attendee of the event
+    // Add user to attendees
     await Event.findByIdAndUpdate(
       eventId,
-      { $addToSet: { attendees: userId } }, // Use $addToSet to avoid duplicates
+      { $addToSet: { attendees: userId } },
       { session }
     );
 
-    // Commit transaction
     await session.commitTransaction();
     session.endSession();
 
@@ -310,6 +403,7 @@ const purchaseTicket = asyncHandler(async (req, res) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
+    console.log("Error purchasing ticket", error.message);
     return res
       .status(500)
       .json({ message: "Error purchasing ticket", error: error.message });
@@ -371,7 +465,10 @@ const getTicket = asyncHandler(async (req, res) => {
         "eventId",
         "title description eventType meetLink category location startDate startTime"
       )
-      .populate("ticketTypeId", "type price description quantity");
+      .populate(
+        "ticketTypeId",
+        "type price description availableQuantity totalQuantity ticketQuantity"
+      );
 
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
@@ -484,10 +581,9 @@ const uploadEventImage = async (req, res) => {
 
     await event.save();
 
-    return res.status(201).json({
-      message: "Event image uploaded successfully",
-      image: event.image,
-    });
+    const updatedEvent = await Event.findById(event._id);
+
+    return res.status(201).json(updatedEvent);
   } catch (error) {
     console.log(error);
     return res
@@ -706,7 +802,6 @@ const unlikeEvent = asyncHandler(async (req, res) => {
   }
 });
 
-// Get all events
 const getEvents = asyncHandler(async (req, res) => {
   try {
     const events = await Event.find()
@@ -738,7 +833,6 @@ const getEvents = asyncHandler(async (req, res) => {
   }
 });
 
-// Get all events
 const getUserEvents = asyncHandler(async (req, res) => {
   try {
     const events = await Event.find({ organizer: req.userId })
@@ -916,7 +1010,6 @@ const getAttendeesForEvent = async (req, res) => {
   }
 };
 
-// Get single event
 const getEvent = asyncHandler(async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
@@ -943,7 +1036,27 @@ const getEvent = asyncHandler(async (req, res) => {
           path: "photo",
           select: "imageUrl cloudinaryId",
         },
-      });
+      })
+      .populate({
+        path: "ticket",
+        select:
+          "qrCode purchaseDate ticketTypeId availableQuantity ticketQuantity soldQuantity",
+        populate: [
+          {
+            path: "eventId",
+            select:
+              "title description eventType meetLink category location startDate startTime endDate endTime",
+          },
+        ],
+      })
+      .populate(
+        "ticketTypes",
+        "type price description availableQuantity totalQuantity soldQuantity"
+      )
+      .populate(
+        "tickets",
+        "userId eventId qrCode purchaseDate ticketTypeId availableQuantity ticketQuantity soldQuantity"
+      );
 
     if (event) {
       return res.json(event);
@@ -971,7 +1084,10 @@ const getMyTickets = async (req, res) => {
           },
         },
       })
-      .populate("ticketTypeId", "type price quantity");
+      .populate(
+        "ticketTypeId",
+        "type price availableQuantity totalQuantity soldQuantity"
+      );
 
     res.status(200).json(tickets);
   } catch (err) {
@@ -980,7 +1096,6 @@ const getMyTickets = async (req, res) => {
   }
 };
 
-// Update an event
 const updateEvent = async (req, res) => {
   const {
     title,
@@ -1105,12 +1220,16 @@ const cancelEvent = asyncHandler(async (req, res) => {
         .json({ message: "Not authorized to cancel this event" });
     }
 
+    if (!event.startDate || !event.startTime) {
+      return res.status(400).json({ message: "Invalid event date/time" });
+    }
+
     const now = new Date();
-    const eventStartDateTime = new Date(
-      `${event.startDate}T${event.startTime}`
+    const eventStart = new Date(
+      `${event.startDate.toISOString().split("T")[0]}T${event.startTime}`
     );
 
-    if (eventStartDateTime < now) {
+    if (eventStart <= now) {
       return res.status(400).json({ message: "Cannot cancel past event" });
     }
 
@@ -1151,40 +1270,42 @@ const unCancelEvent = asyncHandler(async (req, res) => {
     if (event.organizer.toString() !== userId) {
       return res
         .status(403)
-        .json({ message: "Not authorized to resume this event" });
+        .json({ message: "Not authorized to cancel this event" });
     }
 
-    // Prevent un-cancelling past events
+    if (!event.startDate || !event.startTime) {
+      return res.status(400).json({ message: "Invalid event date/time" });
+    }
+
     const now = new Date();
-    const eventStartDateTime = new Date(
-      `${event.startDate}T${event.startTime}`
+    const eventStart = new Date(
+      `${event.startDate.toISOString().split("T")[0]}T${event.startTime}`
     );
 
-    if (eventStartDateTime < now) {
-      return res.status(400).json({ message: "Cannot resume a past event" });
+    if (eventStart <= now) {
+      return res.status(400).json({ message: "Cannot resume past event" });
     }
 
     if (!event.canceled) {
-      return res.status(400).json({ message: "Event is not canceled" });
+      return res.status(400).json({ message: "Event is ongoing" });
     }
 
     event.canceled = false;
-    const updatedEvent = await event.save();
+    await event.save();
 
-    // Optionally: Send a confirmation email (if needed)
-    const user = await User.findById(userId); // Ensure we have updated user info if needed
+    const user = await User.findById(userId); // Only if name/email not in token
     await sendReactivateEventMail({
       name: user.name,
       email: user.email,
-      title: updatedEvent.title,
+      title: event.title,
     });
 
     return res.status(200).json({
       message: "Event resumed successfully",
-      event: updatedEvent,
+      event,
     });
   } catch (error) {
-    console.error("Un-cancel event error:", error);
+    console.error("Resume event error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 });
@@ -1205,7 +1326,6 @@ const getUserCancelledEvents = asyncHandler(async (req, res) => {
   }
 });
 
-// Delete an event
 const deleteEvent = asyncHandler(async (req, res) => {
   const { eventId } = req.params;
   const userId = req.userId;
@@ -1261,7 +1381,6 @@ const deleteEvent = asyncHandler(async (req, res) => {
   }
 });
 
-// Fetch past events
 const pastEvents = async (req, res) => {
   try {
     const now = new Date();
@@ -1324,7 +1443,6 @@ const getUserPastEvents = async (req, res) => {
   }
 };
 
-// Fetch trending events
 const trendingEvents = async (req, res) => {
   try {
     console.log("Fetching trending events...");

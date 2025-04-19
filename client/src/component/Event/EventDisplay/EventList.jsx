@@ -24,6 +24,8 @@ const EventList = ({ events }) => {
   // );
   const { loading, error, likedEvents } = useSelector((state) => state.events);
 
+  console.log({likedEvents})
+
   useEffect(() => {
     dispatch(getUpcomingEvents()); // Fetch upcoming events on component mount
   }, [dispatch]);
@@ -36,8 +38,14 @@ const EventList = ({ events }) => {
     }
   };
 
+  
+
   if (loading.likeEvent || loading.unlikeEvent) {
-    return <Loader loading={true} />;
+    return <Loader loading={loading.events} />;
+  }
+
+  if (loading.events) {
+    return <Loader loading={loading.events} />;
   }
 
   if (error) {
@@ -64,6 +72,7 @@ const EventList = ({ events }) => {
                 <th className="px-5 py-4 whitespace-nowrap">Location</th>
                 <th className="px-5 py-4 whitespace-nowrap">Meet Link</th>
                 <th className="px-5 py-4 whitespace-nowrap">Capacity</th>
+                <th className="px-5 py-4 whitespace-nowrap">Like</th>
               </tr>
             </thead>
             <tbody className="text-gray-700 dark:text-zinc-200">
@@ -119,6 +128,11 @@ const EventList = ({ events }) => {
                   </td>
 
                   <td className="px-5 py-4 whitespace-nowrap">{event.limit}</td>
+                  <td className="px-5 py-4 whitespace-nowrap">{event.liked ? (
+                    <FaRegHeart/>
+                  ) : (
+                    <FaHeart/>
+                  )}</td>
                 </motion.tr>
               ))}
             </tbody>

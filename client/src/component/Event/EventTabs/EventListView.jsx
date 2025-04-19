@@ -5,6 +5,7 @@ import EventList from "../EventDisplay/EventList";
 import { useDispatch, useSelector } from "react-redux";
 import { getUpcomingEvents } from "../../../redux/reducers/eventSlice";
 import { motion } from "framer-motion";
+import Loader from "../../Spinners/Loader";
 
 const viewTabs = ["list", "grid"];
 
@@ -13,12 +14,16 @@ const EventListView = () => {
   const [activeTab, setActiveTab] = useState("list");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { upcomingEvents } = useSelector((state) => state.events);
+  const { upcomingEvents, loading } = useSelector((state) => state.events);
   console.log(upcomingEvents);
 
   useEffect(() => {
     dispatch(getUpcomingEvents()); // Fetch upcoming events on component mount
   }, [dispatch]);
+
+  // if (loading.upcomingEvents) {
+  //   return <Loader loading={loading.upcomingEvents} />;
+  // }
 
   const filteredEvents = upcomingEvents.filter((event) => {
     const query = searchQuery.toLowerCase();

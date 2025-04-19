@@ -33,6 +33,12 @@ const userSchema = new mongoose.Schema(
       ref: 'ProfilePicture',
     },
 
+    themeMode: {
+      type: String,
+      enum: ['light', 'dark'],
+      default: 'light',
+    },
+
     isVerified: { type: Boolean, default: false },
     lastEmailSentAt: { type: Number, default: 0 },
     interests: [String],

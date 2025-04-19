@@ -4,6 +4,7 @@ import { getUpcomingEvents } from "../../../redux/reducers/eventSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import Loader from "../../Spinners/Loader";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
 
@@ -43,9 +44,9 @@ const EventGrid = ({ events }) => {
     dispatch(getUpcomingEvents()); // Fetch user events on component mount
   }, [dispatch]);
 
-  if (loading.upcomingEvents) {
-    return <Loader loading={loading.upcomingEvents} />;
-  }
+   if (loading.events) {
+      return <Loader loading={loading.events} />;
+    }
   if (error) return toast.error("error");
 
   const handleNavigate = (eventId) => {

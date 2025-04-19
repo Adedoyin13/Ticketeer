@@ -15,13 +15,11 @@ const GoogleAuth = () => {
 
     try {
       const result = await dispatch(loginWithGoogle(token)).unwrap(); // ✅ pass token here
-      console.log("✅ User data:", result);
       toast.success("Login successful!");
 
       const redirectPath = location.state?.from?.pathname || "/dashboard";
       navigate(redirectPath, { replace: true });
     } catch (err) {
-      console.error("❌ Login error:", err);
       toast.error(err || "Login failed");
     }
   };

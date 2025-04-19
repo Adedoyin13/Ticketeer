@@ -13,7 +13,9 @@ const ticketTypeSchema = new mongoose.Schema(
     type: { type: String, required: true }, // e.g., VIP, GA
     description: { type: String },
     price: { type: Number, required: true },
-    quantity: { type: Number, required: true },
+    totalQuantity: { type: Number, required: true }, // Original total tickets available
+    availableQuantity: { type: Number }, // How many are left
+    soldQuantity: { type: Number },
     // status: {
     //   type: String,
     //   enum: ["available", "sold_out", "closed"],

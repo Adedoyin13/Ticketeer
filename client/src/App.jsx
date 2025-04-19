@@ -27,7 +27,6 @@ import { useEffect } from "react";
 import { getUser } from "./redux/reducers/userSlice";
 import { getUserEvents } from "./redux/reducers/eventSlice";
 import NotFound from "./component/Pages/NotFound";
-import Ticket from "./component/Ticket/Ticket";
 import MyEvents from "./component/Event/MyEvents";
 import ScrollToTop from "./component/Layouts/ScrollToTop";
 import EventView from "./component/Event/EventView";
@@ -36,6 +35,12 @@ import Loader from "./component/Spinners/Loader";
 import EditTicketModal from "./component/Modals/TicketModal/EditTicketModal";
 import FeedbackModal from "./component/Modals/FeedbackModal/FeedbackModal";
 import SplashScreen from "./component/Spinners/SplashScreen";
+import PurchaseTicketModal from "./component/Modals/TicketModal/PurchaseTicketModal";
+import Ticket from "./component/Modals/TicketModal/Ticket";
+import RouteChangeLoader from "./component/Spinners/RouteChangeLoader";
+import UpcomingEvents from "./component/Event/EventView/UpcomingEvents";
+import PastEvents from "./component/Event/EventView/PastEvents";
+import EventTabs from "./component/Event/EventTabs/EventTabs";
 
 function App() {
   const dispatch = useDispatch();
@@ -47,7 +52,7 @@ function App() {
     // setupInterceptors(dispatch);
 
     // Avoid calling getUser on login/register pages
-    const isAuthPage = ["/logiin", "/register"].includes(location.pathname);
+    const isAuthPage = ["/login", "/register"].includes(location.pathname);
     if (!isAuthPage) {
       dispatch(getUser());
     }
@@ -58,6 +63,15 @@ function App() {
       dispatch(getUserEvents());
     }
   }, [isAuthenticated, user, dispatch]);
+
+  // useEffect(() => {
+  //   const html = document.documentElement;
+  //   if (themeMode === "dark") {
+  //     html.classList.add("dark");
+  //   } else {
+  //     html.classList.remove("dark");
+  //   }
+  // }, [themeMode]);  
 
   // useEffect(() => {
   //   setupInterceptors(dispatch);
@@ -85,6 +99,7 @@ function App() {
 
   const RenderRoutes = () => (
     <>
+      <RouteChangeLoader />
       <ScrollToTop />
       <Routes>
         {/* Public Routes */}
@@ -97,10 +112,6 @@ function App() {
         <Route path="/faq" element={<Layout><FAQ /></Layout>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/auth-success" element={<AuthSuccess />} />
-        <Route path="/edit-ticket" element={<EditTicketModal />} />
-        <Route path="/feedback" element={<FeedbackModal />} />
-        <Route path="/SplashScreen" element={<SplashScreen />} />
   
         {/* Protected Routes */}
         <Route
@@ -109,6 +120,26 @@ function App() {
             <ProtectedRoute>
               <UserLayout>
                 <Dashboard />
+              </UserLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ticket"
+          element={
+            <ProtectedRoute>
+              <UserLayout>
+                <Ticket />
+              </UserLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/purchase-ticket"
+          element={
+            <ProtectedRoute>
+              <UserLayout>
+                <PurchaseTicketModal />
               </UserLayout>
             </ProtectedRoute>
           }
@@ -144,7 +175,7 @@ function App() {
           }
         />
         <Route
-          path="/my-tickets"
+          path="/loader"
           element={
               <UserLayout>
                 <Loader />

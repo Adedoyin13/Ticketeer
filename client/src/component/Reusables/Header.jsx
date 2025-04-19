@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import img from "./../../assets/default-img.png";
 import { Link, useLocation } from "react-router-dom";
 import { FiMenu } from "react-icons/fi";
-import { IoMdNotificationsOutline } from "react-icons/io";
+import { IoMdNotifications, IoMdNotificationsOutline } from "react-icons/io";
 import Sidebar from "../Reusables/Sidebar";
 import NotificationModal from "../Modals/NotificationModal/NotificationModal";
 import ProfileModal from "../Modals/UserModal/ProfileModal";
@@ -47,6 +47,16 @@ const Header = () => {
     toggleDarkMode();
     setIsDark((prev) => !prev);
   };
+
+  // const handleToggleTheme = () => {
+  //   const newMode = themeMode === "light" ? "dark" : "light";
+  //   dispatch(setThemeMode(newMode));
+  //   if (user) {
+  //     api.put("/user/theme", { themeMode: newMode });
+  //   } else {
+  //     localStorage.setItem("themeMode", newMode);
+  //   }
+  // };
 
   const openModal = () => {
     setModalOpen(true);
@@ -131,9 +141,12 @@ const Header = () => {
 
           <button
             onClick={openNotificationModal}
-            className="text-zinc-800 dark:text-zinc-200 hover:text-orange-600 dark:hover:text-orange-400 transition"
+            className="text-zinc-800 relative dark:text-zinc-200 hover:text-orange-600 dark:hover:text-orange-400 transition"
           >
             <IoMdNotificationsOutline size={24} />
+            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              0
+            </span>
           </button>
 
           <div

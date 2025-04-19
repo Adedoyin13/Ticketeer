@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import register from "./../../../assets/regi.png";
 import { toast } from "react-toastify";
 import PasswordInput from "../../Reusables/PasswordInput";
@@ -23,7 +23,15 @@ const Register = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => state.user); // Get state
+  const { loading, error, user, isAuthenticated } = useSelector(
+    (state) => state.user
+  ); // Get state
+
+  useEffect(() => {
+    if (user && isAuthenticated) {
+      navigate("/dashboard", { replace: true }); // Redirect after login
+    }
+  }, [navigate]);
 
   // Handle form changes
   const handleInputChange = (e) => {
@@ -76,16 +84,12 @@ const Register = () => {
     return;
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = `${SERVER_URL}/user/auth/google`;
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center py-8 md:py-10 bg-orange-50">
+    <div className="min-h-screen flex items-center justify-center py-8 md:py-10 bg-orange-50 dark:bg-zinc-900 transition-all duration-300">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-stretch justify-center bg-white rounded-2xl shadow-md overflow-hidden min-h-[600px]">
+        <div className="flex flex-col md:flex-row items-stretch justify-center bg-white dark:bg-zinc-800 rounded-2xl shadow-lg overflow-hidden min-h-[600px]">
           {/* Image Section */}
-          <div className="hidden lg:flex lg:w-1/2 h-auto lg:h-full">
+          <div className="hidden lg:flex lg:w-1/2">
             <img
               src={register}
               alt="Registration illustration"
@@ -94,12 +98,12 @@ const Register = () => {
           </div>
 
           {/* Form Section */}
-          <div className="w-full lg:w-1/2 px-6 lg:px-8 py-4 lg:py-6 flex flex-col justify-center">
+          <div className="w-full lg:w-1/2 px-6 lg:px-10 py-8 flex flex-col justify-center">
             <div className="text-center flex flex-col gap-2">
-              <h1 className="text-2xl md:text-3xl font-bold font-merriweather">
+              <h1 className="text-2xl md:text-3xl font-bold font-merriweather dark:text-white">
                 Get Ready to Experience More!
               </h1>
-              <p className="font-inter text-gray-600">
+              <p className="font-inter text-gray-600 dark:text-gray-300">
                 Sign up and unlock access to the best events near you.
               </p>
             </div>
@@ -108,8 +112,12 @@ const Register = () => {
               onSubmit={handleSubmit}
               className="mt-6 max-w-md mx-auto flex flex-col gap-4 font-inter"
             >
+              {/* Full Name */}
               <div className="flex flex-col gap-1">
-                <label htmlFor="name" className="font-medium pl-1">
+                <label
+                  htmlFor="name"
+                  className="font-medium pl-1 dark:text-white"
+                >
                   Full Name
                 </label>
                 <input
@@ -117,14 +125,19 @@ const Register = () => {
                   id="name"
                   name="name"
                   placeholder="Please fill your full name"
-                  className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-200 focus:outline-none focus:border-orange-300"
+                  className="bg-orange-50 dark:bg-zinc-700 dark:text-white p-3 rounded-lg border-b-2 border-orange-200 focus:outline-none focus:border-orange-400 transition-all"
                   required
                   value={formData.name}
                   onChange={handleInputChange}
                 />
               </div>
+
+              {/* Email */}
               <div className="flex flex-col gap-1">
-                <label htmlFor="email" className="font-medium pl-1">
+                <label
+                  htmlFor="email"
+                  className="font-medium pl-1 dark:text-white"
+                >
                   Email
                 </label>
                 <input
@@ -132,14 +145,19 @@ const Register = () => {
                   id="email"
                   name="email"
                   placeholder="Please fill your email"
-                  className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-200 focus:outline-none focus:border-orange-300"
+                  className="bg-orange-50 dark:bg-zinc-700 dark:text-white p-3 rounded-lg border-b-2 border-orange-200 focus:outline-none focus:border-orange-400 transition-all"
                   required
                   value={formData.email}
                   onChange={handleInputChange}
                 />
               </div>
+
+              {/* Password */}
               <div className="flex flex-col gap-1">
-                <label htmlFor="password" className="font-medium pl-1">
+                <label
+                  htmlFor="password"
+                  className="font-medium pl-1 dark:text-white"
+                >
                   Password
                 </label>
                 <PasswordInput
@@ -147,13 +165,18 @@ const Register = () => {
                   id="password"
                   name="password"
                   required
-                  className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-200 focus:outline-none focus:border-orange-300 w-full"
+                  className="bg-orange-50 dark:bg-zinc-700 dark:text-white p-3 rounded-lg border-b-2 border-orange-200 focus:outline-none focus:border-orange-400 w-full transition-all"
                   value={formData.password}
                   onChange={handleInputChange}
                 />
               </div>
+
+              {/* Confirm Password */}
               <div className="flex flex-col gap-1">
-                <label htmlFor="confirmPassword" className="font-medium pl-1">
+                <label
+                  htmlFor="confirmPassword"
+                  className="font-medium pl-1 dark:text-white"
+                >
                   Confirm Password
                 </label>
                 <PasswordInput
@@ -161,18 +184,23 @@ const Register = () => {
                   id="confirmPassword"
                   name="confirmPassword"
                   required
-                  className="bg-orange-50 p-2 rounded-lg border-b-2 border-orange-200 focus:outline-none focus:border-orange-300 w-full"
+                  className="bg-orange-50 dark:bg-zinc-700 dark:text-white p-3 rounded-lg border-b-2 border-orange-200 focus:outline-none focus:border-orange-400 w-full transition-all"
                   onPaste={handlePastePassword}
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  // disabled={loading}
                 />
               </div>
-              {error && <p style={{ color: "red" }}>{error}</p>}
+
+              {/* Error messages */}
+              {error && <p className="text-red-500 text-sm">{error}</p>}
               {passwordStrengthError && (
-                <p style={{ color: "red" }}>{passwordStrengthError}</p>
-              )}{" "}
-              {passwordError && <p style={{ color: "red" }}>{passwordError}</p>}{" "}
+                <p className="text-red-500 text-sm">{passwordStrengthError}</p>
+              )}
+              {passwordError && (
+                <p className="text-red-500 text-sm">{passwordError}</p>
+              )}
+
+              {/* Terms and checkbox */}
               <div className="flex gap-2 items-start mt-1">
                 <input
                   type="checkbox"
@@ -180,26 +208,30 @@ const Register = () => {
                   checked={isChecked}
                   onChange={handleCheckboxChange}
                 />
-                <p className="text-sm">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
                   I agree to the{" "}
-                  <Link to="/terms-and-conditions">
-                    <span className="text-orange-600 hover:text-orange-700 hover:underline">
-                      terms & conditions
-                    </span>
+                  <Link
+                    to="/terms-and-conditions"
+                    className="text-orange-600 hover:underline"
+                  >
+                    terms & conditions
                   </Link>{" "}
                   and{" "}
-                  <Link to="/privacy-policy">
-                    <span className="text-orange-600 hover:text-orange-700 hover:underline">
-                      privacy policy
-                    </span>
+                  <Link
+                    to="/privacy-policy"
+                    className="text-orange-600 hover:underline"
+                  >
+                    privacy policy
                   </Link>{" "}
                   of Ticketeer
                 </p>
               </div>
-              <div className="flex flex-col gap-4 items-center mt-2 font-inter">
+
+              {/* Submit + Social Auth */}
+              <div className="flex flex-col gap-4 items-center mt-2">
                 <button
                   type="submit"
-                  className={`py-3 px-6 w-full md:w-2/3 font-medium rounded-full transition-all duration-300 text-white ${
+                  className={`py-3 px-6 w-full md:w-2/3 font-medium rounded-full text-white transition-all duration-300 ${
                     isChecked
                       ? "bg-orange-400 hover:bg-orange-500"
                       : "bg-orange-300 cursor-not-allowed"
@@ -209,30 +241,36 @@ const Register = () => {
                   {loading ? "Creating Account..." : "Create Account"}
                 </button>
 
-                <p className="font-bold text-lg">OR</p>
-                {/* <button onClick={handleGoogleLogin} className="bg-orange-50 p-3 rounded-full hover:bg-orange-100">
-                  <FcGoogle size={30} />
-                </button> */}
-                <GoogleAuth/>
-                <p className="text-sm text-gray-600">
+                <p className="font-bold text-lg dark:text-white">OR</p>
+
+                <GoogleAuth />
+
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Already have an account?{" "}
-                  <span className="text-orange-400 hover:text-orange-600">
-                    <Link to="/login">Login</Link>
-                  </span>
+                  <Link to="/login" className="text-orange-400 hover:underline">
+                    Login
+                  </Link>
                 </p>
-                <p className="text-xs text-gray-600">
+
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Need help?{" "}
-                  <span className="text-orange-400 hover:text-orange-600">
-                    <Link to="/contact">Contact Support</Link>
-                  </span>
+                  <Link
+                    to="/contact"
+                    className="text-orange-400 hover:underline"
+                  >
+                    Contact Support
+                  </Link>
                 </p>
               </div>
             </form>
-            <div className="flex justify-end">
-              <Link to="/">
-                <p className="text-base text-gray-600 hover:text-red-400 mt-2">
-                  - Home
-                </p>
+
+            {/* Home Link */}
+            <div className="flex justify-end mt-4">
+              <Link
+                to="/"
+                className="text-gray-600 dark:text-gray-300 hover:text-red-400"
+              >
+                - Home
               </Link>
             </div>
           </div>

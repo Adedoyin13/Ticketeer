@@ -5,11 +5,13 @@ import { FaArrowLeft } from "react-icons/fa";
 import EventShareModal from "../Modals/EventModal/EventShareModal";
 import AttendeeModal from "../Modals/EventModal/AttendeeModal";
 import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { TbTicket } from "react-icons/tb";
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+import Loader from "../Spinners/Loader";
+import { toast } from "react-toastify";
+import { getEventDetails } from "../../redux/reducers/eventSlice";
+import PurchaseTicketModal from "../Modals/TicketModal/PurchaseTicketModal";
 
 const formatTime = (timeString) => {
   const [hours, minutes] = timeString.split(":");
@@ -35,7 +37,9 @@ const formatDate = (dateString) => {
 const EventView = () => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [attendeeModalOpen, setAttendeeModalOpen] = useState(false);
+  const [purhaseModalOpen, setPurhaseModalOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const location = useLocation();
   const { eventId } = useParams();
 
@@ -45,6 +49,14 @@ const EventView = () => {
 
   const closeShareModal = () => {
     setShareModalOpen(false);
+  };
+
+  const openPurchaseModal = () => {
+    setPurhaseModalOpen(true);
+  };
+
+  const closePurchaseModal = () => {
+    setPurhaseModalOpen(false);
   };
 
   const openAttendeeModal = () => {
@@ -60,9 +72,17 @@ const EventView = () => {
   };
 
   const { user, isAuthenticated } = useSelector((state) => state.user);
-  console.log({ user });
+  // console.log({ user });
 
-  const [event, setEvent] = useState({});
+  const { eventDetails, loading, error } = useSelector((state) => state.events);
+
+  // useEffect(() => {
+  //   if (user && isAuthenticated) {
+  //     dispatch(getEventDetails(eventId));
+  //   }
+  // }, [dispatch, eventId]);
+
+  console.log({ eventDetails });
 
   useEffect(() => {
     if (!eventId) {
@@ -70,36 +90,38 @@ const EventView = () => {
       return;
     }
 
-    console.log({ eventId });
-
     const handleEventDetails = async () => {
       try {
-        const response = await axios.get(
-          `${SERVER_URL}/event/getEvent/${eventId}`,
-          { withCredentials: true }
-        );
-        console.log(response.data);
-        setEvent(response.data);
+        dispatch(getEventDetails(eventId));
       } catch (error) {
         console.log("Error fetching event details", error);
       }
     };
 
     handleEventDetails();
-  }, [eventId]);
+  }, [eventId, dispatch, getEventDetails]);
 
-  const startDate = new Date(event.startDate);
+  if (loading.eventDetails) {
+    return <Loader loading={loading.eventDetails} />;
+  }
+
+  if (error) {
+    return toast.error(error || "Unable to get event details");
+  }
+
+  const startDate = new Date(eventDetails.startDate);
 
   const formattedMonth = startDate
     .toLocaleString("default", { month: "short" })
     .toUpperCase(); // "APR"
   const dayOfMonth = startDate.getDate();
 
-  const isAttending = event?.attendees?.some(
+  const isAttending = eventDetails?.attendees?.some(
     (attendee) => attendee?._id === user?._id
   );
 
-  console.log(event);
+  const attendees = eventDetails?.attendees || [];
+  console.log({ eventDetails });
 
   return (
     <section className="bg-orange-50 dark:bg-zinc-900 py-20 md:py-28 px-4 md:px-10 font-inter text-gray-800 dark:text-zinc-100">
@@ -117,38 +139,58 @@ const EventView = () => {
             {/* Image */}
             <div className="relative w-full h-60 sm:h-72 bg-white dark:bg-zinc-800 rounded-lg overflow-hidden shadow-md">
               <img
-                src={event?.image?.imageUrl}
-                alt={`${event.title}'s image`}
+                src={eventDetails?.image?.imageUrl}
+                alt={`${eventDetails.title}'s image`}
                 className="w-full h-full object-cover"
               />
             </div>
-
             {/* Info Cards */}
+
             {[
-              ["Host", event?.organizer?.name],
-              ["Attending", "Olajide Rodiyat and 2 others", openAttendeeModal],
+              ["Host", eventDetails?.organizer?.name, null],
+              [
+                "Attending",
+                attendees.length > 0
+                  ? `${attendees[0]?.name}${
+                      attendees.length > 1
+                        ? ` (and ${attendees.length - 1} others)`
+                        : ""
+                    }`
+                  : "No attendees yet",
+                openAttendeeModal,
+              ],
               ["Share", "Share event", openShareModal],
             ].map(([label, value, onClick], idx) => (
               <div
                 key={idx}
-                className="flex flex-col gap-1 px-6 py-4 bg-orange-300 bg-opacity-50 dark:bg-zinc-900/20 shadow-sm border dark:border-zinc-700 rounded-xl"
+                className="flex flex-col gap-2 px-6 py-4 bg-orange-300 bg-opacity-50 dark:bg-zinc-900/20 shadow-sm border dark:border-zinc-700 rounded-xl"
               >
                 <p className="text-sm font-semibold text-gray-500 dark:text-zinc-400">
                   {label}
                 </p>
-                {label === "Attending" ? (
+
+                {label === "Host" ? (
                   <div className="flex items-center gap-2">
                     <img
-                      src={user.photo.imageUrl}
+                      src={eventDetails?.organizer?.photo?.imageUrl}
                       className="w-6 h-6 rounded-full object-cover"
-                      alt="Attendee"
+                      alt="Host"
                     />
-                    <p
-                      className="text-sm cursor-pointer hover:underline"
-                      onClick={onClick}
-                    >
-                      {value}
-                    </p>
+                    <p className="text-sm font-medium">{value}</p>
+                  </div>
+                ) : label === "Attending" ? (
+                  <div
+                    className="flex items-center gap-2 cursor-pointer hover:underline"
+                    onClick={onClick}
+                  >
+                    {attendees[0]?.photo?.imageUrl && (
+                      <img
+                        src={attendees[0]?.photo?.imageUrl}
+                        alt={attendees[0]?.name}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                    )}
+                    <p className="text-sm font-medium">{value}</p>
                   </div>
                 ) : (
                   <p
@@ -168,7 +210,9 @@ const EventView = () => {
           <div className="flex flex-col gap-6 w-full">
             {/* Title & Info */}
             <div className="flex flex-col gap-6">
-              <h2 className="md:text-4xl text-2xl font-bold">{event.title}</h2>
+              <h2 className="md:text-4xl text-2xl font-bold">
+                {eventDetails.title}
+              </h2>
 
               <div className="flex flex-col gap-4">
                 {/* Date/Time */}
@@ -183,16 +227,47 @@ const EventView = () => {
                   </div>
                   <div className="flex flex-col">
                     <p className="text-sm md:text-lg font-semibold">
-                      {formatDate(event.startDate)}
+                      {formatDate(eventDetails.startDate)}
                     </p>
                     <p className="text-xs md:text-sm text-gray-500 dark:text-zinc-400">
-                      {/* {formatTime(event.startTime)} – {formatTime(event.endTime)} */}
+                      {eventDetails.startTime} – {eventDetails.endTime}
                     </p>
                   </div>
                 </div>
 
                 {/* Location / Link */}
-                {/* [Same logic but make sure to add dark: classes to containers/texts] */}
+                {eventDetails?.eventType === "virtual" ? (
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-lg border dark:border-zinc-600 shadow-sm flex flex-col overflow-hidden items-center justify-center">
+                      <IoVideocamOutline size={30} />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-sm md:text-lg font-semibold">
+                        View Link
+                      </p>
+                      <a
+                        href={eventDetails.meetLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-500 underline flex flex-col gap-1 w-full"
+                      >
+                        Join Meeting
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-lg border dark:border-zinc-600 shadow-sm flex flex-col overflow-hidden items-center justify-center">
+                      <IoLocationOutline size={30} />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-sm md:text-lg font-semibold">
+                        View Location
+                      </p>
+                      {/* <p className="text-sm">d{eventDetails?.location[0]}</p> */}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -217,9 +292,20 @@ const EventView = () => {
                       </p>
                     </div>
                   </div>
-                  <button className="mt-4 self-start px-6 py-2 bg-orange-300 bg-opacity-50 dark:bg-orange-800/30 text-sm rounded-lg hover:bg-orange-700 dark:hover:bg-orange-700 transition">
+                  {eventDetails?.ticketTypes?.length > 0 ? (
+                    <button
+                    className="mt-4 self-start px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full transition"
+                    onClick={openPurchaseModal}
+                  >
                     Purchase Ticket
                   </button>
+                  ) : (
+                    <button
+                    className="mt-4 self-start px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full transition"
+                  >
+                    No more Ticket for this event
+                  </button>
+                  )}
                 </>
               ) : (
                 <>
@@ -249,7 +335,7 @@ const EventView = () => {
               <h3 className="text-sm font-semibold text-gray-500 dark:text-zinc-400">
                 About the Event
               </h3>
-              <p className="text-base">{event.description}</p>
+              <p className="text-base">{eventDetails.description}</p>
             </div>
           </div>
         </div>
@@ -259,14 +345,22 @@ const EventView = () => {
       {shareModalOpen && (
         <EventShareModal
           onClose={closeShareModal}
-          eventId={event._id}
-          eventName={event.title}
+          eventId={eventDetails._id}
+          eventName={eventDetails.title}
         />
       )}
       {attendeeModalOpen && (
         <AttendeeModal
           onClose={closeAttendeeModal}
-          attendees={event.attendees}
+          attendees={eventDetails.attendees}
+        />
+      )}
+      {purhaseModalOpen && (
+        <PurchaseTicketModal
+          onClose={closePurchaseModal}
+          tickets={eventDetails.ticketTypes}
+          event={eventDetails.title}
+          user={user}
         />
       )}
     </section>

@@ -29,7 +29,7 @@ const ShareModal = ({ onClose }) => {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(CLIENT_URL);
     toast.success(
-      "App link copied! You can paste it on your social media account."
+      "Application link copied! You can paste it on your social media account."
     );
   };
 

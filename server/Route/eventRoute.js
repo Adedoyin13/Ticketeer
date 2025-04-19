@@ -67,7 +67,7 @@ router.post("/create-ticket/:eventId", protectUser, createTicket);
 router.get("/my-tickets", protectUser, getMyTickets);
 router.get("/getTicket/:ticketId", protectUser, getTicket);
 router.get("/getAllTickets/:eventId", protectUser, organizerOnly, getAllTickets);
-router.post("/tickets/purchase", protectUser, purchaseTicket);
+router.post("/ticket/purchase", protectUser, purchaseTicket);
 
 router.post("/:eventId/upload-image", protectUser, upload.single("image"), uploadEventImage);
 router.put("/:eventId/update-image", protectUser, upload.single("image"), updateEventImage);

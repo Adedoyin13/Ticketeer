@@ -14,7 +14,7 @@ const CopyToClipboard = () => {
 
   return (
     <div className="flex items-center justify-center">
-        <button onClick={copyLink} className="flex items-center gap-2 py-2 px-4 bg-slate-400 hover:bg-slate-500 rounded-md text-sm md:max-w-[200px]">
+        <button onClick={copyLink} className="flex items-center gap-2 py-2 px-4 bg-slate-400 dark:bg-zinc-700 dark:hover:bg-zinc-900 hover:bg-slate-500 rounded-md text-sm md:max-w-[200px]">
         <AiOutlineLink size={20}/>
       Copy Link
     </button>

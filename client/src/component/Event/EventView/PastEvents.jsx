@@ -55,7 +55,7 @@ const PastEvents = () => {
   };
 
   return (
-    <section className="mt-10 font-inter">
+    <section className="mt-10 font-inter mb-20">
       <div className="flex flex-col gap-8">
         {Array.isArray(pastEvents) && pastEvents.length > 0 ? (
           pastEvents.map((past, index) => (

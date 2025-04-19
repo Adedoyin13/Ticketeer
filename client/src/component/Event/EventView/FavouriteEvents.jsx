@@ -57,7 +57,7 @@ const FavouriteEvents = () => {
   };
 
   return (
-    <section className="mt-10 font-inter">
+    <section className="mt-10 font-inter mb-20">
       <div className="flex flex-col gap-8">
         {Array.isArray(favouriteEvents) && favouriteEvents.length > 0 ? (
           favouriteEvents.map((favourite, index) => (

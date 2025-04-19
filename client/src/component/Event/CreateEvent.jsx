@@ -208,7 +208,7 @@ const CreateEvent = () => {
   };
 
   return (
-    <section className="bg-orange-50 dark:bg-zinc-900 py-16 px-4 sm:px-8 md:px-12 lg:py-24 font-inter">
+    <section className="bg-orange-50 dark:bg-zinc-900 py-20 px-4 sm:px-8 md:px-12 md:py-24 font-inter">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white dark:bg-zinc-950 shadow-lg rounded-3xl border border-orange-200 dark:border-zinc-700 overflow-hidden">
           <form className="p-8 md:p-12 space-y-6">

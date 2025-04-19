@@ -14,6 +14,30 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+export const purchaseTicketThunk = createAsyncThunk(
+  'ticket/purchase',
+  async ({ ticketTypeId, eventId, quantity = 1 }, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/ticket/purchase', {
+        ticketTypeId,
+        eventId,
+        quantity,
+      });
+
+      const session = response.data?.session;
+
+      if (session?.url) {
+        window.location.href = session.url; // 🔁 Redirect to Stripe in same tab
+      } else {
+        throw new Error('Stripe session URL not found.');
+      }
+    } catch (err) {
+      console.error('Purchase Ticket Error:', err);
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
 // LOGIN
 export const loginUser = createAsyncThunk(
   "user/login",
@@ -108,11 +132,29 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
+export const setThemeMode = (mode) => async (dispatch, getState) => {
+  try {
+    if (mode === 'dark') {
+      enableDarkMode();
+    } else {
+      disableDarkMode();
+    }
+
+    // Persist theme preference in backend
+    await axios.put('/user/theme', { themeMode: mode });
+
+    dispatch({ type: 'user/setTheme', payload: mode });
+  } catch (error) {
+    console.error('Error updating theme mode:', error);
+  }
+};
+
 // INITIAL STATE
 const initialState = {
   user: null,
   token: null,
   isAuthenticated: false,
+  themeMode: 'light', // default fallback
   loading: false,
   error: null,
   status: "idle", // idle | loading | succeeded | failed

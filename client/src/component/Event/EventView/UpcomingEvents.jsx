@@ -62,7 +62,7 @@ const UpcomingEvents = ({ countries, states }) => {
   };
 
   return (
-    <section className="mt-10 font-inter">
+    <section className="mt-10 font-inter mb-20">
       <div className="flex flex-col gap-8">
         {Array.isArray(userUpcomingEvents) && userUpcomingEvents.length > 0 ? (
           userUpcomingEvents.map((upcoming, index) => (

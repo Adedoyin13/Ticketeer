@@ -30,8 +30,8 @@ export const getEventDetails = createAsyncThunk(
   async (eventId, { rejectWithValue }) => {
     console.log("🔹 Redux Action: getEventDetails called with ID:", eventId);
     try {
-      const response = await axios.get(
-        `${SERVER_URL}/event/getEvent/${eventId}`,
+      const response = await api.get(
+        `/event/getEvent/${eventId}`,
         { withCredentials: true }
       );
       console.log("✅ Event details API response:", response.data);
@@ -101,6 +101,7 @@ export const getUserFavouriteEvents = createAsyncThunk(
       const response = await api.get("/event/liked-events", {
         withCredentials: true,
       }); // No need to send user._id
+      console.log(response.data);
       return response.data; // Backend should already return the authenticated user's events
     } catch (error) {
       return rejectWithValue(
@@ -116,6 +117,7 @@ export const likeEvent = createAsyncThunk(
     const userId = getState().user.userId; // assuming userId is stored in the user slice
     try {
       const response = await api.put(`/event/like/${eventId}`, { userId }, {withCredentials: true});
+      console.log(response.data);
       return response.data; // returns the updated event
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -129,6 +131,7 @@ export const unlikeEvent = createAsyncThunk(
     const userId = getState().user.userId;
     try {
       const response = await api.put(`/event/unlike/${eventId}`, { userId }, {withCredentials: true});
+      console.log(response.data);
       return response.data; // returns the updated event
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -290,7 +293,7 @@ export const deleteEvent = createAsyncThunk(
 const initialState = {
   events: [],
   userEvents: [],
-  eventDetails: null,
+  eventDetails: {},
   upcomingEvents: [],
   cancelledEvents: [],
   userTickets: [],
@@ -568,16 +571,21 @@ const eventSlice = createSlice({
       })
       .addCase(uploadEventImage.fulfilled, (state, action) => {
         state.loading.uploadImage = false;
-        const { eventId, imageUrl } = action.payload;
-
-        // Find the event and update its image
+        const updatedEvent = action.payload;
+      
         const eventIndex = state.userEvents.findIndex(
-          (event) => event._id === eventId
+          (event) => event._id === updatedEvent._id
         );
+      
         if (eventIndex !== -1) {
-          state.userEvents[eventIndex].image = imageUrl;
+          state.userEvents[eventIndex] = updatedEvent;
         }
-      })
+      
+        // If you're using selectedEvent elsewhere, update that too
+        if (state.eventDetails && state.eventDetails._id === updatedEvent._id) {
+          state.eventDetails = updatedEvent;
+        }
+      })      
       .addCase(uploadEventImage.rejected, (state, action) => {
         state.loading.uploadImage = false;
         state.error = action.payload;

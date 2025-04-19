@@ -119,30 +119,30 @@ const CreateTicket = () => {
     createTicket();
   };
 
-  const handleAddAnotherTicket = () => {
-    // Validate required fields (basic check)
-    if (!ticketData.type || !ticketData.price || !ticketData.quantity) {
-      alert("Please fill in ticket type, price, and quantity.");
-      return;
-    }
+  // const handleAddAnotherTicket = () => {
+  //   // Validate required fields (basic check)
+  //   if (!ticketData.type || !ticketData.price || !ticketData.quantity) {
+  //     alert("Please fill in ticket type, price, and quantity.");
+  //     return;
+  //   }
 
-    // Add current ticket to the list
-    setAllTickets((prev) => [...prev, ticketData]);
+  //   // Add current ticket to the list
+  //   setAllTickets((prev) => [...prev, ticketData]);
 
-    // Reset the form for the next ticket
-    setTicketData({
-      type: "",
-      price: "",
-      quantity: "",
-      description: "",
-    });
-  };
+  //   // Reset the form for the next ticket
+  //   setTicketData({
+  //     type: "",
+  //     price: "",
+  //     quantity: "",
+  //     description: "",
+  //   });
+  // };
 
   return (
     <section className="bg-orange-50 dark:bg-neutral-900 min-h-screen py-20 px-4 sm:px-8 md:px-12 lg:py-24 font-inter">
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-10 border-t lg:border-t-0 lg:border-l lg:pl-10 border-orange-100 dark:border-neutral-800 pt-10 lg:pt-0">
         {/* Event Summary Sidebar (Sticky) */}
-        <div className="flex flex-col gap-6 w-full lg:w-1/3 sticky top-24 h-fit">
+        <div className="flex flex-col gap-6 w-full lg:w-1/3 lg:sticky top-24 h-fit">
           <div className="bg-white dark:bg-neutral-800 shadow-lg rounded-3xl border border-orange-200 dark:border-neutral-700 p-6">
             <div className="w-full h-[150px] overflow-hidden rounded-xl mb-4">
               <img
@@ -291,7 +291,7 @@ const CreateTicket = () => {
                 />
               </div>
 
-              <div className="pt-2">
+              {/* <div className="pt-2">
                 <button
                   type="button"
                   onClick={handleAddAnotherTicket}
@@ -301,11 +301,11 @@ const CreateTicket = () => {
                   <IoIosAdd size={20} />
                   Add another ticket
                 </button>
-              </div>
+              </div> */}
             </form>
           </div>
 
-          {allTickets.length > 0 && (
+          {/* {allTickets.length > 0 && (
             <div className="bg-white dark:bg-neutral-800 shadow-lg rounded-3xl border border-orange-200 dark:border-neutral-700 p-6">
               <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
                 Tickets Added:
@@ -318,15 +318,10 @@ const CreateTicket = () => {
                 ))}
               </ul>
             </div>
-          )}
+          )} */}
 
           {/* Footer */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <p>Create</p>
-              <IoIosArrowForward />
-              <p>Buy tickets</p>
-            </div>
+          <div className="flex flex-col sm:flex-row justify-end items-center gap-4 sm:gap-0">
             <button
               onClick={handleSubmit}
               aria-label="Create event"

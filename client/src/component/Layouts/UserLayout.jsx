@@ -6,7 +6,7 @@ const UserLayout = ({ children }) => {
   return (
     <>
       <Header />
-      <div style={{ minHeight: "80vh" }}>{children}</div>
+      <div className='min-h-[80vh]'>{children}</div>
       <UserFooter/>
     </>
   )

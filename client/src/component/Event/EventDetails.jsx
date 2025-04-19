@@ -81,6 +81,63 @@ const EventDetails = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [reactivateModalOpen, setReactivateModalOpen] = useState(false);
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const { eventId } = useParams(); // Get eventId from URL
+  const dispatch = useDispatch();
+
+  const [isFormChanged, setIsFormChanged] = useState(false);
+  const [isPhotoChanged, setIsPhotoChanged] = useState(false);
+
+  const [formData, setFormData] = useState({
+    image: null, // or any other default values you need
+  });
+  const [profilePhoto, setProfilePhoto] = useState(formData?.image?.imageUrl);
+  console.log(formData);
+
+  const { user, isAuthenticated } = useSelector((state) => state.user);
+  // console.log({ user });
+  const loadingUploadImage = useSelector(
+    (state) => state.events.loading.uploadImage
+  );
+  // console.log({ user });
+  const { eventDetails, loading, error } = useSelector((state) => state.events);
+
+  useEffect(() => {
+    if (user && isAuthenticated) {
+      dispatch(getEventDetails(eventId));
+    }
+  }, [dispatch, eventId]);
+
+  console.log({ eventDetails });
+
+  
+  useEffect(() => {
+    if (!eventId) {
+      console.log("Event ID is missing");
+      return;
+    }
+
+    const handleEventDetails = async () => {
+      try {
+        dispatch(getEventDetails(eventId));
+      } catch (error) {
+        console.log("Error fetching event details", error);
+      }
+    };
+
+    handleEventDetails();
+  }, [eventId, dispatch, getEventDetails]);
+
+  if (loading.eventDetails) {
+    return <Loader loading={loading.eventDetails} />;
+  }
+
+  if (error) {
+    return toast.error(error || "Unable to get event details");
+  }
+
   const openEditModal = () => {
     setEditModalOpen(true);
   };
@@ -129,28 +186,6 @@ const EventDetails = () => {
     setDeleteModalOpen(false);
   };
 
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const { eventId } = useParams(); // Get eventId from URL
-  const dispatch = useDispatch();
-
-  const { user, isAuthenticated } = useSelector((state) => state.user);
-  console.log({ user });
-  // const { loading } = useSelector((state) => state.events);
-
-  const [eventDetails, setEventDetails] = useState({});
-  const [formData, setFormData] = useState({
-    image: null, // or any other default values you need
-  });
-
-  console.log(formData);
-
-  const [profilePhoto, setProfilePhoto] = useState(formData?.image?.imageUrl);
-
-  const [isFormChanged, setIsFormChanged] = useState(false);
-  const [isPhotoChanged, setIsPhotoChanged] = useState(false);
-
   const handleBack = () => {
     navigate(location.state?.from || "/dashboard"); // Go back to the saved route or home if undefined
   };
@@ -175,27 +210,6 @@ const EventDetails = () => {
       toast.error("Unable to delete event");
     }
   };
-
-  useEffect(() => {
-    if (!eventId) {
-      console.log("Event ID is missing");
-      return;
-    }
-
-    const handleEventDetails = async () => {
-      try {
-        const response = await axios.get(
-          `${SERVER_URL}/event/getEvent/${eventId}`,
-          { withCredentials: true }
-        );
-        setEventDetails(response.data);
-      } catch (error) {
-        console.log("Error fetching event details", error);
-      }
-    };
-
-    handleEventDetails();
-  }, [eventId]);
 
   const handlePhotoSelect = (e) => {
     const file = e.target.files[0];
@@ -275,7 +289,9 @@ const EventDetails = () => {
   const isUpdateDisabled = !isFormChanged && !isPhotoChanged;
 
   const isUpcoming = () => {
-    if (!eventDetails?.startDate || !eventDetails?.startTime) return false;
+    if (!eventDetails?.startDate || !eventDetails?.startTime) {
+      return false;
+    }
 
     const datePart = new Date(eventDetails.startDate)
       .toISOString()
@@ -400,7 +416,13 @@ const EventDetails = () => {
                   className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-md text-sm transition"
                   disabled={isUpdateDisabled}
                 >
-                  Update
+                  {loadingUploadImage ? (
+                    <>
+                      Updating <Loader loading={loadingUploadImage} />
+                    </>
+                  ) : (
+                    "Update"
+                  )}
                 </button>
               </div>
             )}
@@ -421,8 +443,9 @@ const EventDetails = () => {
             <div className="flex gap-4 items-center text-gray-700 dark:text-zinc-300 mb-4">
               <MdOutlineCalendarMonth size={24} />
               <div className="flex flex-col gap-1 py-2 w-full border-b border-gray-700 dark:border-zinc-600">
-                {/* <p>{formatDate(eventDetails.startDate)}</p>
-                <p>{formatTime(eventDetails.startTime)}</p> */}
+                <p>{eventDetails && formatDate(eventDetails.startDate)} - {eventDetails && formatDate(eventDetails.endDate)}</p>
+                <p className="text-sm">{eventDetails.startTime} - {eventDetails.endTime}</p>
+                {/* <p>{eventDetails && formatTime(eventDetails.startTime)}</p> */}
               </div>
             </div>
 

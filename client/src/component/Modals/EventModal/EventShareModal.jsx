@@ -27,9 +27,7 @@ const EventShareModal = ({ eventId, eventName, onClose }) => {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(`https://yourwebsite.com/event/${eventId}`);
-    toast.success(
-      "Event link copied! You can paste it on Instagram or YouTube."
-    );
+    toast.success("Event link copied!");
   };
 
   return (

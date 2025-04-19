@@ -761,6 +761,26 @@ const getUserTickets = asyncHandler(async (req, res) => {
   }
 });
 
+const updateThemeMode = async (req, res) => {
+  const { userId } = req.userId; // Assuming you have user in req.user
+  const { themeMode } = req.body;
+
+  if (!['light', 'dark'].includes(themeMode)) {
+    return res.status(400).json({ error: 'Invalid mode value' });
+  }
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { themeMode },
+      { new: true }
+    );
+    res.json({ themeMode: updatedUser.themeMode });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update mode' });
+  }
+};
+
 const getUsers = asyncHandler(async (req, res) => {
   try {
     const users = await User.find()
@@ -1014,9 +1034,34 @@ const logoutUser = asyncHandler(async (req, res) => {
   }
 });
 
+
+// const Stripe = require('stripe');
+// const stripe = Stripe('sk_test_YOUR_SECRET_KEY'); // Replace with your real secret key
+
+
+// app.post('/create-payment-intent', async (req, res) => {
+//   const { amount } = req.body;
+
+//   try {
+//     const paymentIntent = await stripe.paymentIntents.create({
+//       amount, // amount in cents (e.g., $10 = 1000)
+//       currency: 'usd',
+//     });
+
+//     res.send({
+//       clientSecret: paymentIntent.client_secret,
+//     });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// app.listen(4242, () => console.log('Server running on port 4242'));
+
 module.exports = {
   registerUser,
   loginUser,
+  updateThemeMode,
   uploadProfilePicture,
   updateProfilePicture,
   deleteProfilePicture,
