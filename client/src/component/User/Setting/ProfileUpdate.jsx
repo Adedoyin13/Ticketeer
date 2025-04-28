@@ -14,7 +14,7 @@ import Loader from "../../Spinners/Loader";
 const ProfileUpdate = () => {
   const dispatch = useDispatch();
   const { loading, user, error } = useSelector((state) => state.user);
-  console.log({user})
+  console.log({ user });
   const navigate = useNavigate();
 
   const [profilePhoto, setProfilePhoto] = useState(""); // ✅ Fix: Added missing state
@@ -40,15 +40,15 @@ const ProfileUpdate = () => {
   if (loading.updateUser) {
     return <Loader loading={loading.updateUser} />;
   }
-  
+
   if (loading.uploadPhoto) {
     return <Loader loading={loading.uploadPhoto} />;
   }
-  
+
   if (!user) {
     return <Loader loading={true} />; // Show a general loader when no user is available
   }
-  
+
   useEffect(() => {
     if (user) {
       setFormData({
@@ -92,15 +92,18 @@ const ProfileUpdate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(updateUser(formData))
+
+    const { confirmNewPassword, ...cleanedFormData } = formData;
+    // dispatch(updateUser(formData))
+    dispatch(updateUser(cleanedFormData))
       .unwrap()
       .then(() => {
-        console.log('prfile updated successfully')
+        console.log("prfile updated successfully");
         toast.success("Profile updated successfully!");
         navigate("/settings"); // ✅ Redirect after update
       })
       .catch((err) => {
-        console.log('updated failed')
+        console.log("updated failed");
         toast.error(err || "Update failed");
       });
   };
@@ -132,8 +135,6 @@ const ProfileUpdate = () => {
         toast.error(error || "Failed to upload photo. Please try again.");
       });
   };
-
-  const isUpdateDisabled = (!isFormChanged && !isPhotoChanged) || loading;
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 dark:from-zinc-900 dark:to-zinc-950 py-20 font-inter">
@@ -191,14 +192,14 @@ const ProfileUpdate = () => {
           <div className="flex justify-center">
             <button
               onClick={handlePhotoUpload}
-              disabled={isUpdateDisabled}
+              disabled={!isPhotoChanged || loading}
               className={`py-2 px-6 rounded-md text-sm font-semibold text-white transition ${
-                isUpdateDisabled
+                !isPhotoChanged || loading
                   ? "bg-gray-300 dark:bg-zinc-600 cursor-not-allowed"
                   : "bg-orange-500 hover:bg-orange-600"
               }`}
             >
-              Update Photo
+             {isPhotoChanged ? "Upload New Photo" : "Update Photo"}
             </button>
           </div>
         </div>
