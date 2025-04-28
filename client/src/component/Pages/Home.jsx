@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { BsBell } from "react-icons/bs";
 import { FaCube, FaMobileAlt } from "react-icons/fa";
 
-import hero from "./../../assets/Hero-bg.png";
+import hero from './../../assets/Hero-Bg.png'
 import business from "./../../assets/Business.png";
 import music from "./../../assets/Music.png";
 import arts from "./../../assets/Arts.png";
