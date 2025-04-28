@@ -207,7 +207,7 @@ const ProfileUpdate = () => {
         </div>
 
         {/* Form Fields */}
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {[
             { label: "Name", id: "name", type: "text", value: formData.name },
             {
@@ -315,8 +315,8 @@ const ProfileUpdate = () => {
           {/* Submit Button */}
           <div className="flex justify-center">
             <button
-              // type="submit"
-              onClick={handleSubmit}
+              type="submit"
+              // onClick={handleSubmit}
               disabled={!isFormChanged || loading}
               className={`py-3 px-10 rounded-lg text-white font-medium transition ${
                 isFormChanged
