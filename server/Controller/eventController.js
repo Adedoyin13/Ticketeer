@@ -121,18 +121,18 @@ const createEvent = asyncHandler(async (req, res) => {
         eventType: newEvent.eventType,
         meetLink: newEvent.eventType === "virtual" ? newEvent.meetLink : null,
         location:
-        newEvent.eventType === "physical"
-          ? {
-              address: newEvent.location[0],
-              country: newEvent.location[1],
-              state: newEvent.location[2],
-              city: newEvent.location[3],
-              venue: newEvent.location[4],
-            }
-          : null,      
+          newEvent.eventType === "physical"
+            ? {
+                address: newEvent.location[0],
+                country: newEvent.location[1],
+                state: newEvent.location[2],
+                city: newEvent.location[3],
+                venue: newEvent.location[4],
+              }
+            : null,
         eventId: newEvent._id,
         createdAt: newEvent.createdAt,
-      });           
+      });
     }
 
     return res
@@ -296,7 +296,7 @@ const createTicket = asyncHandler(async (req, res) => {
         ticketTypeId: ticketType._id,
         createdAt: ticketType.createdAt,
         eventId: event._id, // ✅ Add this
-      };      
+      };
 
       await sendCreateTicketMail(mailData);
     }
@@ -327,7 +327,6 @@ const purchaseTicket = asyncHandler(async (req, res) => {
       !mongoose.Types.ObjectId.isValid(eventId) ||
       !mongoose.Types.ObjectId.isValid(ticketTypeId)
     ) {
-      await session.abortTransaction();
       return res
         .status(400)
         .json({ message: "Invalid Event ID or Ticket Type ID" });
@@ -336,14 +335,12 @@ const purchaseTicket = asyncHandler(async (req, res) => {
     // Validate user
     const user = await User.findById(userId).session(session);
     if (!user) {
-      await session.abortTransaction();
       return res.status(404).json({ message: "User not found" });
     }
 
     // Validate event
     const event = await Event.findById(eventId).session(session);
     if (!event) {
-      await session.abortTransaction();
       return res.status(404).json({ message: "Event not found" });
     }
 
@@ -352,18 +349,18 @@ const purchaseTicket = asyncHandler(async (req, res) => {
     const datePart = new Date(event.startDate).toISOString().split("T")[0];
     const eventStartDateTime = new Date(`${datePart}T${event.startTime}`);
     if (now >= eventStartDateTime) {
-      await session.abortTransaction();
       return res
         .status(400)
         .json({ message: "Event has already started. Ticket sales closed." });
     }
 
     // Check if the user already has a ticket for this event
-    const existingTicket = await Ticket.findOne({ userId, eventId }).session(
-      session
-    );
+    const existingTicket = await Ticket.findOne({
+      userId,
+      eventId,
+      ticketTypeId,
+    }).session(session);
     if (existingTicket) {
-      await session.abortTransaction();
       return res
         .status(400)
         .json({ message: "You already purchased a ticket for this event" });
@@ -374,9 +371,7 @@ const purchaseTicket = asyncHandler(async (req, res) => {
       _id: ticketTypeId,
       eventId,
     }).session(session);
-
     if (!ticketType) {
-      await session.abortTransaction();
       return res.status(404).json({ message: "Ticket type not found" });
     }
 
@@ -386,7 +381,6 @@ const purchaseTicket = asyncHandler(async (req, res) => {
       ticketType.status === "sold_out" ||
       ticketType.status === "closed"
     ) {
-      await session.abortTransaction();
       return res.status(400).json({ message: "Ticket is not available" });
     }
 
@@ -404,7 +398,8 @@ const purchaseTicket = asyncHandler(async (req, res) => {
       eventId,
       ticketTypeId,
       qrCode: `${userId}-${eventId}-${ticketTypeId}-${Date.now()}`,
-      status: "active", // Add a default status
+      status: "active",
+      purchaseDate: new Date(), // Set purchase date
     });
     await ticket.save({ session });
 
@@ -426,7 +421,6 @@ const purchaseTicket = asyncHandler(async (req, res) => {
     // Send email
     if (req.user) {
       const { name, email } = req.user;
-
       const mailData = {
         name,
         email,

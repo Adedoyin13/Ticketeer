@@ -1,6 +1,7 @@
-const sendUserLogInMail = (data) => {
-  const nodemailer = require("nodemailer");
+const CLIENT_URL = process.env.CLIENT_URL
+const nodemailer = require("nodemailer");
 
+const sendUserLogInMail = (data) => {
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -49,7 +50,7 @@ const sendUserLogInMail = (data) => {
                     </p>
 
                     <div style="margin-top: 30px; text-align: center;">
-                      <a href="http://localhost:5173/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
+                      <a href="${CLIENT_URL}/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
                     </div>
                   </td>
                 </tr>
@@ -86,8 +87,6 @@ const sendUserLogInMail = (data) => {
 };
 
 const sendUserRegisterMail = (data) => {
-  const nodemailer = require("nodemailer");
-
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -136,7 +135,7 @@ const sendUserRegisterMail = (data) => {
                   </p>
 
                   <div style="margin-top: 30px; text-align: center;">
-                    <a href="http://localhost:5173/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
+                    <a href="${CLIENT_URL}/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
                   </div>
                 </td>
               </tr>
@@ -173,8 +172,6 @@ const sendUserRegisterMail = (data) => {
 };
 
 const sendUserUpdateMail = (data) => {
-  const nodemailer = require("nodemailer");
-
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -223,7 +220,7 @@ const sendUserUpdateMail = (data) => {
                   </p>
 
                   <div style="margin-top: 30px; text-align: center;">
-                    <a href="http://localhost:5173/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
+                    <a href="${CLIENT_URL}/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
                   </div>
                 </td>
               </tr>
@@ -260,8 +257,6 @@ const sendUserUpdateMail = (data) => {
 };
 
 const sendUserLogoutMail = (data) => {
-  const nodemailer = require("nodemailer");
-
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -310,7 +305,7 @@ const sendUserLogoutMail = (data) => {
                     </p>
 
                     <div style="margin-top: 30px; text-align: center;">
-                      <a href="http://localhost:5173/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
+                      <a href="${CLIENT_URL}/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
                     </div>
                   </td>
                 </tr>
@@ -347,8 +342,6 @@ const sendUserLogoutMail = (data) => {
 };
 
 const sendUserDeleteMail = (data) => {
-  const nodemailer = require("nodemailer");
-
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -397,7 +390,7 @@ const sendUserDeleteMail = (data) => {
                     </p>
 
                     <div style="margin-top: 30px; text-align: center;">
-                      <a href="http://localhost:5173/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
+                      <a href="${CLIENT_URL}/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
                     </div>
                   </td>
                 </tr>

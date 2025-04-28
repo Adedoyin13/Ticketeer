@@ -2,6 +2,8 @@ const nodemailer = require("nodemailer");
 const { Event } = require("../Model/eventModel");
 const { generateQrCode } = require("./qrCode");
 
+const CLIENT_URL = process.env.CLIENT_URL
+
 const sendCreateEventMail = (data) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -77,7 +79,7 @@ const sendCreateEventMail = (data) => {
                   </div>
 
                   <div style="text-align:center;margin-top:32px;">
-                    <a href="http://localhost:5173/my-events" style="background:#f97316;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;">View My Events</a>
+                    <a href="${CLIENT_URL}/my-events" style="background:#f97316;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;">View My Events</a>
                   </div>
                 </td>
               </tr>
@@ -171,7 +173,7 @@ const sendCreateTicketMail = (data) => {
                   </table>
 
                   <div style="text-align:center;margin-top:24px;">
-                    <a href="http://localhost:5173/event-details/${
+                    <a href="${CLIENT_URL}/event-details/${
                       data.eventId
                     }" style="background:#f97316;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">View Event</a>
                   </div>
@@ -273,7 +275,7 @@ const sendTicketPurchaseMail = async (data) => {
 
                   </pre>
                   <div style="text-align:center;margin-top:24px;">
-                    <a href="http://localhost:5173/my-tickets" style="background:#f97316;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">View My Tickets</a>
+                    <a href="${CLIENT_URL}/my-tickets" style="background:#f97316;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">View My Tickets</a>
                   </div>
                 </td>
               </tr>

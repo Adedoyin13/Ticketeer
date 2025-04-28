@@ -10,9 +10,11 @@ import { FcGoogle } from "react-icons/fc";
 import { SiTelegram } from "react-icons/si";
 import { toast } from "react-toastify";
 
+const SERVER_URL = import.meta.env.VITE_SERVER_URL
+
 const EventShareModal = ({ eventId, eventName, onClose }) => {
   const eventURL = encodeURIComponent(
-    `https://http://localhost:5173.com/event-details/${eventId}`
+    `${SERVER_URL}/view-event/${eventId}`
   );
   const text = encodeURIComponent(`Check out this event: ${eventName}`);
 

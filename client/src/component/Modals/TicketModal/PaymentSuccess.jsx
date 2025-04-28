@@ -6,6 +6,8 @@ import Loader from "../../Spinners/Loader";
 import { motion } from "framer-motion";
 import ConfettiEffect from "../../Layouts/ConfettiEffect";
 
+const SERVER_URL = import.meta.env.VITE_SERVER_URL
+
 const PaymentSuccess = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -18,7 +20,7 @@ const PaymentSuccess = () => {
     if (sessionId) {
       axios
         .get(
-          `http://localhost:4000/payments/confirm-checkout-session?session_id=${sessionId}`,
+          `${SERVER_URL}/payments/confirm-checkout-session?session_id=${sessionId}`,
           {
             withCredentials: true,
           }

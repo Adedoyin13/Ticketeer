@@ -4,6 +4,8 @@ import { IoIosSearch } from "react-icons/io";
 import img from "./../../../assets/default-img.png";
 import axios from "axios";
 
+const SERVER_URL = import.meta.env.VITE_SERVER_URL
+
 const feedback = [
   {
     name: "User",
@@ -31,7 +33,7 @@ const FeedbackModal = () => {
   );
 
   const handlePayment = async() => {
-    const response = await axios.post("http://localhost:4000/payment/create-payment-intent", {
+    const response = await axios.post(`${SERVER_URL}/payment/create-payment-intent`, {
       amount: 50, // $50
       userId: "user123",
       eventId: "event456",

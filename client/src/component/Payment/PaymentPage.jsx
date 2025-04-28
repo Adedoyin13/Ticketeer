@@ -6,6 +6,7 @@ import CheckoutForm from "./CheckoutForm";
 import { useSelector } from "react-redux";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+const SERVER_URL = import.meta.env.VITE_SERVER_URL
 
 const PaymentPage = () => {
   const { eventId } = useParams();
@@ -16,7 +17,7 @@ const PaymentPage = () => {
 
 
   //   useEffect(() => {
-  //     fetch(`http://localhost:4000/payments/create-payment-intent`, {
+  //     fetch(`${SERVER_URL}/payments/create-payment-intent`, {
   //       method: "POST",
   //       headers: {
   //         "Content-Type": "application/json",
@@ -32,7 +33,7 @@ const PaymentPage = () => {
     const token = token; // get this from Redux state or wherever you're storing it
     console.log("Token:", token);
 
-    fetch("http://localhost:4000/payments/create-payment-intent", {
+    fetch(`${SERVER_URL}/payments/create-payment-intent`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

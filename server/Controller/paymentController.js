@@ -1,7 +1,6 @@
 const Stripe = require("stripe");
 const { purchaseTicket } = require("./eventController");
-const { buffer } = require("micro");
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY); // Load from .env
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 exports.createCheckoutSession = async (req, res) => {
   try {
@@ -90,17 +89,10 @@ exports.stripeWebhookHandler = async (req, res) => {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
   
-      const userId = session.metadata.userId;
-      const eventId = session.metadata.eventId;
-      const ticketTypeId = session.metadata.ticketTypeId;
+      const { userId, eventId, ticketTypeId } = session.metadata;
   
       try {
-        await purchaseTicket({
-          body: { eventId, ticketTypeId },
-          userId,
-        }, {
-          status: () => ({ json: () => {} }),
-        });
+        await purchaseTicket({ eventId, ticketTypeId, userId});
   
         return res.status(200).json({ received: true });
       } catch (error) {
