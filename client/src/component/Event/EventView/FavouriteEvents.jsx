@@ -1,14 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
 import { MdEventBusy } from "react-icons/md";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { getUserFavouriteEvents } from "../../../redux/reducers/eventSlice";
+import { getUpcomingEvents, getUserFavouriteEvents } from "../../../redux/reducers/eventSlice";
 import Loader from "../../Spinners/Loader";
 import { toast } from "react-toastify";
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 const formatTime = (timeString) => {
   const [hours, minutes] = timeString.split(":"); // Split "HH:mm" format
@@ -36,31 +33,55 @@ const FavouriteEvents = () => {
   const location = useLocation();
 
   const dispatch = useDispatch();
-  const { favouriteEvents, loading, error } = useSelector(
-    (state) => state.events
-  );
-  const { user } = useSelector((state) => state.user);
+  
+   useEffect(() => {
+      dispatch(getUpcomingEvents()); // Fetch upcoming events on component mount
+    }, [dispatch]);
 
-  useEffect(() => {
-    dispatch(getUserFavouriteEvents()); // Fetch user events on component mount
-  }, [dispatch]);
+  const { user, isAuthenticated } = useSelector((state) => state.user);
+  const currentUserId = useSelector((state) => state.user.user._id);
+  const {upcomingEvents,loading, error } = useSelector((state) => state.events)
+  console.log(upcomingEvents)
+  console.log(upcomingEvents)
 
-  if (loading.favouriteEvents) {
-    return <Loader loading={loading.favouriteEvents} />;
+  if(loading.upcomingEvents) {
+    return <Loader loading={loading.upcomingEvents}/>
   }
-  if (error) return toast.error("error");
+  if(error) {
+    return toast.error(error)
+  }
+    // const { upcomingEvents } = useSelector((state) => state.events);
+  
+  console.log(upcomingEvents)
+
+  // useEffect(() => {
+  //   if(user && isAuthenticated) {
+  //     dispatch(getUserFavouriteEvents());
+  //   }
+  // }, [dispatch, user, isAuthenticated]);
+
+  // if (loading.favouriteEvents) {
+  //   return <Loader loading={loading.favouriteEvents} />;
+  // }
+  // if (error) return toast.error("error");
 
   const handleNavigate = (eventId) => {
-    navigate(`/event-details/${eventId}`, {
+    navigate(`/view-event/${eventId}`, {
       state: { from: location.pathname }, // Save previous route
     });
   };
 
+  const likedEvents = upcomingEvents.filter(event =>
+    event.likedUsers?.some(user => user._id === currentUserId)
+  );  
+
+  console.log(upcomingEvents)
+  console.log(likedEvents)
   return (
     <section className="mt-10 font-inter mb-20">
       <div className="flex flex-col gap-8">
-        {Array.isArray(favouriteEvents) && favouriteEvents.length > 0 ? (
-          favouriteEvents.map((favourite, index) => (
+        {Array.isArray(likedEvents) && likedEvents.length > 0 ? (
+          likedEvents.map((favourite, index) => (
             <div
               key={index}
               className="border-l-4 border-orange-500 bg-white dark:bg-zinc-900 shadow-md rounded-xl p-5 sm:p-6"

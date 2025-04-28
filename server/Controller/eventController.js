@@ -20,6 +20,7 @@ const cloudinary = require("cloudinary").v2;
 const createEvent = asyncHandler(async (req, res) => {
   try {
     const {
+      _id,
       title,
       description,
       startDate,
@@ -88,6 +89,7 @@ const createEvent = asyncHandler(async (req, res) => {
 
     // Create event
     const newEvent = new Event({
+      _id,
       title,
       description,
       startDate,
@@ -100,6 +102,7 @@ const createEvent = asyncHandler(async (req, res) => {
       meetLink: eventType === "virtual" ? meetLink : null,
       limit,
       eventType,
+      likedUsers: [],
     });
 
     await newEvent.save();
@@ -109,7 +112,27 @@ const createEvent = asyncHandler(async (req, res) => {
     // Send event creation email
     if (req.user) {
       const { name, email } = req.user;
-      await sendCreateEventMail({ name, email, title });
+      await sendCreateEventMail({
+        name,
+        email,
+        title: newEvent.title,
+        startDate: newEvent.startDate,
+        startTime: newEvent.startTime,
+        eventType: newEvent.eventType,
+        meetLink: newEvent.eventType === "virtual" ? newEvent.meetLink : null,
+        location:
+        newEvent.eventType === "physical"
+          ? {
+              address: newEvent.location[0],
+              country: newEvent.location[1],
+              state: newEvent.location[2],
+              city: newEvent.location[3],
+              venue: newEvent.location[4],
+            }
+          : null,      
+        eventId: newEvent._id,
+        createdAt: newEvent.createdAt,
+      });           
     }
 
     return res
@@ -262,11 +285,20 @@ const createTicket = asyncHandler(async (req, res) => {
     // 📧 Email Notification (optional)
     if (req.user) {
       const { name, email } = req.user;
-      await sendCreateTicketMail({
+
+      const mailData = {
         name,
         email,
         title: event.title,
-      });
+        type: ticketType.type,
+        price: ticketType.price,
+        totalQuantity: ticketType.totalQuantity,
+        ticketTypeId: ticketType._id,
+        createdAt: ticketType.createdAt,
+        eventId: event._id, // ✅ Add this
+      };      
+
+      await sendCreateTicketMail(mailData);
     }
 
     res.status(201).json({
@@ -348,9 +380,7 @@ const purchaseTicket = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: "Ticket type not found" });
     }
 
-    console.log(ticketType);
-
-    // Check if ticket is available and status is valid
+    // Check availability and status
     if (
       ticketType.availableQuantity <= 0 ||
       ticketType.status === "sold_out" ||
@@ -360,15 +390,12 @@ const purchaseTicket = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Ticket is not available" });
     }
 
-    // Update ticketType quantity and sold count atomically
+    // Update ticket type availability
     ticketType.availableQuantity -= 1;
     ticketType.soldQuantity = (ticketType.soldQuantity || 0) + 1;
-
-    // Update status if sold out
     if (ticketType.availableQuantity === 0) {
       ticketType.status = "sold_out";
     }
-
     await ticketType.save({ session });
 
     // Create ticket
@@ -377,8 +404,8 @@ const purchaseTicket = asyncHandler(async (req, res) => {
       eventId,
       ticketTypeId,
       qrCode: `${userId}-${eventId}-${ticketTypeId}-${Date.now()}`,
+      status: "active", // Add a default status
     });
-
     await ticket.save({ session });
 
     // Save ticket to user
@@ -395,6 +422,29 @@ const purchaseTicket = asyncHandler(async (req, res) => {
 
     await session.commitTransaction();
     session.endSession();
+
+    // Send email
+    if (req.user) {
+      const { name, email } = req.user;
+
+      const mailData = {
+        name,
+        email,
+        title: event.title,
+        startDate: event.startDate,
+        startTime: event.startTime,
+        eventType: event.eventType,
+        status: ticket.status,
+        purchaseDate: ticket.purchaseDate,
+        ticketTypeId: ticketType._id,
+        ...(event.eventType === "physical"
+          ? { location: event.location }
+          : { meetLink: event.meetLink }),
+      };
+
+      await sendCreateTicketMail(mailData);
+      console.log("Email sent successfully");
+    }
 
     return res.status(201).json({
       message: "Ticket purchased successfully",
@@ -721,40 +771,54 @@ const likeEvent = asyncHandler(async (req, res) => {
   const userId = req.userId;
 
   try {
-    // Find the event by ID
     const event = await Event.findById(eventId);
 
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // Check if the event is in the past
     const now = new Date();
     const eventStartDateTime = new Date(
       `${event.startDate}T${event.startTime}`
     );
-
     if (eventStartDateTime < now) {
-      return res.status(400).json({ message: "Cannot like a past event" });
-    }
-
-    // Check if the user has already liked the event
-    if (event?.likedUsers.includes(userId)) {
       return res
         .status(400)
-        .json({ message: "You have already liked this event" });
+        .json({ message: "Cannot like or unlike a past event" });
     }
 
-    // Add the user to the likedUsers array
-    event?.likedUsers.push(userId);
-    event.liked = true;
+    const alreadyLiked = event.likedUsers.includes(userId);
 
-    // Save the event
+    if (alreadyLiked) {
+      // Unlike: remove user from likedUsers
+      event.likedUsers = event.likedUsers.filter(
+        (id) => id.toString() !== userId.toString()
+      );
+    } else {
+      // Like: add user to likedUsers
+      event.likedUsers.push(userId);
+    }
+
     await event.save();
 
-    return res.status(200).json({ message: "Event liked successfully", event });
+    // Populate likedUsers with user info
+    const updatedEvent = await Event.findById(eventId).populate({
+      path: "likedUsers",
+      select: "name email photo",
+      populate: {
+        path: "photo",
+        select: "imageUrl cloudinaryId",
+      },
+    });
+
+    return res.status(200).json({
+      message: alreadyLiked
+        ? "Event unliked successfully"
+        : "Event liked successfully",
+      event: updatedEvent,
+    });
   } catch (error) {
-    console.error("Error liking event:", error);
+    console.error("Error toggling like:", error);
     return res.status(500).json({ message: "Server error" });
   }
 });
@@ -822,7 +886,16 @@ const getEvents = asyncHandler(async (req, res) => {
           path: "photo",
           select: "imageUrl cloudinaryId",
         },
+      })
+      .populate({
+        path: "likedUsers",
+        select: "name email photo",
+        populate: {
+          path: "photo",
+          select: "imageUrl cloudinaryId",
+        },
       });
+
     if (!events) {
       return res.status(404).json({ message: "No events found" });
     }
@@ -839,6 +912,14 @@ const getUserEvents = asyncHandler(async (req, res) => {
       .sort("-createdAt")
       .populate({
         path: "organizer",
+        select: "name email photo",
+        populate: {
+          path: "photo",
+          select: "imageUrl cloudinaryId",
+        },
+      })
+      .populate({
+        path: "likedUsers",
         select: "name email photo",
         populate: {
           path: "photo",
@@ -889,6 +970,14 @@ const upcomingEvents = async (req, res) => {
         populate: {
           path: "photo",
           select: "cloudinaryId imageUrl",
+        },
+      })
+      .populate({
+        path: "likedUsers",
+        select: "name email photo",
+        populate: {
+          path: "photo",
+          select: "imageUrl cloudinaryId",
         },
       })
       .populate({
@@ -953,7 +1042,18 @@ const userUpcomingEvents = async (req, res) => {
           select: "cloudinaryId imageUrl",
         },
       })
-      .populate("ticketTypes", "type price description quantity")
+      .populate({
+        path: "likedUsers",
+        select: "name email photo",
+        populate: {
+          path: "photo",
+          select: "imageUrl cloudinaryId",
+        },
+      })
+      .populate(
+        "ticketTypes",
+        "type price description totalQuantity soldQuantity availableQuantity"
+      )
       .populate("tickets", "userId eventId qrCode purchaseDate ticketTypeId")
       .exec();
 
@@ -1096,6 +1196,46 @@ const getMyTickets = async (req, res) => {
   }
 };
 
+const updateTicketType = async (req, res) => {
+  const { type, totalQuantity, price, description, eventId } = req.body;
+  const { ticketId } = req.params;
+
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    const ticket = await TicketType.findById(ticketId);
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    const now = new Date(); // Current date & time
+    const eventStartDateTime = new Date(
+      `${event.startDate}T${event.startTime}`
+    );
+
+    // Prevent updates if the event has already started
+    if (eventStartDateTime <= now) {
+      return res
+        .status(400)
+        .json({ message: "Event has already started and cannot be updated." });
+    }
+
+    // Update ticket fields if provided
+    ticket.type = type ?? ticket.type;
+    ticket.totalQuantity = totalQuantity ?? ticket.totalQuantity;
+    ticket.price = price ?? ticket.price;
+    ticket.description = description ?? ticket.description;
+
+    const updatedTicket = await ticket.save();
+    return res.status(200).json(updatedTicket);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 const updateEvent = async (req, res) => {
   const {
     title,
@@ -1155,32 +1295,37 @@ const updateEvent = async (req, res) => {
         .json({ message: "End time cannot be in the past." });
     }
 
-    // Validate eventType
+    // Ensure eventType is valid and update it
     if (eventType && !["physical", "virtual"].includes(eventType)) {
       return res.status(400).json({
         message: "Invalid eventType. Choose 'physical' or 'virtual'.",
       });
     }
 
-    // Ensure either location or meetLink is updated correctly
-    if (eventType === "physical") {
-      if (!location || !Array.isArray(location) || location.length !== 4) {
-        return res.status(400).json({
-          message:
-            "Location must contain [address, country, city, venue name] for physical events.",
-        });
+    if (eventType) {
+      event.eventType = eventType; // Update eventType if provided
+
+      // If the event is virtual, clear location and ensure meetLink is valid
+      if (eventType === "virtual") {
+        event.location = []; // Clear location for virtual event
+        if (!meetLink || !/^https?:\/\/[^\s$.?#].[^\s]*$/.test(meetLink)) {
+          return res
+            .status(400)
+            .json({ message: "A valid URL is required for virtual events." });
+        }
+      } else {
+        // If physical event, location is required
+        if (!location || !Array.isArray(location) || location.length !== 5) {
+          return res.status(400).json({
+            message:
+              "Location must contain [address, country, state, city, venue name] for physical events.",
+          });
+        }
+        event.meetLink = null; // Remove meetLink if switching to physical
       }
-      event.meetLink = null; // Remove meetLink if changing to physical
-    } else if (eventType === "virtual") {
-      if (!meetLink || !/^https?:\/\/[^\s$.?#].[^\s]*$/.test(meetLink)) {
-        return res
-          .status(400)
-          .json({ message: "A valid URL is required for virtual events." });
-      }
-      event.location = null; // Remove location if changing to virtual
     }
 
-    // Update event fields
+    // Update other fields
     event.title = title ?? event.title;
     event.liked = liked !== undefined ? liked : event.liked; // Handle false values correctly
     event.description = description ?? event.description;
@@ -1189,16 +1334,13 @@ const updateEvent = async (req, res) => {
     event.categories = categories ?? event.categories;
     event.startTime = startTime ?? event.startTime;
     event.endTime = endTime ?? event.endTime;
-    event.location = location ?? event.location;
+    event.location = location ?? event.location; // Update location after checking eventType
     event.photo = photo ?? event.photo;
-    event.eventType = eventType ?? event.eventType;
     event.meetLink = meetLink ?? event.meetLink;
     event.limit = limit ?? event.limit;
 
     const updatedEvent = await event.save();
-    return res
-      .status(200)
-      .json({ message: "Event updated successfully", event: updatedEvent });
+    return res.status(200).json(updatedEvent);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -1645,6 +1787,7 @@ module.exports = {
   // validateCreateEvent,
   createEvent,
   getMyTickets,
+  updateTicketType,
   likeStatus,
   getAllLikedEvents,
   unlikeEvent,

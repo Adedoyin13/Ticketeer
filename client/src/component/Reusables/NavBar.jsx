@@ -21,9 +21,7 @@ const NavBar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const dispatch = useDispatch();
-
-  const { user, isAuthenticated } = useSelector((state) => state.user);
+  const { user } = useSelector((state) => state.user);
 
   const openModal = () => {
     setModalOpen(true);
@@ -117,7 +115,7 @@ const NavBar = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-            {user && isAuthenticated ? (
+            {user ? (
               <Link to="/dashboard">
                 <div className="border border-orange-500 shadow-md shadow-orange-100 rounded-full px-2 py-1 flex gap-1 items-center">
                   <p>{user.email}</p>

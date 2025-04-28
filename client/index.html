@@ -1,13 +1,26 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/Ticketeer-logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ticketeer</title>
+    <!-- <meta
+      http-equiv="Content-Security-Policy"
+      content="script-src 'self' https://checkout.stripe.com; frame-src https://checkout.stripe.com; style-src 'self' 'unsafe-inline';"
+    /> -->
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      const theme = localStorage.getItem("theme") || "light";
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    </script>
+    <script src="https://js.stripe.com/v3/"></script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

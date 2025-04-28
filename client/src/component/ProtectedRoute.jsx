@@ -3,10 +3,10 @@ import { useSelector } from "react-redux";
 import Loader from "./Spinners/Loader";
 
 const ProtectedRoute = ({ children }) => {
-  const {user, isAuthenticated, loading} = useSelector((state) => state.user);
+  const { user, loading, isAuthenticated } = useSelector((state) => state.user);
 
-  if(loading) {
-    return <Loader/>
+  if (loading.getUser) {
+    return <Loader loading={loading.getUser} />;
   }
 
   if (!user && !isAuthenticated) {

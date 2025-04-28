@@ -1,221 +1,282 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../utils/api";
+import {
+  clearUserFromStorage,
+  loadUserFromStorage,
+  saveUserToStorage,
+} from "../../utils/authStorage";
 
-// REGISTER
+const storedUser = loadUserFromStorage();
+const token = storedUser?.token || null;
+
 export const registerUser = createAsyncThunk(
   "user/register",
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/user/register", formData, { withCredentials: true });
+      const response = await api.post("/user/register", formData, {
+        withCredentials: true,
+      });
+      saveUserToStorage(response.data.user, response.data.token);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message || "Registration failed");
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Registration failed"
+      );
     }
   }
 );
 
-export const purchaseTicketThunk = createAsyncThunk(
-  'ticket/purchase',
-  async ({ ticketTypeId, eventId, quantity = 1 }, { rejectWithValue }) => {
-    try {
-      const response = await api.post('/ticket/purchase', {
-        ticketTypeId,
-        eventId,
-        quantity,
-      });
-
-      const session = response.data?.session;
-
-      if (session?.url) {
-        window.location.href = session.url; // 🔁 Redirect to Stripe in same tab
-      } else {
-        throw new Error('Stripe session URL not found.');
-      }
-    } catch (err) {
-      console.error('Purchase Ticket Error:', err);
-      return rejectWithValue(err.response?.data?.message || err.message);
-    }
-  }
-);
-
-// LOGIN
 export const loginUser = createAsyncThunk(
   "user/login",
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/user/login", formData, { withCredentials: true });
+      const response = await api.post("/user/login", formData, {
+        withCredentials: true,
+      });
+      saveUserToStorage(response.data.user, response.data.token);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message || "Login failed");
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Login failed"
+      );
     }
   }
 );
 
-// LOGIN WITH GOOGLE
+// export const loginWithGoogle = createAsyncThunk(
+//   "user/loginWithGoogle",
+//   async (token, { rejectWithValue }) => {
+//     try {
+//       const response = await api.post(
+//         "/user/auth/google",
+//         { token },
+//         { withCredentials: true }
+//       );
+//       return response.data;
+//     } catch (error) {
+//       return rejectWithValue(
+//         error.response?.data?.message || error.message || "Google login failed"
+//       );
+//     }
+//   }
+// );
+
 export const loginWithGoogle = createAsyncThunk(
   "user/loginWithGoogle",
-  async (token, { rejectWithValue }) => {
+  async (userData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/user/auth/google", { token }, { withCredentials: true });
-      return response.data; // Return entire response for consistency
+      // Normalize response if necessary
+      const user = userData.user || userData;
+      const token = userData.token || "";
+      saveUserToStorage(user, token);
+      return { user, token };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message || "Google login failed");
+      return rejectWithValue(
+        error.response?.data?.message || error.message
+      );
     }
   }
 );
 
-// LOGOUT
 export const logoutUser = createAsyncThunk(
   "user/logout",
   async (_, { rejectWithValue }) => {
     try {
       await api.post("/user/logout", {}, { withCredentials: true });
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message || "Logout failed");
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Logout failed"
+      );
     }
   }
 );
 
-// GET CURRENT USER
 export const getUser = createAsyncThunk(
   "user/getUser",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/user/get-user", { withCredentials: true });
-      console.log(response.data)
+      const response = await api.get("/user/get-user", {
+        withCredentials: true,
+      });
+      console.log(response.data);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message || "Failed to fetch user");
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Failed to fetch user"
+      );
     }
   }
 );
 
-// UPDATE USER
 export const updateUser = createAsyncThunk(
   "user/update",
   async (eventData, { rejectWithValue, dispatch }) => {
     try {
-      const response = await api.put("/user/update-user", eventData, { withCredentials: true });
+      const response = await api.put("/user/update-user", eventData, {
+        withCredentials: true,
+      });
       dispatch(getUser());
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message || "Update failed");
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Update failed"
+      );
     }
   }
 );
 
-// UPLOAD PHOTO
 export const uploadProfilePhoto = createAsyncThunk(
   "user/uploadProfilePhoto",
   async (photoFile, { rejectWithValue }) => {
     try {
       const formData = new FormData();
       formData.append("photo", photoFile);
-      const response = await api.put("/user/update-photo", formData, { withCredentials: true });
-      return response.data.profilePicture; // Assuming this is the photo object
+      const response = await api.put("/user/update-photo", formData, {
+        withCredentials: true,
+      });
+      return response.data.profilePicture;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message || "Upload failed");
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Upload failed"
+      );
     }
   }
 );
 
-// DELETE USER
 export const deleteUser = createAsyncThunk(
   "user/delete",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.delete("/user/delete-user", { withCredentials: true });
+      const response = await api.delete("/user/delete-user", {
+        withCredentials: true,
+      });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message || "Delete failed");
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Delete failed"
+      );
     }
   }
 );
 
-export const setThemeMode = (mode) => async (dispatch, getState) => {
-  try {
-    if (mode === 'dark') {
-      enableDarkMode();
-    } else {
-      disableDarkMode();
+export const toggleThemeMode = createAsyncThunk(
+  "user/toggleThemeMode",
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const res = await api.put(
+        "/user/theme",
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+      return res.data.themeMode;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to toggle theme"
+      );
     }
-
-    // Persist theme preference in backend
-    await axios.put('/user/theme', { themeMode: mode });
-
-    dispatch({ type: 'user/setTheme', payload: mode });
-  } catch (error) {
-    console.error('Error updating theme mode:', error);
   }
-};
+);
 
-// INITIAL STATE
 const initialState = {
-  user: null,
-  token: null,
-  isAuthenticated: false,
-  themeMode: 'light', // default fallback
-  loading: false,
+  user: storedUser?.user || null,
+  token,
+  status: "idle",
   error: null,
-  status: "idle", // idle | loading | succeeded | failed
+  // themeMode: storedUser?.user?.themeMode || "light",
+  themeMode: localStorage.getItem("theme") || "light",
+  loading: {
+    register: false,
+    login: false,
+    googleLogin: false,
+    logout: false,
+    getUser: false,
+    updateUser: false,
+    uploadPhoto: false,
+    deleteUser: false,
+  },
+  error: null,
+  status: "idle",
 };
 
-// SLICE
 const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    logout: (state) => {
+    logout(state) {
       state.user = null;
       state.token = null;
-      state.isAuthenticated = false;
+      state.error = null;
       state.status = "idle";
+      clearUserFromStorage();
     },
-    clearError: (state) => {
+    clearError(state) {
       state.error = null;
     },
+    setUser(state, action) {
+      state.user = action.payload;
+    },
+    toggleTheme(state) {
+      state.themeMode = state.themeMode === "light" ? "dark" : "light";
+      localStorage.setItem("theme", state.themeMode);
+      document.documentElement.classList.toggle("dark", state.themeMode === "dark");
+    
+      const storedUser = loadUserFromStorage();
+      if (storedUser) {
+        const updatedUser = {
+          ...storedUser,
+          user: {
+            ...storedUser.user,
+            themeMode: state.themeMode,
+          },
+        };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      }
+    }    
   },
   extraReducers: (builder) => {
     builder
-      // REGISTER
       .addCase(registerUser.pending, (state) => {
-        state.loading = true;
+        state.loading.register = true;
         state.error = null;
         state.status = "loading";
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.user = action.payload;
+        state.token = action.payload.token || null;
         state.isAuthenticated = true;
-        state.loading = false;
+        state.loading.register = false;
         state.status = "succeeded";
+        saveUserToStorage(state.user, state.token);
       })
       .addCase(registerUser.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.register = false;
         state.error = action.payload;
         state.status = "failed";
       })
 
-      // LOGIN
       .addCase(loginUser.pending, (state) => {
-        state.loading = true;
+        state.loading.login = true;
         state.error = null;
         state.status = "loading";
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.user = action.payload;
+        state.token = action.payload.token || null;
         state.isAuthenticated = true;
-        state.loading = false;
+        state.loading.login = false;
         state.status = "succeeded";
+        saveUserToStorage(state.user, state.token);
       })
       .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.login = false;
         state.error = action.payload;
         state.status = "failed";
       })
 
-      // LOGIN WITH GOOGLE
       .addCase(loginWithGoogle.pending, (state) => {
-        state.loading = true;
+        state.loading.googleLogin = true;
         state.error = null;
         state.status = "loading";
       })
@@ -223,90 +284,137 @@ const userSlice = createSlice({
         state.user = action.payload.user || action.payload;
         state.token = action.payload.token || null;
         state.isAuthenticated = true;
-        state.loading = false;
+        state.loading.googleLogin = false;
         state.status = "succeeded";
+        saveUserToStorage(state.user, state.token);
       })
       .addCase(loginWithGoogle.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.googleLogin = false;
         state.error = action.payload;
         state.status = "failed";
       })
 
-      // LOGOUT
+      .addCase(logoutUser.pending, (state) => {
+        state.loading.logout = true;
+        state.error = null;
+        state.status = "loading";
+      })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
         state.status = "idle";
+        state.loading.logout = false;
+        clearUserFromStorage();
+      })
+      .addCase(logoutUser.rejected, (state) => {
+        state.loading.logout = false;
+        state.status = "failed";
       })
 
-      // GET USER
       .addCase(getUser.pending, (state) => {
-        state.loading = true;
+        state.loading.getUser = true;
         state.error = null;
         state.status = "loading";
       })
       .addCase(getUser.fulfilled, (state, action) => {
-        state.user = action.payload.user || action.payload;
-        console.log(state.user)
+        const userData = action.payload.user || action.payload;
+        state.user = userData;
         state.isAuthenticated = true;
-        state.loading = false;
+        state.token = state.token || null;
+        state.loading.getUser = false;
         state.status = "succeeded";
+
+        if (!localStorage.getItem("user")) {
+          localStorage.setItem("user", JSON.stringify(userData));
+        }
       })
       .addCase(getUser.rejected, (state, action) => {
         state.user = null;
         state.token = null;
-        state.isAuthenticated = false;
         state.error = action.payload;
-        state.loading = false;
+        state.loading.getUser = false;
         state.status = "failed";
       })
 
-      // UPDATE USER
+      .addCase(toggleThemeMode.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(toggleThemeMode.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.themeMode = action.payload;
+        state.themeMode = state.themeMode === "light" ? "dark" : "light";
+        localStorage.setItem("theme", state.themeMode);
+      
+        if (state.user) {
+          state.user.themeMode = action.payload;
+          saveUserToStorage(state.user, state.token); // ✅ persist updated theme
+        }
+      
+        if (typeof document !== "undefined") {
+          document.documentElement.classList.toggle("dark", action.payload === "dark");
+        }
+      })
+      .addCase(toggleThemeMode.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      })
+
       .addCase(updateUser.pending, (state) => {
-        state.loading = true;
+        state.loading.updateUser = true;
         state.error = null;
         state.status = "loading";
       })
       .addCase(updateUser.fulfilled, (state, action) => {
         state.user = action.payload;
-        state.loading = false;
+        state.loading.updateUser = false;
         state.status = "succeeded";
       })
       .addCase(updateUser.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.updateUser = false;
         state.error = action.payload;
         state.status = "failed";
       })
 
-      // UPLOAD PHOTO
       .addCase(uploadProfilePhoto.pending, (state) => {
-        state.loading = true;
+        state.loading.uploadPhoto = true;
         state.error = null;
         state.status = "loading";
       })
       .addCase(uploadProfilePhoto.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.uploadPhoto = false;
         state.status = "succeeded";
         if (state.user) {
           state.user.photo = action.payload;
         }
       })
       .addCase(uploadProfilePhoto.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.uploadPhoto = false;
         state.error = action.payload;
         state.status = "failed";
       })
 
-      // DELETE USER
+      .addCase(deleteUser.pending, (state) => {
+        state.loading.deleteUser = true;
+        state.status = "idle";
+      })
       .addCase(deleteUser.fulfilled, (state) => {
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
-        state.status = "idle";
+        state.loading.deleteUser = false;
+        state.status = "success";
+        clearUserFromStorage();
+      })
+      .addCase(deleteUser.rejected, (state) => {
+        state.user = action.payload;
+        state.token = action.payload.token;
+        state.loading.deleteUser = false;
+        state.isAuthenticated = true;
+        state.status = "failed";
       });
   },
 });
 
-export const { logout, clearError } = userSlice.actions;
+export const { logout, clearError, setUser } = userSlice.actions;
 export default userSlice.reducer;

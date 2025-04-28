@@ -25,6 +25,7 @@ const {
   userUpcomingEvents,
   uploadEventImage,
   updateEventImage,
+  updateTicketType,
   getUserCancelledEvents,
   unCancelEvent,
   deleteEventImage,
@@ -43,10 +44,11 @@ router.get("/attendees/:eventId", protectUser, getAttendeesForEvent);
 router.get("/getUserEvents", protectUser, getUserEvents);
 router.get("/liked-events/:eventId", protectUser, likeStatus);
 router.get("/liked-events", protectUser, getAllLikedEvents);
-router.patch("/updateEvent/:eventId", protectUser, updateEvent);
+router.put("/updateEvent/:eventId", protectUser, updateEvent);
+router.put("/updateTicketType/:ticketId", protectUser, updateTicketType);
 router.delete("/deleteEvent/:eventId", protectUser, deleteEvent);
-router.patch("/cancelEvent/:eventId", protectUser, cancelEvent);
 router.get("/my/cancelled-events", protectUser, getUserCancelledEvents);
+router.patch("/cancelEvent/:eventId", protectUser, cancelEvent);
 router.patch("/uncancel/:eventId", protectUser, unCancelEvent);
 router.put("/like/:eventId", protectUser, likeEvent);
 router.put("/unlike/:eventId", protectUser, unlikeEvent);

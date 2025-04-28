@@ -129,6 +129,7 @@ const registerUser = asyncHandler(async (req, res) => {
       photo: defaultProfilePicture.imageUrl, // Send profile picture URL
       location: user.location,
       interests: user.interests,
+      themeMode: user.themeMode,
       socialMediaLinks: user.socialMediaLinks,
     });
 
@@ -158,7 +159,7 @@ const loginUser = asyncHandler(async (req, res) => {
     }
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    if (!isMatch) { 
       return res.status(400).json({ message: "Invalid Credentials" });
     }
 
@@ -173,7 +174,7 @@ const loginUser = asyncHandler(async (req, res) => {
         secure: true,
       });
 
-      const { _id, name, email, photo, location, interests, socialMediaLinks } =
+      const { _id, name, email, photo, location, interests, socialMediaLinks, themeMode } =
         user;
 
       res.status(200).json({
@@ -185,6 +186,7 @@ const loginUser = asyncHandler(async (req, res) => {
         interests,
         socialMediaLinks,
         token,
+        themeMode
       });
       await sendUserLogInMail({ name, email });
     } else {
@@ -279,6 +281,7 @@ const googleLogin = asyncHandler(async (req, res) => {
       },
       token: jwtToken,
     });
+    await sendUserLogInMail({ name: user.name, email: user.email });
   } catch (error) {
     console.error("Error during Google login:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -762,22 +765,23 @@ const getUserTickets = asyncHandler(async (req, res) => {
 });
 
 const updateThemeMode = async (req, res) => {
-  const { userId } = req.userId; // Assuming you have user in req.user
-  const { themeMode } = req.body;
-
-  if (!['light', 'dark'].includes(themeMode)) {
-    return res.status(400).json({ error: 'Invalid mode value' });
-  }
+  const userId = req.userId;
 
   try {
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { themeMode },
-      { new: true }
-    );
-    res.json({ themeMode: updatedUser.themeMode });
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Toggle theme
+    const newTheme = user.themeMode === 'dark' ? 'light' : 'dark';
+    user.themeMode = newTheme;
+    await user.save();
+
+    res.json({ themeMode: newTheme });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update mode' });
+    console.error('Error toggling theme mode:', error);
+    res.status(500).json({ error: 'Failed to toggle theme mode' });
   }
 };
 
@@ -1033,30 +1037,6 @@ const logoutUser = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Logout failed" });
   }
 });
-
-
-// const Stripe = require('stripe');
-// const stripe = Stripe('sk_test_YOUR_SECRET_KEY'); // Replace with your real secret key
-
-
-// app.post('/create-payment-intent', async (req, res) => {
-//   const { amount } = req.body;
-
-//   try {
-//     const paymentIntent = await stripe.paymentIntents.create({
-//       amount, // amount in cents (e.g., $10 = 1000)
-//       currency: 'usd',
-//     });
-
-//     res.send({
-//       clientSecret: paymentIntent.client_secret,
-//     });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-// app.listen(4242, () => console.log('Server running on port 4242'));
 
 module.exports = {
   registerUser,

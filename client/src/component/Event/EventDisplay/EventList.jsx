@@ -3,14 +3,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { FaRegHeart, FaHeart } from "react-icons/fa";
 import {
   getUpcomingEvents,
-  likeEvent,
-  unlikeEvent,
+  toggleLike
 } from "../../../redux/reducers/eventSlice";
 import Loader from "../../Spinners/Loader";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import FavouriteEvents from "../EventView/FavouriteEvents";
 
 const formatDate = (dateString) => {
   return format(new Date(dateString), "dd-MM-yyyy");
@@ -19,30 +19,22 @@ const formatDate = (dateString) => {
 const EventList = ({ events }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  // const { upcomingEvents, loading, error, likedEvents } = useSelector(
-  //   (state) => state.events
-  // );
-  const { loading, error, likedEvents } = useSelector((state) => state.events);
 
-  console.log({likedEvents})
+  const { loading, error } = useSelector((state) => state.events);
+  const currentUserId = useSelector((state) => state.user.user._id);
 
   useEffect(() => {
-    dispatch(getUpcomingEvents()); // Fetch upcoming events on component mount
+    dispatch(getUpcomingEvents());
   }, [dispatch]);
 
-  const handleLike = (eventId) => {
-    if (likedEvents.includes(eventId)) {
-      dispatch(unlikeEvent(eventId)); // Unlike event if already liked
-    } else {
-      dispatch(likeEvent(eventId)); // Like event if not liked yet
-    }
+  const handleToggleLike = (eventId, e) => {
+    e.stopPropagation();
+    dispatch(toggleLike(eventId));
   };
-
   
-
-  if (loading.likeEvent || loading.unlikeEvent) {
-    return <Loader loading={loading.events} />;
-  }
+  const likedEvents = events.filter(event =>
+    event.likedUsers?.some(user => user._id === currentUserId)
+  );  
 
   if (loading.events) {
     return <Loader loading={loading.events} />;
@@ -54,7 +46,7 @@ const EventList = ({ events }) => {
 
   const handleNavigate = (eventId) => {
     navigate(`/view-event/${eventId}`, {
-      state: { from: location.pathname }, // Save previous route
+      state: { from: location.pathname },
     });
   };
 
@@ -76,65 +68,79 @@ const EventList = ({ events }) => {
               </tr>
             </thead>
             <tbody className="text-gray-700 dark:text-zinc-200">
-              {events.map((event) => (
-                <motion.tr
-                  key={event._id}
-                  onClick={() => handleNavigate(event._id)}
-                  whileTap={{ scale: 0.98 }}
-                  className="hover:bg-orange-100 dark:hover:bg-zinc-800 transition-all duration-200 cursor-pointer border-b border-gray-200 dark:border-zinc-700"
-                >
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      <img
-                        className="w-10 h-10 rounded-full object-cover shadow"
-                        src={event.image.imageUrl || "/default-image.png"}
-                        alt={event.title}
-                      />
-                      <span className="font-medium">{event.title}</span>
-                    </div>
-                  </td>
+              {events.map((event) => {
+                const isLiked = event.likedUsers?.some(
+                  (user) => user._id === currentUserId
+                );
 
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    {formatDate(event.startDate)}
-                  </td>
+                return (
+                  <motion.tr
+                    key={event._id}
+                    onClick={() => handleNavigate(event._id)}
+                    whileTap={{ scale: 0.98 }}
+                    className="hover:bg-orange-100 dark:hover:bg-zinc-800 transition-all duration-200 cursor-pointer border-b border-gray-200 dark:border-zinc-700"
+                  >
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <img
+                          className="w-10 h-10 rounded-full object-cover shadow"
+                          src={event.image.imageUrl || "/default-image.png"}
+                          alt={event.title}
+                        />
+                        <span className="font-medium">{event.title}</span>
+                      </div>
+                    </td>
 
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    {event.startTime}
-                  </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      {formatDate(event.startDate)}
+                    </td>
 
-                  <td className="px-5 py-4 whitespace-nowrap capitalize">
-                    {event.eventType}
-                  </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      {event.startTime}
+                    </td>
 
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    {event.eventType === "physical"
-                      ? `${event.location[2]}, ${event.location[1]}`
-                      : "-"}
-                  </td>
+                    <td className="px-5 py-4 whitespace-nowrap capitalize">
+                      {event.eventType}
+                    </td>
 
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    {event.eventType === "virtual" ? (
-                      <a
-                        href={event.meetLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 dark:text-blue-400 hover:underline"
-                      >
-                        Join
-                      </a>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      {event.eventType === "physical"
+                        ? `${event.location[2]}, ${event.location[1]}`
+                        : "-"}
+                    </td>
 
-                  <td className="px-5 py-4 whitespace-nowrap">{event.limit}</td>
-                  <td className="px-5 py-4 whitespace-nowrap">{event.liked ? (
-                    <FaRegHeart/>
-                  ) : (
-                    <FaHeart/>
-                  )}</td>
-                </motion.tr>
-              ))}
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      {event.eventType === "virtual" ? (
+                        <a
+                          href={event.meetLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          Join
+                        </a>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      {event.limit}
+                    </td>
+
+                    <td
+                      onClick={(e) => handleToggleLike(event._id, e)}
+                      className="px-5 py-4 whitespace-nowrap cursor-pointer"
+                    >
+                      {isLiked ? (
+                        <FaHeart className="text-red-500 text-2xl transition" />
+                      ) : (
+                        <FaRegHeart className="text-gray-400 text-2xl transition" />
+                      )}
+                    </td>
+                  </motion.tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

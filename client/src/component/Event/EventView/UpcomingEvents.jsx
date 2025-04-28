@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
 import { MdEventBusy } from "react-icons/md";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -35,20 +35,14 @@ const UpcomingEvents = ({ countries, states }) => {
   const { userUpcomingEvents, loading, error } = useSelector(
     (state) => state.events
   );
-  console.log({ userUpcomingEvents });
 
   const { user, isAuthenticated } = useSelector((state) => state.user);
-  // console.log({ user });
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (user && isAuthenticated) {
       dispatch(getUserUpcomingEvents());
     }
-  }, [isAuthenticated, user, dispatch]);
-
-  // useEffect(() => {
-  //   dispatch(getUserUpcomingEvents()); // Fetch user events on component mount
-  // }, [dispatch]);
+  }, [user, isAuthenticated, dispatch]);
 
   if (loading.userUpcomingEvents) {
     return <Loader loading={loading.userUpcomingEvents} />;

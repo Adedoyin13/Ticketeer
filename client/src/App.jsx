@@ -1,118 +1,157 @@
-import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { getUser } from "./redux/reducers/userSlice";
+import { getUserEvents } from "./redux/reducers/eventSlice";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+
+// Layouts
 import Layout from "./component/Layouts/Layout";
+import UserLayout from "./component/Layouts/UserLayout";
+import ScrollToTop from "./component/Layouts/ScrollToTop";
+
+// Pages
 import Home from "./component/Pages/Home";
 import About from "./component/Pages/About";
 import Blog from "./component/Pages/Blog";
 import Events from "./component/Event/Events";
 import Organizer from "./component/Pages/Organizer";
+import FAQ from "./component/Pages/FAQ";
+import NotFound from "./component/Pages/NotFound";
+import Reviews from "./component/User/Reviews/Reviews";
+
+// Auth
 import Login from "./component/User/Authentication/Login";
 import Register from "./component/User/Authentication/Register";
-import Reviews from "./component/User/Reviews/Reviews";
-import FAQ from "./component/Pages/FAQ";
-import UserLayout from "./component/Layouts/UserLayout";
+import ProtectedRoute from "./component/ProtectedRoute";
+
+// User Pages
 import Dashboard from "./component/Event/Dashboard";
 import CreateEvent from "./component/Event/CreateEvent";
+import MyEvents from "./component/Event/MyEvents";
+import EventView from "./component/Event/EventView";
+import EventDetails from "./component/Event/EventDetails";
+import EventListLayout from "./component/Event/EventListLayout";
 import CreateTicket from "./component/Ticket/CreateTicket";
+import MyTickets from "./component/Ticket/MyTickets";
+import Ticket from "./component/Modals/TicketModal/Ticket";
+import PurchaseTicketModal from "./component/Modals/TicketModal/PurchaseTicketModal";
 import Settings from "./component/User/Setting/Settings";
 import ProfileUpdate from "./component/User/Setting/ProfileUpdate";
-import EventListLayout from "./component/Event/EventListLayout";
 import UserProfile from "./component/User/UserProfile";
-import ProtectedRoute from "./component/ProtectedRoute";
-import EventDetails from "./component/Event/EventDetails";
-import AuthSuccess from "./component/User/Authentication/AuthSuccess";
 
-import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
-// import { setupInterceptors } from "./utils/api";
-import { getUser } from "./redux/reducers/userSlice";
-import { getUserEvents } from "./redux/reducers/eventSlice";
-import NotFound from "./component/Pages/NotFound";
-import MyEvents from "./component/Event/MyEvents";
-import ScrollToTop from "./component/Layouts/ScrollToTop";
-import EventView from "./component/Event/EventView";
-import MyTickets from "./component/Ticket/MyTickets";
+// Payment
+import CheckoutForm from "./component/Payment/CheckoutForm";
+import PaymentPage from "./component/Payment/PaymentPage";
+
+// Spinners
 import Loader from "./component/Spinners/Loader";
-import EditTicketModal from "./component/Modals/TicketModal/EditTicketModal";
-import FeedbackModal from "./component/Modals/FeedbackModal/FeedbackModal";
-import SplashScreen from "./component/Spinners/SplashScreen";
-import PurchaseTicketModal from "./component/Modals/TicketModal/PurchaseTicketModal";
-import Ticket from "./component/Modals/TicketModal/Ticket";
 import RouteChangeLoader from "./component/Spinners/RouteChangeLoader";
-import UpcomingEvents from "./component/Event/EventView/UpcomingEvents";
-import PastEvents from "./component/Event/EventView/PastEvents";
-import EventTabs from "./component/Event/EventTabs/EventTabs";
+import PaymentSuccess from "./component/Modals/TicketModal/PaymentSuccess";
+import PaymentCancel from "./component/Modals/TicketModal/PaymentCancel";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 function App() {
   const dispatch = useDispatch();
   const location = useLocation();
-  const navigate = useNavigate()
-  const {user, isAuthenticated} = useSelector((state) => state.user);
+  const { user, themeMode } = useSelector((state) => state.user);
+  const isAuthPage = ["/login", "/register"].includes(location.pathname);
 
+  // Sync theme on mount and when themeMode changes
+  // useEffect(() => {
+  //   document.documentElement.classList.toggle("dark", themeMode === "dark");
+  // }, [themeMode]);
   useEffect(() => {
-    // setupInterceptors(dispatch);
+    const currentTheme = themeMode === "dark" ? "dark" : "light";
+    document.documentElement.classList.toggle("dark", currentTheme === "dark");
+  }, [themeMode]);
 
-    // Avoid calling getUser on login/register pages
-    const isAuthPage = ["/login", "/register"].includes(location.pathname);
-    if (!isAuthPage) {
+  // Fetch user on app load
+  useEffect(() => {
+    dispatch(getUser());
+  }, [dispatch]);
+
+  // Re-fetch user when navigating to non-auth pages and user is null
+  useEffect(() => {
+    if (!isAuthPage && !user) {
       dispatch(getUser());
     }
-  }, [dispatch, location.pathname]);
+  }, [dispatch, location.pathname, user]);
 
+  // Fetch user's events if user exists
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (user) {
       dispatch(getUserEvents());
     }
-  }, [isAuthenticated, user, dispatch]);
+  }, [user, dispatch]);
 
-  // useEffect(() => {
-  //   const html = document.documentElement;
-  //   if (themeMode === "dark") {
-  //     html.classList.add("dark");
-  //   } else {
-  //     html.classList.remove("dark");
-  //   }
-  // }, [themeMode]);  
-
-  // useEffect(() => {
-  //   setupInterceptors(dispatch);
-  //   dispatch(getUser())
-  // }, [dispatch]);
-
-  // useEffect(() => {
-  //   if (user) {
-  //     navigate("/dashboard");
-  //   }
-  // }, [user, navigate]);
-
-  // useEffect(() => {
-  //   if (user) {
-  //     dispatch(getUser());
-  //   }
-  // }, [dispatch]);
-
-
-  // useEffect(() => {
-  //   if (user) {
-  //     dispatch(getUserEvents());
-  //   }
-  // }, [dispatch]);
-
-  const RenderRoutes = () => (
+  return (
     <>
       <RouteChangeLoader />
       <ScrollToTop />
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Layout><Home /></Layout>} />
-        <Route path="/about" element={<Layout><About /></Layout>} />
-        <Route path="/events" element={<Layout><Events /></Layout>} />
-        <Route path="/create" element={<Layout><Organizer /></Layout>} />
-        <Route path="/blog" element={<Layout><Blog /></Layout>} />
-        <Route path="/reviews" element={<Layout><Reviews /></Layout>} />
-        <Route path="/faq" element={<Layout><FAQ /></Layout>} />
+        <Route
+          path="/"
+          element={
+            <Layout>
+              <Home />
+            </Layout>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <Layout>
+              <About />
+            </Layout>
+          }
+        />
+        <Route
+          path="/blog"
+          element={
+            <Layout>
+              <Blog />
+            </Layout>
+          }
+        />
+        <Route
+          path="/events"
+          element={
+            <Layout>
+              <Events />
+            </Layout>
+          }
+        />
+        <Route
+          path="/create"
+          element={
+            <Layout>
+              <Organizer />
+            </Layout>
+          }
+        />
+        <Route
+          path="/faq"
+          element={
+            <Layout>
+              <FAQ />
+            </Layout>
+          }
+        />
+        <Route
+          path="/reviews"
+          element={
+            <Layout>
+              <Reviews />
+            </Layout>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-  
+
         {/* Protected Routes */}
         <Route
           path="/dashboard"
@@ -120,6 +159,46 @@ function App() {
             <ProtectedRoute>
               <UserLayout>
                 <Dashboard />
+              </UserLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment/:eventId"
+          element={
+            <ProtectedRoute>
+              <UserLayout>
+                <PaymentPage />
+              </UserLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment-success"
+          element={
+            <ProtectedRoute>
+              <UserLayout>
+                <PaymentSuccess />
+              </UserLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment-cancel"
+          element={
+            <ProtectedRoute>
+              <UserLayout>
+                <PaymentCancel />
+              </UserLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/check-out-form"
+          element={
+            <ProtectedRoute>
+              <UserLayout>
+                <CheckoutForm />
               </UserLayout>
             </ProtectedRoute>
           }
@@ -177,9 +256,9 @@ function App() {
         <Route
           path="/loader"
           element={
-              <UserLayout>
-                <Loader />
-              </UserLayout>
+            <UserLayout>
+              <Loader />
+            </UserLayout>
           }
         />
         <Route
@@ -213,6 +292,16 @@ function App() {
           }
         />
         <Route
+          path="/event-list"
+          element={
+            <ProtectedRoute>
+              <UserLayout>
+                <EventListLayout />
+              </UserLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/settings"
           element={
             <ProtectedRoute>
@@ -233,16 +322,6 @@ function App() {
           }
         />
         <Route
-          path="/event-list"
-          element={
-            <ProtectedRoute>
-              <UserLayout>
-                <EventListLayout />
-              </UserLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/userProfile"
           element={
             <ProtectedRoute>
@@ -252,16 +331,13 @@ function App() {
             </ProtectedRoute>
           }
         />
-  
+
+        {/* Not Found & Fallback */}
         <Route path="/page-not-found" element={<NotFound />} />
-  
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/page-not-found" replace />} />
       </Routes>
     </>
   );
-
-  return <>{RenderRoutes()}</>;
 }
 
 export default App;

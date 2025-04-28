@@ -7,6 +7,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "../../../redux/reducers/userSlice";
 import GoogleAuth from "./GoogleAuth";
+import Loader from "../../Spinners/Loader";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -26,6 +27,10 @@ const Register = () => {
   const { loading, error, user, isAuthenticated } = useSelector(
     (state) => state.user
   ); // Get state
+
+    if(loading.register) {
+      return <Loader loading={loading.register}/>
+    }
 
   useEffect(() => {
     if (user && isAuthenticated) {
@@ -236,9 +241,9 @@ const Register = () => {
                       ? "bg-orange-400 hover:bg-orange-500"
                       : "bg-orange-300 cursor-not-allowed"
                   }`}
-                  disabled={!isChecked || loading}
+                  disabled={!isChecked || loading.register}
                 >
-                  {loading ? "Creating Account..." : "Create Account"}
+                  {loading.register ? "Creating Account..." : "Create Account"}
                 </button>
 
                 <p className="font-bold text-lg dark:text-white">OR</p>

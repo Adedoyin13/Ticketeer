@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
-import eventImage from "./../../assets/event-image.png";
-import { IoIosArrowForward } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { MdOutlineEdit } from "react-icons/md";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -39,10 +36,6 @@ const CreateEvent = () => {
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
-
-  // Image upload states
-  const [selectedPhoto, setSelectedPhoto] = useState(null);
-  const [previewImage, setPreviewImage] = useState("");
 
   useEffect(() => {
     axios
@@ -100,28 +93,6 @@ const CreateEvent = () => {
           ? prev.location // Retain existing location if event is physical
           : { address: "", country: "", city: "", venueName: "", state: "" }, // Reset location if event is virtual
     }));
-  };
-
-  const onImageSelect = (file) => {
-    console.log("Selected image file:", file);
-    // you can store it in state or send to backend
-  };
-
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedPhoto(file);
-      setPreviewImage(URL.createObjectURL(file));
-
-      // Call the parent function to pass the selected file
-      if (onImageSelect) {
-        onImageSelect(file);
-      }
-    }
-  };
-
-  const handleEditClick = () => {
-    document.getElementById("eventImageInput").click();
   };
 
   const cleanEventData = (data) => {

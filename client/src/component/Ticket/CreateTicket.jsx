@@ -34,11 +34,10 @@ const formatDate = (dateString) => {
 
 const CreateTicket = () => {
   const { eventId } = useParams();
-  console.log("Event ID from params:", eventId);
   const [ticketData, setTicketData] = useState({
     type: "",
     price: "",
-    quantity: "",
+    totalQuantity: "",
     description: "",
   });
   const [ticket, setTicket] = useState([]);
@@ -81,7 +80,7 @@ const CreateTicket = () => {
   };
 
   const createTicket = async () => {
-    if (!ticketData.type || !ticketData.price || !ticketData.quantity) {
+    if (!ticketData.type || !ticketData.price || !ticketData.totalQuantity) {
       console.log("Missing required fields");
       toast.error("Missing required fields");
       return; // Prevent further execution
@@ -255,20 +254,20 @@ const CreateTicket = () => {
 
                 <div>
                   <label
-                    htmlFor="quantity"
+                    htmlFor="totalQuantity"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                   >
                     Quantity
                   </label>
                   <input
                     type="number"
-                    id="quantity"
-                    name="quantity"
+                    id="totalQuantity"
+                    name="totalQuantity"
                     placeholder="e.g. 50"
                     className="w-full bg-orange-50 dark:bg-neutral-700 border border-orange-400 dark:border-neutral-600 text-gray-900 dark:text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
                     required
                     onChange={handleInputChange}
-                    value={ticketData.quantity}
+                    value={ticketData.totalQuantity}
                   />
                 </div>
               </div>

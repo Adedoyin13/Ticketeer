@@ -1,13 +1,23 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getEventDetails,
+  updateEvent,
+} from "../../../redux/reducers/eventSlice";
 import { IoArrowBackOutline } from "react-icons/io5";
-import { updateEvent } from "../../../redux/reducers/eventSlice";
-import axios from "axios";
 import { toast } from "react-toastify";
+import Loader from "../../Spinners/Loader";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 
-const SERVER_URL = import.meta.env.SERVER_URL;
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
-const EditEventModal = ({ onClose, eventId }) => {
-  const [eventData, setEventData] = useState({
+const EditEventModal = ({ event, onClose }) => {
+  const { eventId } = useParams();
+  const dispatch = useDispatch();
+  const loading = useSelector((state) => state.events.loading);
+
+  const [formData, setFormData] = useState({
     title: "",
     description: "",
     startDate: "",
@@ -26,350 +36,460 @@ const EditEventModal = ({ onClose, eventId }) => {
     categories: "",
     limit: "",
   });
-  console.log(eventData);
 
-  // Dropdown states
+  useEffect(() => {
+    if (event) {
+      const [address, country, state, city, venueName] = event.location || [];
+
+      setFormData({
+        title: event.title || "",
+        description: event.description || "",
+        categories: event.categories || "",
+        startDate: event.startDate?.split("T")[0] || "",
+        startTime: event.startTime || "",
+        endDate: event.endDate?.split("T")[0] || "",
+        endTime: event.endTime || "",
+        eventType: event.eventType || "",
+        limit: event.limit || 0,
+        meetLink: event.meetLink || null,
+        location: {
+          address: address || "",
+          country: country || "",
+          state: state || "",
+          city: city || "",
+          venueName: venueName || "",
+        },
+      });
+
+      // Update the selected country, state, and city as well
+      setSelectedCountry(country || "");
+      setSelectedState(state || "");
+      setSelectedCity(city || "");
+    }
+  }, [event]);
+
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
 
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+
   useEffect(() => {
-    axios
-      .get(`${SERVER_URL}/location/countries`)
-      .then((response) => setCountries(response.data))
-      .catch((error) => console.error("Error fetching countries:", error));
+    setFormData((prevData) => ({
+      ...prevData,
+      location: {
+        ...prevData.location,
+        country: selectedCountry,
+      },
+    }));
+  }, [selectedCountry]);
+
+  useEffect(() => {
+    setFormData((prevData) => ({
+      ...prevData,
+      location: {
+        ...prevData.location,
+        state: selectedState,
+      },
+    }));
+  }, [selectedState]);
+
+  useEffect(() => {
+    setFormData((prevData) => ({
+      ...prevData,
+      location: {
+        ...prevData.location,
+        city: selectedCity,
+      },
+    }));
+  }, [selectedCity]);
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await axios.get(`${SERVER_URL}/location/countries`);
+        setCountries(response.data); // Make sure response.data is the array
+      } catch (err) {
+        console.error("Error fetching countries:", err);
+      }
+    };
+
+    fetchCountries();
   }, []);
 
   useEffect(() => {
-    if (!eventData.location.country) return;
-    axios
-      .get(`${SERVER_URL}/location/states/${eventData.location.country}`)
-      .then((response) => setStates(response.data))
-      .catch((error) => console.error("Error fetching states:", error));
-  }, [eventData.location.country]);
+    const fetchStates = async () => {
+      if (!selectedCountry) return;
+
+      try {
+        const response = await axios.get(
+          `${SERVER_URL}/location/states/${selectedCountry}`
+        );
+        setStates(response.data);
+      } catch (error) {
+        console.error("Error fetching states:", error);
+      }
+    };
+
+    fetchStates();
+  }, [selectedCountry]);
 
   useEffect(() => {
-    if (!eventData.location.state) return;
-    axios
-      .get(
-        `${SERVER_URL}/location/cities/${eventData.location.country}/${eventData.location.state}`
-      )
-      .then((response) => setCities(response.data))
-      .catch((error) => console.error("Error fetching cities:", error));
-  }, [eventData.location.state]);
+    const fetchCities = async () => {
+      if (!selectedState || !selectedCountry) return;
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+      try {
+        const response = await axios.get(
+          `${SERVER_URL}/location/cities/${selectedCountry}/${selectedState}`
+        );
+        setCities(response.data);
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+      }
+    };
 
-    setEventData((prev) => {
-      const newData = [
-        "address",
-        "country",
-        "city",
-        "venueName",
-        "state",
-      ].includes(name)
-        ? { ...prev, location: { ...prev.location, [name]: value } }
-        : { ...prev, [name]: value };
-
-      console.log("Updating:", name, value);
-      console.log("New Event Data:", newData);
-
-      return newData;
-    });
-  };
+    fetchCities();
+  }, [selectedState, selectedCountry]);
 
   const handleEventTypeChange = (e) => {
     const value = e.target.value;
-    setEventData((prev) => ({
+
+    setFormData((prev) => ({
       ...prev,
       eventType: value,
       location:
-        value === "physical"
-          ? prev.location
-          : { address: "", country: "", city: "", venueName: "", state: "" },
+        value === "virtual"
+          ? {
+              address: "",
+              country: "",
+              state: "",
+              city: "",
+              venueName: "",
+            }
+          : prev.location,
     }));
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prevData) => {
+      if (["address", "country", "city", "venueName", "state"].includes(name)) {
+        return {
+          ...prevData,
+          location: {
+            ...prevData.location,
+            [name]: value,
+          },
+        };
+      } else {
+        return {
+          ...prevData,
+          [name]: value,
+        };
+      }
+    });
+
+    // Update selected values for country, state, and city
+    if (name === "country") {
+      setSelectedCountry(value);
+    } else if (name === "state") {
+      setSelectedState(value);
+    } else if (name === "city") {
+      setSelectedCity(value);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(updateEvent({ eventData, eventId }))
-      .unwrap()
-      .then(() => {
-        toast.success("Profile updated successfully!");
-        navigate("/settings");
-      })
-      .catch((err) => {
-        toast.error(err || "Update failed");
-      });
+
+    const formattedData = {
+      ...formData,
+      location: [
+        formData.location.address,
+        formData.location.country,
+        formData.location.state,
+        formData.location.city,
+        formData.location.venueName,
+      ],
+    };
+
+    console.log("Submitting data:", formattedData);
+
+    try {
+      await dispatch(
+        updateEvent({ eventId: event._id, updatedData: formattedData })
+      ).unwrap();
+      toast.success("Event updated successfully!");
+    } catch (error) {
+      console.error("Update failed:", error);
+      toast.error("Event update failed!");
+    } finally {
+      await dispatch(getEventDetails(eventId));
+      onClose();
+    }
   };
 
+  if (!formData.location) return null;
+
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm dark:bg-zinc-900/60 flex justify-end items-start z-50 font-inter">
-      <div className="flex flex-col w-[95%] sm:w-[90%] max-w-[500px] mt-6 mr-3 sm:mr-6 rounded-2xl shadow-2xl bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md border border-gray-300 dark:border-zinc-700 max-h-[90vh] overflow-hidden transition-all duration-300">
-        {/* Header */}
-        <div className="flex gap-3 px-5 py-4 items-start border-b border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-zinc-100 sticky top-0 bg-white/90 dark:bg-zinc-800/90 z-10">
-          <button
-            className="hover:bg-gray-200 dark:hover:bg-zinc-700 cursor-pointer p-2 rounded-lg transition"
-            onClick={onClose}
-          >
-            <IoArrowBackOutline size={22} />
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-end items-start z-50 font-inter dark:bg-zinc-900 dark:bg-opacity-70">
+      <div className="flex flex-col w-[90%] max-w-[500px] mt-6 mr-4 sm:mr-6 bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh]">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200 dark:border-zinc-700 sticky top-0 bg-white dark:bg-zinc-800 z-10">
+          <button className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-lg transition">
+            <IoArrowBackOutline
+              size={22}
+              className="text-gray-700 dark:text-zinc-200"
+              onClick={onClose}
+            />
           </button>
-          <div className="flex flex-col text-left">
-            <h2 className="font-semibold text-xl">Update Event</h2>
-            <p className="text-sm text-gray-600 dark:text-zinc-400">
-              Keep your event details fresh and relevant.
-            </p>
-          </div>
+          <p className="text-lg font-semibold text-gray-800 dark:text-zinc-100">
+            Edit Event
+          </p>
         </div>
-
-        {/* Form - Scrollable */}
-        <div className="flex-1 overflow-y-auto px-5 py-6 scrollbar-hide">
-          <form className="flex flex-col gap-5">
-            {/* Title */}
-            <div>
-              <label
-                htmlFor="title"
-                className="block font-medium text-sm mb-1 dark:text-zinc-100"
-              >
-                Event Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                placeholder="e.g., Tech Conference"
-                className="bg-gray-100 dark:bg-zinc-700 dark:text-zinc-100 p-3 rounded-lg border border-gray-300 dark:border-zinc-600 w-full focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
-                onChange={handleInputChange}
-                value={eventData.title}
-                required
-              />
-            </div>
-
-            {/* Category */}
-            <div>
-              <label
-                htmlFor="categories"
-                className="block font-medium text-sm mb-1 dark:text-zinc-100"
-              >
-                Category
-              </label>
-              <select
-                id="categories"
-                name="categories"
-                onChange={handleInputChange}
-                value={eventData.categories}
-                className="bg-gray-100 dark:bg-zinc-700 dark:text-zinc-100 p-3 rounded-lg border border-gray-300 dark:border-zinc-600 w-full focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
-              >
-                <option value="" disabled>
-                  Choose category
-                </option>
-                <option value="business and networking">
-                  Business and Networking
-                </option>
-                <option value="music and concert">Music and Concert</option>
-                <option value="sport and fitness">Sport and Fitness</option>
-                <option value="arts and culture">Arts and Culture</option>
-                <option value="festival and fairs">Festival and Fairs</option>
-                <option value="fun and hangout">Fun and Hangout</option>
-              </select>
-            </div>
-
-            {/* Date and Time */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                { label: "Start Date", type: "date", name: "startDate" },
-                { label: "Start Time", type: "time", name: "startTime" },
-                { label: "End Date", type: "date", name: "endDate" },
-                { label: "End Time", type: "time", name: "endTime" },
-              ].map(({ label, type, name }) => (
-                <div key={name}>
-                  <label
-                    htmlFor={name}
-                    className="block font-medium text-sm mb-1 dark:text-zinc-100"
-                  >
-                    {label}
-                  </label>
-                  <input
-                    type={type}
-                    id={name}
-                    name={name}
-                    onChange={handleInputChange}
-                    value={eventData[name]}
-                    className="bg-gray-100 dark:bg-zinc-700 dark:text-zinc-100 p-3 rounded-lg border border-gray-300 dark:border-zinc-600 w-full focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
-                    required
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Event Type */}
-            <div>
-              <label className="block font-medium text-sm mb-1 dark:text-zinc-100">
-                Event Type
-              </label>
-              <select
-                name="eventType"
-                value={eventData.eventType}
-                onChange={handleEventTypeChange}
-                className="bg-gray-100 dark:bg-zinc-700 dark:text-zinc-100 p-3 rounded-lg border border-gray-300 dark:border-zinc-600 w-full focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
-              >
-                <option value="" disabled>
-                  Select type
-                </option>
-                <option value="virtual">Virtual</option>
-                <option value="physical">Physical</option>
-              </select>
-            </div>
-
-            {/* Conditional Inputs */}
-            {eventData.eventType === "virtual" && (
+        <div className="overflow-y-auto px-5 pt-4 pb-6 scrollbar-hide">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-sm">
+            <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="block font-medium text-sm mb-1 dark:text-zinc-100">
-                  Meeting Link
-                </label>
+                <label className="block mb-1 text-sm font-medium">Title</label>
                 <input
-                  type="url"
-                  name="meetLink"
-                  value={eventData.meetLink}
-                  onChange={handleInputChange}
-                  placeholder="https://yourlink.com"
-                  className="bg-gray-100 dark:bg-zinc-700 dark:text-zinc-100 p-3 rounded-lg border border-gray-300 dark:border-zinc-600 w-full focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
                 />
               </div>
-            )}
+              <div>
+                <label className="block mb-1 text-sm font-medium">
+                  Category
+                </label>
+                <select
+                  name="categories"
+                  onChange={handleChange}
+                  value={formData.categories}
+                  className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
+                >
+                  <option value="" disabled>
+                    Choose category
+                  </option>
+                  <option value="business and networking">
+                    Business and Networking
+                  </option>
+                  <option value="music and concert">Music and Concert</option>
+                  <option value="sport and fitness">Sport and Fitness</option>
+                  <option value="arts and culture">Arts and Culture</option>
+                  <option value="festival and fairs">Festival and Fairs</option>
+                  <option value="fun and hangout">Fun and Hangout</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 text-sm font-medium">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={formData.startDate}
+                    onChange={handleChange}
+                    className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium">
+                    Start Time
+                  </label>
+                  <input
+                    type="time"
+                    name="startTime"
+                    value={formData.startTime}
+                    onChange={handleChange}
+                    className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={formData.endDate}
+                    onChange={handleChange}
+                    className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium">
+                    End Time
+                  </label>
+                  <input
+                    type="time"
+                    name="endTime"
+                    value={formData.endTime}
+                    onChange={handleChange}
+                    className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
+                  />
+                </div>
+              </div>
 
-            {eventData.eventType === "physical" && (
-              <div className="flex flex-col gap-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {[
-                    {
-                      label: "Venue",
-                      name: "venueName",
-                      value: eventData.location.venueName,
-                    },
-                    {
-                      label: "Address",
-                      name: "address",
-                      value: eventData.location.address,
-                    },
-                  ].map(({ label, name, value }) => (
-                    <div key={name}>
-                      <label className="block font-medium text-sm mb-1 dark:text-zinc-100">
-                        {label}
+              <div>
+                <label className="block mb-1 text-sm font-medium">
+                  Event Type
+                </label>
+                <select
+                  name="eventType"
+                  value={formData.eventType}
+                  onChange={handleEventTypeChange}
+                  className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
+                >
+                  <option value="" disabled>
+                    Select event type
+                  </option>
+                  <option value="virtual">Virtual</option>
+                  <option value="physical">Physical</option>
+                </select>
+              </div>
+
+              {formData.eventType === "physical" ? (
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block mb-1 text-sm font-medium">
+                        Country
+                      </label>
+                      <select
+                        onChange={(e) => setSelectedCountry(e.target.value)}
+                        className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
+                      >
+                        <option value="">Select Country</option>
+                        {countries.map((country) => (
+                          <option key={country.isoCode} value={country.isoCode}>
+                            {country.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1 text-sm font-medium">
+                        State
+                      </label>
+                      <select
+                        onChange={(e) => setSelectedState(e.target.value)}
+                        className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
+                      >
+                        <option value="">Select State</option>
+                        {states.map((state) => (
+                          <option key={state.isoCode} value={state.isoCode}>
+                            {state.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1 text-sm font-medium">
+                        City
+                      </label>
+                      <select
+                        onChange={(e) => setSelectedCity(e.target.value)}
+                        className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
+                        value={selectedCity}
+                      >
+                        <option value="">Select City</option>
+                        {cities.map((city) => (
+                          <option key={city.isoCode} value={city.isoCode}>
+                            {city.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1 text-sm font-medium">
+                        Venue Name
                       </label>
                       <input
                         type="text"
-                        name={name}
-                        value={value}
-                        onChange={handleInputChange}
-                        placeholder={`Enter ${label.toLowerCase()}`}
-                        className="bg-gray-100 dark:bg-zinc-700 dark:text-zinc-100 p-3 rounded-lg border border-gray-300 dark:border-zinc-600 w-full focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
-                        required
+                        name="venueName"
+                        value={formData.location.venueName}
+                        onChange={handleChange}
+                        className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
                       />
                     </div>
-                  ))}
-                  <div>
-                    <label className="block font-medium text-sm mb-1 dark:text-zinc-100">
-                      Country
-                    </label>
-                    <select
-                      name="country"
-                      value={eventData.location.country}
-                      onChange={handleInputChange}
-                      className="bg-gray-100 dark:bg-zinc-700 dark:text-zinc-100 p-3 rounded-lg border border-gray-300 dark:border-zinc-600 w-full focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
-                    >
-                      <option value="">Select Country</option>
-                      {countries.map((c) => (
-                        <option key={c.isoCode} value={c.isoCode}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                   <div>
-                    <label className="block font-medium text-sm mb-1 dark:text-zinc-100">
-                      State
+                    <label className="block mb-1 text-sm font-medium">
+                      Address
                     </label>
-                    <select
-                      name="state"
-                      value={eventData.location.state}
-                      onChange={handleInputChange}
-                      disabled={!eventData.location.country}
-                      className="bg-gray-100 dark:bg-zinc-700 dark:text-zinc-100 p-3 rounded-lg border border-gray-300 dark:border-zinc-600 w-full focus:outline-none focus:ring-2 focus:ring-orange-400 transition disabled:opacity-50"
-                    >
-                      <option value="">Select State</option>
-                      {states.map((s) => (
-                        <option key={s.isoCode} value={s.isoCode}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-medium text-sm mb-1 dark:text-zinc-100">
-                      City
-                    </label>
-                    <select
-                      name="city"
-                      value={eventData.location.city}
-                      onChange={handleInputChange}
-                      disabled={!eventData.location.state}
-                      className="bg-gray-100 dark:bg-zinc-700 dark:text-zinc-100 p-3 rounded-lg border border-gray-300 dark:border-zinc-600 w-full focus:outline-none focus:ring-2 focus:ring-orange-400 transition disabled:opacity-50"
-                    >
-                      <option value="">Select City</option>
-                      {cities.map((c) => (
-                        <option key={c.name} value={c.name}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
+                    <input
+                      type="text"
+                      name="address"
+                      value={formData.location.address}
+                      onChange={handleChange}
+                      className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
+                    />
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Description */}
+              ) : (
+                <div>
+                  <label className="block mb-1 text-sm font-medium">
+                    Meeting Link
+                  </label>
+                  <input
+                    type="url"
+                    name="meetLink"
+                    value={formData.meetLink}
+                    onChange={handleChange}
+                    className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
+                  />
+                </div>
+              )}
+            </div>
             <div>
-              <label className="block font-medium text-sm mb-1 dark:text-zinc-100">
+              <label className="block mb-1 text-sm font-medium">
                 Description
               </label>
               <textarea
                 name="description"
-                rows="4"
-                value={eventData.description}
-                onChange={handleInputChange}
-                placeholder="Write a few lines about the event..."
-                className="bg-gray-100 dark:bg-zinc-700 dark:text-zinc-100 p-3 rounded-lg border border-gray-300 dark:border-zinc-600 w-full resize-none focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+                value={formData.description}
+                onChange={handleChange}
+                rows={4}
+                className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
               />
             </div>
-
-            {/* Guest Limit */}
             <div>
-              <label className="block font-medium text-sm mb-1 dark:text-zinc-100">
-                Guest Limit
+              <label className="block mb-1 text-sm font-medium">
+                Event Capacity
               </label>
               <input
                 type="number"
                 name="limit"
-                value={eventData.limit}
-                onChange={handleInputChange}
-                placeholder="e.g. 50"
-                className="bg-gray-100 dark:bg-zinc-700 dark:text-zinc-100 p-3 rounded-lg border border-gray-300 dark:border-zinc-600 w-full focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
-                required
+                value={formData.limit}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
               />
             </div>
           </form>
         </div>
-
-        {/* Footer */}
-        <div className="sticky bottom-0 w-full bg-white/90 dark:bg-zinc-800/90 border-t border-gray-300 dark:border-zinc-700 py-3 px-5">
+        <div className="sticky bottom-0 w-full bg-white dark:bg-zinc-800 border-t border-gray-200 dark:border-zinc-700 px-5 py-3">
           <button
-            onClick={handleSubmit}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium transition"
             type="submit"
-            className="w-full py-3 rounded-lg bg-orange-500 text-white font-medium text-sm hover:bg-orange-600 transition"
+            disabled={loading.updateEvent}
+            onClick={handleSubmit}
           >
-            Update Event
+            {loading.updateEvent ? (
+              <>
+                Updating <Loader loading={loading.updateEvent} />
+              </>
+            ) : (
+              "Update Event"
+            )}
           </button>
         </div>
       </div>

@@ -90,7 +90,7 @@ const EventListView = () => {
 
       {/* Tab Content */}
       <div className="p-4 sm:px-6 md:px-10">
-        {activeTab === "list" && <EventList events={filteredEvents} />}
+        {activeTab === "list" && <EventList events={filteredEvents}/>}
         {activeTab === "grid" && <EventGrid events={filteredEvents} />}
       </div>
     </div>

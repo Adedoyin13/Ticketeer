@@ -66,9 +66,9 @@ const faq = [
       "Our platform supports concerts, conferences, sports events, festivals, workshops, and more.",
   },
   {
-    question: "How do I get paid for ticket sales?",
+    question: "How do I create and publish an event on Ticketeer?",
     answer:
-      "Payouts are processed securely and transferred to your account within [X] days after ticket sales",
+      "Just log in and click on “Create Event.” Fill in your event details (title, date, venue, ticket types, etc.), upload images, and publish. It’s that easy — your event will instantly go live on the platform!",
   },
   {
     question: "Can I offer discounts or promo codes?",
@@ -181,7 +181,7 @@ const Organizer = () => {
         </div>
 
         {/* Testimonial section - More responsive on mobile */}
-        <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-24 flex flex-col-reverse md:flex-row gap-6 sm:gap-8 items-center">
+        {/* <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-24 flex flex-col-reverse md:flex-row gap-6 sm:gap-8 items-center">
           <div className="flex flex-col gap-6 sm:gap-10 md:gap-16 lg:gap-20 w-full md:w-1/2">
             <div className="bg-slate-300 rounded-full shadow-md p-3 sm:p-4 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center">
               <BsQuote className="text-orange-600 text-xl sm:text-2xl md:text-3xl" />
@@ -225,7 +225,7 @@ const Organizer = () => {
             alt="Review illustration"
             className="w-full md:w-1/2 h-auto md:h-[400px] lg:h-[500px] object-contain"
           />
-        </div>
+        </div> */}
 
         {/* Pricing section - More responsive on mobile */}
         <div className="flex items-center bg-slate-400 px-4 sm:px-8 md:px-16 lg:px-32 py-8 sm:py-12">
@@ -295,7 +295,7 @@ const Organizer = () => {
         </div>
 
         {/* CTA section - Better padding for small screens */}
-        <div className="flex items-center px-4 sm:px-8 md:px-12 lg:px-20">
+        {/* <div className="flex items-center px-4 sm:px-8 md:px-12 lg:px-20">
           <div className="w-full bg-eventLove flex items-center bg-cover bg-no-repeat rounded-xl sm:rounded-2xl md:rounded-3xl">
             <div className="flex flex-col gap-4 sm:gap-5 md:gap-6 items-center justify-center text-white text-center py-10 sm:py-16 md:py-24 lg:py-40 px-4 sm:px-10 md:px-20 lg:px-40">
               <p className="font-montserrat font-semibold text-xl sm:text-2xl md:text-3xl lg:text-5xl">
@@ -312,7 +312,7 @@ const Organizer = () => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import image from "./../../assets/default-img.png";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import EventShareModal from "../Modals/EventModal/EventShareModal";
 import AttendeeModal from "../Modals/EventModal/AttendeeModal";
 import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
 import { TbTicket } from "react-icons/tb";
 import Loader from "../Spinners/Loader";
 import { toast } from "react-toastify";
@@ -76,30 +75,24 @@ const EventView = () => {
 
   const { eventDetails, loading, error } = useSelector((state) => state.events);
 
-  // useEffect(() => {
-  //   if (user && isAuthenticated) {
-  //     dispatch(getEventDetails(eventId));
-  //   }
-  // }, [dispatch, eventId]);
-
-  console.log({ eventDetails });
-
   useEffect(() => {
     if (!eventId) {
-      console.log("Event ID is missing");
+      toast.error("Event ID is missing");
       return;
     }
 
     const handleEventDetails = async () => {
       try {
-        dispatch(getEventDetails(eventId));
+        if(user && isAuthenticated) {
+          dispatch(getEventDetails(eventId));
+        }
       } catch (error) {
-        console.log("Error fetching event details", error);
+        toast.error("Error fetching event details", error);
       }
     };
 
     handleEventDetails();
-  }, [eventId, dispatch, getEventDetails]);
+  }, [eventId, dispatch, getEventDetails, user]);
 
   if (loading.eventDetails) {
     return <Loader loading={loading.eventDetails} />;
@@ -294,17 +287,15 @@ const EventView = () => {
                   </div>
                   {eventDetails?.ticketTypes?.length > 0 ? (
                     <button
-                    className="mt-4 self-start px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full transition"
-                    onClick={openPurchaseModal}
-                  >
-                    Purchase Ticket
-                  </button>
+                      className="mt-4 self-start px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full transition"
+                      onClick={openPurchaseModal}
+                    >
+                      Purchase Ticket
+                    </button>
                   ) : (
-                    <button
-                    className="mt-4 self-start px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full transition"
-                  >
-                    No more Ticket for this event
-                  </button>
+                    <button className="mt-4 self-start px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full transition">
+                      No more Ticket for this event
+                    </button>
                   )}
                 </>
               ) : (
@@ -318,10 +309,12 @@ const EventView = () => {
                       />
                       <p className="text-lg font-semibold">{user.name}</p>
                     </div>
-                    <button className="border border-orange-400 hover:bg-orange-100 dark:hover:bg-orange-800/30 hover:border-orange-300 hover:text-orange-800 dark:hover:text-orange-300 rounded-lg px-4 py-3 text-sm text-orange-700 dark:text-orange-300 flex gap-2">
-                      <TbTicket size={20} />
-                      My Ticket
-                    </button>
+                    <Link to="/my-tickets">
+                      <button className="border border-orange-400 hover:bg-orange-100 dark:hover:bg-orange-800/30 hover:border-orange-300 hover:text-orange-800 dark:hover:text-orange-300 rounded-lg px-4 py-3 text-sm text-orange-700 dark:text-orange-300 flex gap-2">
+                        <TbTicket size={20} />
+                        My Ticket
+                      </button>
+                    </Link>
                   </div>
                   <p className="text-md text-gray-600 dark:text-zinc-400">
                     A confirmation email has been sent to {user.email}
@@ -359,7 +352,7 @@ const EventView = () => {
         <PurchaseTicketModal
           onClose={closePurchaseModal}
           tickets={eventDetails.ticketTypes}
-          event={eventDetails.title}
+          event={eventDetails}
           user={user}
         />
       )}

@@ -1,8 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../utils/api";
-import axios from "axios";
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 export const getUserEvents = createAsyncThunk(
   "events/getUserEvents",
@@ -11,6 +8,7 @@ export const getUserEvents = createAsyncThunk(
       const response = await api.get("/event/getUserEvents", {
         withCredentials: true,
       });
+      console.log(response.data);
       return response.data;
     } catch (error) {
       const message = error.response?.data?.message;
@@ -30,11 +28,9 @@ export const getEventDetails = createAsyncThunk(
   async (eventId, { rejectWithValue }) => {
     console.log("🔹 Redux Action: getEventDetails called with ID:", eventId);
     try {
-      const response = await api.get(
-        `/event/getEvent/${eventId}`,
-        { withCredentials: true }
-      );
-      console.log("✅ Event details API response:", response.data);
+      const response = await api.get(`/event/getEvent/${eventId}`, {
+        withCredentials: true,
+      });
       return response.data;
     } catch (error) {
       console.log(
@@ -50,7 +46,7 @@ export const getUpcomingEvents = createAsyncThunk(
   "events/getUpcomingEvents",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${SERVER_URL}/event/upcoming-events`, {
+      const response = await api.get(`/event/upcoming-events`, {
         withCredentials: true,
       }); // No need to send user._id
       return response.data; // Backend should already return the authenticated user's events
@@ -69,6 +65,7 @@ export const getUserUpcomingEvents = createAsyncThunk(
       const response = await api.get("/event/my/upcoming-events", {
         withCredentials: true,
       }); // No need to send user._id
+      console.log(response.data);
       return response.data; // Backend should already return the authenticated user's events
     } catch (error) {
       return rejectWithValue(
@@ -107,34 +104,6 @@ export const getUserFavouriteEvents = createAsyncThunk(
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch events"
       );
-    }
-  }
-);
-
-export const likeEvent = createAsyncThunk(
-  "events/likeEvent",
-  async (eventId, { getState, rejectWithValue }) => {
-    const userId = getState().user.userId; // assuming userId is stored in the user slice
-    try {
-      const response = await api.put(`/event/like/${eventId}`, { userId }, {withCredentials: true});
-      console.log(response.data);
-      return response.data; // returns the updated event
-    } catch (error) {
-      return rejectWithValue(error.response.data);
-    }
-  }
-);
-
-export const unlikeEvent = createAsyncThunk(
-  "events/unlikeEvent",
-  async (eventId, { getState, rejectWithValue }) => {
-    const userId = getState().user.userId;
-    try {
-      const response = await api.put(`/event/unlike/${eventId}`, { userId }, {withCredentials: true});
-      console.log(response.data);
-      return response.data; // returns the updated event
-    } catch (error) {
-      return rejectWithValue(error.response.data);
     }
   }
 );
@@ -191,21 +160,34 @@ export const getUserTickets = createAsyncThunk(
 );
 
 export const updateEvent = createAsyncThunk(
-  "user/update-event",
-  async ({ eventData, eventId }, { rejectWithValue, dispatch }) => {
+  "events/updateEvent",
+  async ({ eventId, updatedData }, { rejectWithValue }) => {
     try {
-      const response = await api.patch(
-        `/event/update-event/${eventId}`,
-        eventData,
+      const response = await api.put(
+        `/event/updateEvent/${eventId}`,
+        updatedData
+      );
+      return response.data; // ✅ This should be the updated event
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const updateTicketType = createAsyncThunk(
+  "events/updateTicketType",
+  async ({ ticketId, updatedTicketData }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(
+        `/event/updateTicketType/${ticketId}`,
+        updatedTicketData,
+        // eventId,
         { withCredentials: true }
       );
-      dispatch(getUserEvents());
       console.log(response.data);
-      return response.data;
+      return response.data; // ✅ This should be the updated event
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || "Update failed"
-      );
+      return rejectWithValue(error.response.data);
     }
   }
 );
@@ -258,7 +240,6 @@ export const getUserCancelledEvents = createAsyncThunk(
   }
 );
 
-// attendeeSlice.js (or eventSlice.js if it's in there)
 export const getAttendeesForEvent = createAsyncThunk(
   "attendees/getAttendeesForEvent",
   async (eventId, thunkAPI) => {
@@ -290,6 +271,43 @@ export const deleteEvent = createAsyncThunk(
   }
 );
 
+export const purchaseTicketThunk = createAsyncThunk(
+  "ticket/purchase",
+  async ({ ticketTypeId, eventId, quantity = 1 }, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/ticket/purchase", {
+        ticketTypeId,
+        eventId,
+        quantity,
+      });
+
+      const session = response.data?.session;
+
+      if (session?.url) {
+        window.location.href = session.url; // 🔁 Redirect to Stripe in same tab
+      } else {
+        throw new Error("Stripe session URL not found.");
+      }
+    } catch (err) {
+      console.error("Purchase Ticket Error:", err);
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+export const toggleLike = createAsyncThunk(
+  "events/toggleLike",
+  async (eventId, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/event/like/${eventId}`);
+      console.log(response.data)
+      return response.data.event; // return the updated event
+    } catch (error) {
+      return rejectWithValue(error.response.data.message);
+    }
+  }
+)
+
 const initialState = {
   events: [],
   userEvents: [],
@@ -297,9 +315,9 @@ const initialState = {
   upcomingEvents: [],
   cancelledEvents: [],
   userTickets: [],
+  currentEvent: null,
   attendees: [],
   userUpcomingEvents: [],
-  likedEvents: [],
   pastEvents: [],
   favouriteEvents: [],
   loading: {
@@ -307,12 +325,10 @@ const initialState = {
     eventDetails: false,
     userTickets: false,
     updateEvent: false,
+    updateTicketType: false,
     upcomingEvents: false,
     userUpcomingEvents: false,
     deleteEvent: false,
-    likedEvents: false,
-    likeEvent: false,
-    unlikeEvent: false,
     pastEvents: false,
     favouriteEvents: false,
     cancelEvent: false,
@@ -328,20 +344,9 @@ const eventSlice = createSlice({
   name: "events",
   initialState,
   reducers: {
-    // toggleLike: (state, action) => {
-    //   const eventId = action.payload;
-    //   if (state.likedEvents.includes(eventId)) {
-    //     state.likedEvents = state.likedEvents.filter((id) => id !== eventId);
-    //   } else {
-    //     state.likedEvents.push(eventId);
-    //   }
-    //   // Persist liked events to localStorage
-    //   localStorage.setItem('likedEvents', JSON.stringify(state.likedEvents));
-    // },
-
-    // setLikedEvents: (state, action) => {
-    //   state.likedEvents = action.payload;
-    // },
+    setCurrentEvent(state, action) {
+      state.currentEvent = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -355,6 +360,30 @@ const eventSlice = createSlice({
       })
       .addCase(getUserEvents.rejected, (state, action) => {
         state.loading.userEvents = false;
+        state.error = action.payload;
+      })
+
+      .addCase(toggleLike.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(toggleLike.fulfilled, (state, action) => {
+        const updatedEvent = action.payload;
+        console.log('Action payload', action.payload)
+        const index = state.upcomingEvents.findIndex(e => e._id === updatedEvent._id);
+        if (index !== -1) {
+          state.upcomingEvents[index] = updatedEvent;
+        }
+        console.log('Index', index)
+        // Optionally also update currentEvent if it's the same one
+        if (state.currentEvent && state.currentEvent._id === updatedEvent._id) {
+          state.currentEvent = updatedEvent;
+        }
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(toggleLike.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload;
       })
 
@@ -435,41 +464,6 @@ const eventSlice = createSlice({
       .addCase(getUserCancelledEvents.rejected, (state, action) => {
         state.loading.cancelledEvents = false;
         state.error = action.payload;
-      })
-
-      .addCase(likeEvent.pending, (state) => {
-        state.loading.likeEvent = true;
-      })
-      .addCase(likeEvent.fulfilled, (state, action) => {
-        const updatedEvent = action.payload;
-        state.loading.likeEvent = false;
-        state.likedEvents.push(updatedEvent._id);
-        state.upcomingEvents = state.upcomingEvents.map((event) =>
-          event._id === updatedEvent._id ? updatedEvent : event
-        );
-      })
-      .addCase(likeEvent.rejected, (state, action) => {
-        state.loading.likeEvent = false;
-        state.error = action.payload || "Failed to like event";
-      })
-
-      // Handling unlikeEvent
-      .addCase(unlikeEvent.pending, (state) => {
-        state.loading.unlikeEvent = true;
-      })
-      .addCase(unlikeEvent.fulfilled, (state, action) => {
-        const updatedEvent = action.payload;
-        state.loading.unlikeEvent = false;
-        state.likedEvents = state.likedEvents.filter(
-          (id) => id !== updatedEvent._id
-        );
-        state.upcomingEvents = state.upcomingEvents.map((event) =>
-          event._id === updatedEvent._id ? updatedEvent : event
-        );
-      })
-      .addCase(unlikeEvent.rejected, (state, action) => {
-        state.loading.unlikeEvent = false;
-        state.error = action.payload || "Failed to unlike event";
       })
 
       .addCase(getAttendeesForEvent.pending, (state) => {
@@ -572,20 +566,20 @@ const eventSlice = createSlice({
       .addCase(uploadEventImage.fulfilled, (state, action) => {
         state.loading.uploadImage = false;
         const updatedEvent = action.payload;
-      
+
         const eventIndex = state.userEvents.findIndex(
           (event) => event._id === updatedEvent._id
         );
-      
+
         if (eventIndex !== -1) {
           state.userEvents[eventIndex] = updatedEvent;
         }
-      
+
         // If you're using selectedEvent elsewhere, update that too
         if (state.eventDetails && state.eventDetails._id === updatedEvent._id) {
           state.eventDetails = updatedEvent;
         }
-      })      
+      })
       .addCase(uploadEventImage.rejected, (state, action) => {
         state.loading.uploadImage = false;
         state.error = action.payload;
@@ -597,17 +591,39 @@ const eventSlice = createSlice({
       })
       .addCase(updateEvent.fulfilled, (state, action) => {
         state.loading.updateEvent = false;
+
         const updatedEvent = action.payload;
-        const index = state.userEvents.findIndex(
-          (e) => e._id === updatedEvent._id
+
+        const index = state.events.findIndex(
+          (event) => event._id === updatedEvent._id
         );
         if (index !== -1) {
-          state.userEvents[index] = updatedEvent;
+          state.events[index] = updatedEvent;
         }
-        state.userEvents.push(action.payload);
       })
       .addCase(updateEvent.rejected, (state, action) => {
         state.loading.updateEvent = false;
+        state.error = action.payload;
+      })
+
+      .addCase(updateTicketType.pending, (state) => {
+        state.loading.updateTicketType = true;
+        state.error = null;
+      })
+      .addCase(updateTicketType.fulfilled, (state, action) => {
+        state.loading.updateTicketType = false;
+
+        const updatedTicket = action.payload;
+
+        const index = state.events.findIndex(
+          (ticket) => ticket._id === updatedTicket._id
+        );
+        if (index !== -1) {
+          state.events[index] = updatedTicket;
+        }
+      })
+      .addCase(updateTicketType.rejected, (state, action) => {
+        state.loading.updateTicketType = false;
         state.error = action.payload;
       })
 
@@ -629,4 +645,5 @@ const eventSlice = createSlice({
   },
 });
 
+export const { setCurrentEvent } = eventSlice.actions;
 export default eventSlice.reducer;

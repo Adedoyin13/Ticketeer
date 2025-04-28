@@ -9,10 +9,11 @@ import {
   updateUser,
   uploadProfilePhoto,
 } from "../../../redux/reducers/userSlice";
+import Loader from "../../Spinners/Loader";
 
 const ProfileUpdate = () => {
   const dispatch = useDispatch();
-  const { user, loading, error } = useSelector((state) => state.user);
+  const { loading, user, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
 
   const [profilePhoto, setProfilePhoto] = useState(""); // ✅ Fix: Added missing state
@@ -35,6 +36,18 @@ const ProfileUpdate = () => {
     },
   });
 
+  if (loading.updateUser) {
+    return <Loader loading={loading.updateUser} />;
+  }
+  
+  if (loading.uploadPhoto) {
+    return <Loader loading={loading.uploadPhoto} />;
+  }
+  
+  if (!user) {
+    return <Loader loading={true} />; // Show a general loader when no user is available
+  }
+  
   useEffect(() => {
     if (user) {
       setFormData({
@@ -93,12 +106,12 @@ const ProfileUpdate = () => {
     const file = e.target.files[0];
     if (file) {
       setProfilePhoto(URL.createObjectURL(file));
+      setIsFormChanged(true);
       setFormData((prev) => ({ ...prev, photo: file }));
       setIsPhotoChanged(true);
-      e.target.value = ""; // ✅ Clears file input for re-uploading same image
+      e.target.value = "";
     }
   };
-  console.log("Form data: ", formData.photo);
 
   const handlePhotoUpload = async () => {
     if (!isPhotoChanged) return;
@@ -304,7 +317,8 @@ const ProfileUpdate = () => {
                   : "bg-gray-300 dark:bg-zinc-600 cursor-not-allowed"
               }`}
             >
-              {loading ? "Updating Profile..." : "Update"}
+              {/* {loading ? "Updating Profile..." : "Update"} */}
+              Update
             </button>
           </div>
         </form>

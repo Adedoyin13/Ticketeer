@@ -2,11 +2,11 @@ import React, { useEffect } from "react";
 import { MdModeEdit } from "react-icons/md";
 import EventTabs from "../Event/EventTabs/EventTabs";
 import { Link } from "react-router-dom";
-import { getUser } from "../../redux/reducers/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../Spinners/Loader";
-import { getUserEvents } from "../../redux/reducers/eventSlice";
 import { toast } from "react-toastify";
+import { logout } from "../../redux/reducers/userSlice";
+import { getUpcomingEvents } from "../../redux/reducers/eventSlice";
 
 // const userEvents = ''
 
@@ -21,48 +21,33 @@ const Dashboard = () => {
     error: userError,
   } = useSelector((state) => state.user);
 
-  console.log({ user });
-
-  // console.log({user})
-
-  // ✅ Get events state
   const {
     userEvents,
     loading: eventsLoading,
     error: eventsError,
   } = useSelector((state) => state.events);
 
-  console.log({ userEvents });
-
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      dispatch(getUserEvents());
-    }
-  }, [isAuthenticated, user, dispatch]);
-
-  if (!user) {
-    return <Loader loading={userLoading} />;
+  if (!user && !isAuthenticated) {
+    dispatch(logout());
   }
 
-  // ✅ Handle separate loading states
-  if (eventsLoading.userEvents)
+  useEffect(() => {
+    dispatch(getUpcomingEvents()); // Fetch upcoming events on component mount
+  }, [dispatch]);
+
+  if (userLoading.getUser) {
+    // Handle user loading state, assuming userLoading is an object
+    return <Loader loading={userLoading.getUser} />;
+  }
+
+  // ✅ Handle separate loading states for events
+  if (eventsLoading.userEvents) {
     return <Loader loading={eventsLoading.userEvents} />;
-  if (userLoading) return <Loader loading={userLoading} />;
+  }
 
   // ✅ Handle separate error states
   if (userError) return toast.error(`Error fetching user: ${userError}`);
   if (eventsError) return toast.error(`Error fetching events: ${eventsError}`);
-
-  // const DEFAULT_IMAGE_URL = `https://via.placeholder.com/150x150?text=${encodeURIComponent(user.name)}`;
-  // const DEFAULT_IMAGE_URL = `https://placehold.co/150x150?text=${encodeURIComponent(name)}`;
-
-  // console.log(DEFAULT_IMAGE_URL);  // Check the URL in the console to verify
-
-  // const DEFAULT_IMAGE_URL = `https://placehold.co/150x150/${bgColor}/${textColor}?text=${initials}&font=roboto`;
-
-  // const initials = getInitials(name);
-  // const DEFAULT_IMAGE_URL = `https://placehold.co/150x150/EEE/333?text=${initials}&font=roboto`;
-  // console.log(DEFAULT_IMAGE_URL);
 
   return (
     <>
@@ -87,7 +72,7 @@ const Dashboard = () => {
                 </Link>
 
                 {/* Profile Details */}
-                {userLoading ? (
+                {userLoading.getUser ? (
                   <div className="animate-pulse flex flex-col items-center gap-4 py-16">
                     <div className="w-20 h-20 rounded-full bg-zinc-300 dark:bg-zinc-700" />
                     <div className="w-32 h-4 bg-zinc-300 dark:bg-zinc-700 rounded" />

@@ -1,14 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
 import { MdEventBusy } from "react-icons/md";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserPastEvents } from "../../../redux/reducers/eventSlice";
 import Loader from "../../Spinners/Loader";
 import { toast } from "react-toastify";
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 const formatTime = (timeString) => {
   const [hours, minutes] = timeString.split(":"); // Split "HH:mm" format
@@ -37,11 +34,13 @@ const PastEvents = () => {
 
   const dispatch = useDispatch();
   const { pastEvents, loading, error } = useSelector((state) => state.events);
-  const { user } = useSelector((state) => state.user);
+  const { user, isAuthenticated } = useSelector((state) => state.user);
 
   useEffect(() => {
-    dispatch(getUserPastEvents()); // Fetch user events on component mount
-  }, [dispatch]);
+   if(user && isAuthenticated) {
+    dispatch(getUserPastEvents());
+   }
+  }, [dispatch, user, isAuthenticated]);
 
   if (loading.pastEvents) {
     return <Loader loading={loading.pastEvents} />;

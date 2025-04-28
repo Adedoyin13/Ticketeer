@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FaUserSlash } from "react-icons/fa";
 import { IoIosSearch } from "react-icons/io";
 import img from "./../../../assets/default-img.png";
+import axios from "axios";
 
 const feedback = [
   {
@@ -28,6 +29,16 @@ const FeedbackModal = () => {
       email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       comment.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handlePayment = async() => {
+    const response = await axios.post("http://localhost:4000/payment/create-payment-intent", {
+      amount: 50, // $50
+      userId: "user123",
+      eventId: "event456",
+    });
+    const clientSecret = response.data.clientSecret;
+    
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 font-inter">

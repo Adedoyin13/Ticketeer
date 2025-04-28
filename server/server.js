@@ -5,32 +5,71 @@ const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const helmet = require("helmet");
 const errorHandler = require("./middleware/errorMiddleware");
 const userRoute = require("./Route/userRoute");
 const eventRoute = require("./Route/eventRoute");
 const locationRoute = require("./Route/location");
 const notificationRoute = require("./Route/notificationRoute");
+const paymentRoute = require("./Route/paymentRoute");
 const passport = require("passport");
-const cron = require('node-cron');
+const cron = require("node-cron");
 
-const http = require('http');
-const socketIo = require('socket.io');
+const http = require("http");
+const socketIo = require("socket.io");
 const { createEventReminderNotifications } = require("./Utils/cronJobs");
 const { createEventReminderMail } = require("./Utils/sendEventEmail");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+app.use((req, res, next) => {
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' https://js.stripe.com https://checkout.stripe.com; frame-src https://js.stripe.com https://checkout.stripe.com; connect-src 'self' https://api.stripe.com"
+  );
+  next();
+});
+
+// Helmet for security headers
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'", // Allows your inline theme script
+          "https://js.stripe.com",
+          "https://checkout.stripe.com",
+        ],
+        scriptSrcElem: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://js.stripe.com",
+          "https://checkout.stripe.com",
+        ],
+        frameSrc: ["https://js.stripe.com", "https://checkout.stripe.com"],
+        connectSrc: ["'self'", "https://api.stripe.com"],
+        imgSrc: ["'self'", "data:", "https://*.stripe.com"],
+        styleSrc: ["'self'", "'unsafe-inline'"], // For Tailwind CSS and custom styles
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      },
+    },
+  })
+);
+
 // cron.schedule('0 0 * * *', () => {
 //   console.log('Sending event reminder emails...');
 //   createEventReminderMail();
 // });
 
+// CORS setup
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -39,6 +78,7 @@ app.use(
   })
 );
 
+// Session setup
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -47,10 +87,11 @@ app.use(
     cookie: {
       secure: false, // Set to true if using HTTPS
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: "lax",
     },
   })
 );
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -61,6 +102,7 @@ app.use("/user", userRoute);
 app.use("/event", eventRoute);
 app.use("/location", locationRoute);
 app.use("/notification", notificationRoute);
+app.use("/payments", paymentRoute);
 
 app.get("/", (req, res) => {
   res.render("home");
@@ -70,11 +112,11 @@ app.get("/", (req, res) => {
 const server = http.createServer(app);
 const io = socketIo(server);
 
-io.on('connection', (socket) => {
-  console.log('A user connected');
-  socket.emit('notification', { message: 'You have a new event!' });
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
+io.on("connection", (socket) => {
+  console.log("A user connected");
+  socket.emit("notification", { message: "You have a new event!" });
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
   });
 });
 
@@ -85,7 +127,6 @@ app.use(errorHandler);
 connectDb();
 mongoose.connection.once("open", () => {
   console.log("Database connected");
-  // Use only one listener (server.listen)
   server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   createEventReminderNotifications();
 });

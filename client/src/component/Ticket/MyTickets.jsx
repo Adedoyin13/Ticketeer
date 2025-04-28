@@ -1,14 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
 import { MdEventBusy } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  getUserTickets,
-  getUserUpcomingEvents,
-} from "../../redux/reducers/eventSlice";
+import { getUserTickets } from "../../redux/reducers/eventSlice";
 import Loader from "../Spinners/Loader";
 import { toast } from "react-toastify";
+import { IoIosSearch } from "react-icons/io";
+import { IoIosCloseCircle } from "react-icons/io";  // Import the clear icon
 
 const formatTime = (timeString) => {
   const [hours, minutes] = timeString.split(":");
@@ -35,38 +34,22 @@ const MyTickets = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  //   const { userUpcomingEvents, loading, error } = useSelector(
-  //     (state) => state.events
-  //   );
-  //   console.log({ userUpcomingEvents });
 
   const { user, isAuthenticated } = useSelector((state) => state.user);
-  // console.log({ user });
-
   const { userTickets, loading, error } = useSelector((state) => state.events);
-  //   console.log({userTickets})
+
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (user && isAuthenticated) {
       dispatch(getUserTickets());
     }
-  }, [isAuthenticated, user, dispatch]);
-
-  // useEffect(() => {
-  //   dispatch(getUserUpcomingEvents()); // Fetch user events on component mount
-  // }, [dispatch]);
+  }, [user, isAuthenticated, dispatch]);
 
   if (loading.userTickets) {
     return <Loader loading={loading.userTickets} />;
   }
   if (error) return toast.error("error");
-
-  //   useEffect(() => {
-  //     dispatch(getUserTickets());
-  //   }, [dispatch]);
-
-  //   if (loading) return <p>Loading tickets...</p>;
-  //   if (error) return <p>Error: {error}</p>;
 
   const handleNavigate = (eventId) => {
     navigate(`/view-event/${eventId}`, {
@@ -74,11 +57,50 @@ const MyTickets = () => {
     });
   };
 
+  // Filter tickets based on search query
+  const filteredTickets = userTickets.filter((ticket) =>
+    ticket?.eventId?.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Clear search query function
+  const clearSearch = () => {
+    setSearchQuery("");
+  };
+
   return (
     <section className="mt-6 py-10 md:py-28 px-4 md:px-16 lg:px-20 bg-orange-100 dark:bg-zinc-900 min-h-screen font-inter">
       <div className="flex flex-col gap-8">
-        {Array.isArray(userTickets) && userTickets.length > 0 ? (
-          userTickets.map((upcoming, index) => (
+        {/* Search Input */}
+        <div className="mb-6">
+          <div className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 shadow-sm rounded-xl p-3">
+            <div className="flex items-center gap-3">
+              <IoIosSearch
+                size={20}
+                className="text-gray-500 dark:text-zinc-400"
+              />
+              <div className="relative flex-grow">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full text-sm px-3 py-2 bg-transparent placeholder-gray-400 dark:placeholder-zinc-500 text-gray-800 dark:text-zinc-100 outline-none"
+                  placeholder="Search by name, location, date, category, or time"
+                />
+                {/* Clear button */}
+                {searchQuery && (
+                  <IoIosCloseCircle
+                    size={20}
+                    onClick={clearSearch}
+                    className="absolute right-3 top-2.5 text-gray-500 dark:text-zinc-400 cursor-pointer"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {Array.isArray(filteredTickets) && filteredTickets.length > 0 ? (
+          filteredTickets.map((upcoming, index) => (
             <div
               key={index}
               className="border-l-4 border-orange-500 bg-white dark:bg-zinc-800 shadow-lg rounded-2xl p-6 sm:p-8 transition duration-300 hover:shadow-xl"
@@ -162,9 +184,7 @@ const MyTickets = () => {
                 {/* Event Image */}
                 <div className="w-full sm:w-full lg:w-[260px] h-[180px] rounded-xl overflow-hidden shadow-md">
                   <img
-                    src={
-                      upcoming?.eventId?.image.imageUrl || "/default-image.png"
-                    }
+                    src={upcoming?.eventId?.image.imageUrl || "/default-image.png"}
                     alt="Event"
                     className="w-full h-full object-cover"
                   />

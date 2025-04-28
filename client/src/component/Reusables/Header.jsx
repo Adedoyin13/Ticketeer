@@ -1,103 +1,63 @@
 import React, { useEffect, useState } from "react";
-import img from "./../../assets/default-img.png";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, matchPath } from "react-router-dom";
 import { FiMenu } from "react-icons/fi";
-import { IoMdNotifications, IoMdNotificationsOutline } from "react-icons/io";
+import { IoMdNotificationsOutline } from "react-icons/io";
 import Sidebar from "../Reusables/Sidebar";
 import NotificationModal from "../Modals/NotificationModal/NotificationModal";
 import ProfileModal from "../Modals/UserModal/ProfileModal";
 import { useDispatch, useSelector } from "react-redux";
-import { getUser } from "../../redux/reducers/userSlice";
 import Loader from "../Spinners/Loader";
 import { toast } from "react-toastify";
-import { isDarkModeEnabled, toggleDarkMode } from "../../theme";
 import { MdDarkMode, MdLightMode } from "react-icons/md";
+import { toggleThemeMode } from "../../redux/reducers/userSlice";
 
 const formatName = (namee) => {
-  const name = namee.split(" ")[0];
+  const name = namee?.split(" ")[0];
   return name;
 };
 
 const navLink = [
   { title: "Home", route: "/dashboard" },
-  { title: "Create event", route: "/create-event" },
-  { title: "Create ticket", route: "/create-ticket" },
+  { title: "Create Event", route: "/create-event" },
+  { title: "Create Ticket", route: "/create-ticket" },
   { title: "Events", route: "/event-list" },
-  { title: "Manage event", route: "/manage-event" },
-  { title: "My events", route: "/my-events" },
-  { title: "My tickets", route: "/my-tickets" },
+  { title: "Manage Event", route: "/manage-event/:eventId" },
+  { title: "View Event", route: "/view-event/:eventId" },
+  { title: "My Events", route: "/my-events" },
+  { title: "My Tickets", route: "/my-tickets" },
   { title: "Tickets", route: "/tickets" },
   { title: "Settings", route: "/settings" },
-  { title: "Profile Update", route: "/settings/update" },
+  { title: "Profile Update", route: "/settings/profile-update" },
 ];
 
 const Header = () => {
   const location = useLocation();
+  const dispatch = useDispatch();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
-
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    setIsDark(isDarkModeEnabled());
-  }, []);
+  const { user, loading = {}, error, themeMode } = useSelector((state) => state.user);
 
   const handleToggle = () => {
-    toggleDarkMode();
-    setIsDark((prev) => !prev);
+    dispatch(toggleThemeMode());
   };
-
-  // const handleToggleTheme = () => {
-  //   const newMode = themeMode === "light" ? "dark" : "light";
-  //   dispatch(setThemeMode(newMode));
-  //   if (user) {
-  //     api.put("/user/theme", { themeMode: newMode });
-  //   } else {
-  //     localStorage.setItem("themeMode", newMode);
-  //   }
-  // };
-
-  const openModal = () => {
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setModalOpen(false);
-  };
-
-  const openProfileModal = () => {
-    setProfileModalOpen(true);
-  };
-
-  const closeProfileModal = () => {
-    setProfileModalOpen(false);
-  };
-
-  const openNotificationModal = () => {
-    setNotificationModalOpen(true);
-  };
-
-  const closeNotificationModal = () => {
-    setNotificationModalOpen(false);
-  };
-
-  const { user, loading, error } = useSelector((state) => state.user);
-  console.log(user);
-  const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!user) {
-      dispatch(getUser()); // ✅ Fetch user from backend
-    }
-  }, [dispatch]);
+    document.documentElement.classList.toggle("dark", themeMode === "dark");
+  }, [themeMode]);
 
-  if (loading) {
-    return <Loader loading={loading} />;
-  }
+  useEffect(() => {
+    if (error) toast.error(error);
+  }, [error]);
 
-  if (error) {
-    return toast.error(error);
+  const toggleModal = (setter) => () => setter((prev) => !prev);
+
+  const isActive = (route) =>
+    matchPath({ path: route, end: false }, location.pathname);
+
+  if (loading.getUser) {
+    return <Loader loading={loading.getUser} />;
   }
 
   return (
@@ -106,8 +66,9 @@ const Header = () => {
         {/* Left - Menu & Active Link */}
         <div className="flex items-center gap-2">
           <button
-            onClick={openModal}
+            onClick={toggleModal(setModalOpen)}
             className="p-2 rounded-md text-zinc-800 dark:text-zinc-200 hover:bg-orange-200 dark:hover:bg-zinc-800 transition"
+            aria-label="Toggle sidebar"
           >
             <FiMenu size={22} />
           </button>
@@ -118,7 +79,7 @@ const Header = () => {
                 <Link
                   to={route}
                   className={`text-sm sm:text-base font-medium transition duration-300 ${
-                    route === location.pathname
+                    isActive(route)
                       ? "text-orange-600 dark:text-orange-400"
                       : "hidden"
                   }`}
@@ -135,13 +96,19 @@ const Header = () => {
           <button
             onClick={handleToggle}
             className="text-zinc-800 dark:text-zinc-200 hover:text-orange-600 dark:hover:text-orange-400 transition"
+            aria-label="Toggle theme"
           >
-            {isDark ? <MdLightMode size={24} /> : <MdDarkMode size={24} />}
+            {themeMode === "light" ? (
+              <MdDarkMode size={24} />
+            ) : (
+              <MdLightMode size={24} />
+            )}
           </button>
 
           <button
-            onClick={openNotificationModal}
+            onClick={toggleModal(setNotificationModalOpen)}
             className="text-zinc-800 relative dark:text-zinc-200 hover:text-orange-600 dark:hover:text-orange-400 transition"
+            aria-label="Open notifications"
           >
             <IoMdNotificationsOutline size={24} />
             <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
@@ -150,7 +117,7 @@ const Header = () => {
           </button>
 
           <div
-            onClick={openProfileModal}
+            onClick={toggleModal(setProfileModalOpen)}
             className="flex items-center gap-3 cursor-pointer group"
           >
             <div className="w-10 h-10 sm:w-12 sm:h-12 overflow-hidden rounded-full border border-orange-300 dark:border-zinc-600">
@@ -168,12 +135,12 @@ const Header = () => {
       </nav>
 
       {/* Modals */}
-      {modalOpen && <Sidebar onClose={closeModal} isOpen={openModal} />}
+      {modalOpen && <Sidebar onClose={toggleModal(setModalOpen)} isOpen={modalOpen} />}
       {profileModalOpen && (
-        <ProfileModal onClose={closeProfileModal} isOpen={openProfileModal} />
+        <ProfileModal onClose={toggleModal(setProfileModalOpen)} isOpen={profileModalOpen} />
       )}
       {notificationModalOpen && (
-        <NotificationModal onClose={closeNotificationModal} />
+        <NotificationModal onClose={toggleModal(setNotificationModalOpen)} />
       )}
     </header>
   );

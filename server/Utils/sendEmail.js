@@ -1,8 +1,6 @@
-const nodemailer = require("nodemailer");
-
-const FRONTEND_URL = process.env.FRONTEND_URL
-
 const sendUserLogInMail = (data) => {
+  const nodemailer = require("nodemailer");
+
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -14,23 +12,68 @@ const sendUserLogInMail = (data) => {
     },
   });
 
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Login Notification</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: Arial, sans-serif;">
+        <table width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 0;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);">
+                <!-- Header -->
+                <tr>
+                  <td style="background-color: #1e293b; padding: 24px; text-align: center; color: #ffffff;">
+                    <h2 style="margin: 0; font-size: 24px;">Ticketeer</h2>
+                    <p style="margin: 4px 0 0; font-size: 14px; color: #cbd5e1;">Login Confirmation</p>
+                  </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                  <td style="padding: 32px;">
+                    <h3 style="color: #0f172a; margin-top: 0;">Hello ${data.name},</h3>
+                    <p style="color: #334155; line-height: 1.6;">
+                      We're excited to confirm that you've successfully logged in to your account! 🎉
+                    </p>
+
+                   <p style="color: #334155; margin-top: 24px;">
+                      If you didn’t perform this action, click here to unsubscribe 
+                      <div style="margin-top: 30px; text-align: center;">
+                      <button  style="background-color: #778C99; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Unsubscribe</button>
+                    </div>
+                    </p>
+
+                    <div style="margin-top: 30px; text-align: center;">
+                      <a href="http://localhost:5173/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #f1f5f9; padding: 20px; text-align: center; color: #94a3b8; font-size: 12px;">
+                    This message was sent by Ticketeer for login confirmation. <br />
+                    Need help? Email us at <a href="mailto:ticketeer01@gmail.com" style="color: #94a3b8;">ticketeer01@gmail.com</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
   let mailOptions = {
     from: process.env.EMAIL_USER,
     to: data.email,
     subject: `Log-In Confirmation - ${data.name}, Welcome back to Ticketeer!`,
-    html: `
-      <p>Dear ${data.name},</p>
-
-      <p>We're excited to confirm that you've successfully logged in to your account! 🎉</p>
-
-      <p>If you have any questions or need assistance, feel free to reach out to us at:</p>
-      <p><strong>Ticketeer Support:</strong> <a href="mailto:ticketeer01@gmail.com">ticketeer01@gmail.com</a></p>
-
-      <p>Enjoy the experience, and thank you for choosing Ticketeer!</p>
-
-      <p>Best regards,</p>
-      <p><strong>The Ticketeer Team</strong></p>
-    `,
+    html: htmlContent,
   };
 
   transporter.sendMail(mailOptions, (err, success) => {
@@ -42,167 +85,9 @@ const sendUserLogInMail = (data) => {
   });
 };
 
-const sendUserRegisterMail = async (data) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
+const sendUserRegisterMail = (data) => {
+  const nodemailer = require("nodemailer");
 
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: data.email,
-      subject: `Check-In Confirmation - ${data.name}, Welcome to Ticketeer!`,
-      html: `
-        <p>Dear ${data.name},</p>
-
-        <p>We're excited to confirm that you've successfully created an account with us! 🎉</p>
-
-        <p>If you have any questions or need assistance, feel free to reach out to us at:</p>
-        <p><strong>Ticketeer Support:</strong> <a href="mailto:ticketeer01@gmail.com">ticketeer01@gmail.com</a></p>
-
-        <p>Enjoy the experience, and thank you for choosing Ticketeer!</p>
-
-        <p>Best regards,</p>
-        <p><strong>The Ticketeer Team</strong></p>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Register email sent successfully to", data.email);
-  } catch (err) {
-    console.error("❌ Error sending check-in email:", err);
-  }
-};
-
-const sendUserUpdateMail = async (data) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: data.email,
-      subject: `Profile Update - ${data.name}`,
-      html: `
-        <p>Dear ${data.name},</p>
-
-        <p>We're excited to confirm that you've successfully updated your profile! 🎉</p>
-
-        <p>If you have any questions or need assistance, feel free to reach out to us at:</p>
-        <p><strong>Ticketeer Support:</strong> <a href="mailto:ticketeer01@gmail.com">ticketeer01@gmail.com</a></p>
-
-        <p>Enjoy the experience, and thank you for choosing Ticketeer!</p>
-
-        <p>Best regards,</p>
-        <p><strong>The Ticketeer Team</strong></p>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Update email sent successfully to", data.email);
-  } catch (err) {
-    console.error("❌ Error sending check-in email:", err);
-  }
-};
-
-const sendUserLogoutMail = async (data) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: data.email,
-      subject: `Log out confirmation - ${data.name}`,
-      html: `
-        <p>Dear ${data.name},</p>
-
-        <p>We've confirmed tat you've logged out of your account</p>
-
-        <p>Log in to explore and create events of your choice - Ticketeer is always available for you!</p>
-
-        <p>If you have any questions or need assistance, feel free to reach out to us at:</p>
-        <p><strong>Ticketeer Support:</strong> <a href="mailto:ticketeer01@gmail.com">ticketeer01@gmail.com</a></p>
-
-        <p>Enjoy the experience, and thank you for choosing Ticketeer!</p>
-
-        <p>Best regards,</p>
-        <p><strong>The Ticketeer Team</strong></p>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Log out email sent successfully to", data.email);
-  } catch (err) {
-    console.error("❌ Error sending check-in email:", err);
-  }
-};
-
-const sendUserDeleteMail = async (data) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: data.email,
-      subject: `Account deletion confirmation - ${data.name}`,
-      html: `
-         <p>Dear ${data.name},</p>
-
-        <p>We're sorry to see you go! 😔</p>
-
-        <p>Feel free to create a new account with us at <a href=${FRONTEND_URL}/login>ticketeer01@gmail.com</a>, we are always ready to welcome you</p>
-
-        <p>If you have any questions or need assistance, feel free to reach out to us at:</p>
-        <p><strong>Ticketeer Support:</strong> <a href="mailto:ticketeer01@gmail.com">ticketeer01@gmail.com</a></p>
-
-        <p>Enjoy the experience, and thank you for choosing Ticketeer!</p>
-
-        <p>Best regards,</p>
-        <p><strong>The Ticketeer Team</strong></p>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Delete email sent successfully to", data.email);
-  } catch (err) {
-    console.error("❌ Error sending check-in email:", err);
-  }
-};
-
-const sendCreateEventMail = (data) => {
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -214,136 +99,338 @@ const sendCreateEventMail = (data) => {
     },
   });
 
+  const htmlContent = `
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width" />
+      <title>Registration Notification</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: Arial, sans-serif;">
+      <table width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 0;">
+        <tr>
+          <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);">
+              <!-- Header -->
+              <tr>
+                <td style="background-color: #1e293b; padding: 24px; text-align: center; color: #ffffff;">
+                  <h2 style="margin: 0; font-size: 24px;">Ticketeer</h2>
+                  <p style="margin: 4px 0 0; font-size: 14px; color: #cbd5e1;">Registration Confirmation</p>
+                </td>
+              </tr>
+
+              <!-- Body -->
+              <tr>
+                <td style="padding: 32px;">
+                  <h3 style="color: #0f172a; margin-top: 0;">Hello ${data.name},</h3>
+                  <p style="color: #334155; line-height: 1.6;">
+                    We're excited to confirm that you've successfully created an account with us! 🎉
+                  </p>
+
+                 <p style="color: #334155; margin-top: 24px;">
+                    If you didn’t perform this action, click here to unsubscribe 
+                    <div style="margin-top: 30px; text-align: center;">
+                    <button  style="background-color: #778C99; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Unsubscribe</button>
+                  </div>
+                  </p>
+
+                  <div style="margin-top: 30px; text-align: center;">
+                    <a href="http://localhost:5173/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td style="background-color: #f1f5f9; padding: 20px; text-align: center; color: #94a3b8; font-size: 12px;">
+                  This message was sent by Ticketeer for registration confirmation. <br />
+                  Need help? Email us at <a href="mailto:ticketeer01@gmail.com" style="color: #94a3b8;">ticketeer01@gmail.com</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>
+`;
+
   let mailOptions = {
     from: process.env.EMAIL_USER,
     to: data.email,
-    subject: `Check-In Confirmation - ${data.organizer.name}, You've successfully creates event - ${data.title}!`,
-    html: `
-      <p>Dear ${data.name},</p>
-
-      <p>We're excited to confirm that you've successfully created an event! 🎉</p>
-
-      <p>If you have any questions or need assistance, feel free to reach out to us at:</p>
-      <p><strong>Ticketeer Support:</strong> <a href="mailto:ticketeer01@gmail.com">ticketeer01@gmail.com</a></p>
-
-      <p>Enjoy the event, and thank you for choosing Ticketeer!</p>
-
-      <p>Best regards,</p>
-      <p><strong>The Ticketeer Team</strong></p>
-    `,
+    subject: `Registration Confirmation - ${data.name}, Welcome back to Ticketeer!`,
+    html: htmlContent,
   };
 
   transporter.sendMail(mailOptions, (err, success) => {
     if (err) {
       console.error("Error sending email:", err);
     } else {
-      console.log("Check-in email sent successfully");
+      console.log("Registration email sent successfully", data.email);
     }
   });
 };
 
-// const sendVerificationEmail = asyncHandler(async (req, res) => {
-//   try {
-//     // Fetch user from database
-//     const user = await User.findById(req.userId);
-//     if (!user) {
-//       console.error(`User not found: ${req.userId}`);
-//       return res.status(404).json({ message: "User not found" });
-//     }
+const sendUserUpdateMail = (data) => {
+  const nodemailer = require("nodemailer");
 
-//     // Check if user is already verified
-//     if (user.isVerified) {
-//       console.warn(`User ${user.email} is already verified.`);
-//       return res.status(400).json({ message: "User already verified" });
-//     }
+  let transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
 
-//     // Rate limiting: Prevent sending emails too frequently
-//     const lastSent = user.lastEmailSentAt || 0;
-//     const cooldownTime = process.env.EMAIL_COOLDOWN || 5 * 60 * 1000; // Default: 5 minutes
-//     if (Date.now() - lastSent < cooldownTime) {
-//       console.warn(`User ${user.email} requested verification email too soon.`);
-//       return res.status(429).json({
-//         message: `Please wait ${
-//           cooldownTime / 60000
-//         } minutes before requesting another email.`,
-//       });
-//     }
+  const htmlContent = `
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width" />
+      <title>Profile Update Notification</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: Arial, sans-serif;">
+      <table width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 0;">
+        <tr>
+          <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);">
+              <!-- Header -->
+              <tr>
+                <td style="background-color: #1e293b; padding: 24px; text-align: center; color: #ffffff;">
+                  <h2 style="margin: 0; font-size: 24px;">Ticketeer</h2>
+                  <p style="margin: 4px 0 0; font-size: 14px; color: #cbd5e1;">Profile Update Confirmation</p>
+                </td>
+              </tr>
 
-//     // Generate verification token with configurable expiration
-//     const tokenExpiry = process.env.VERIFICATION_TOKEN_EXPIRY || "1h"; // Default: 1 hour
-//     const verificationToken = jwt.sign(
-//       { userId: user._id },
-//       process.env.ACCESS_TOKEN,
-//       {
-//         expiresIn: tokenExpiry,
-//       }
-//     );
+              <!-- Body -->
+              <tr>
+                <td style="padding: 32px;">
+                  <h3 style="color: #0f172a; margin-top: 0;">Hello ${data.name},</h3>
+                  <p style="color: #334155; line-height: 1.6;">
+                    We're excited to confirm that you've successfully updated your profile information! 🎉
+                  </p>
 
-//     // Construct verification URL
-//     const verificationUrl = `${process.env.FRONTEND_URL}/verify?token=${verificationToken}`;
+                 <p style="color: #334155; margin-top: 24px;">
+                    If you didn’t perform this action, click here to unsubscribe 
+                    <div style="margin-top: 30px; text-align: center;">
+                    <button  style="background-color: #778C99; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Unsubscribe</button>
+                  </div>
+                  </p>
 
-//     // Create email content
-//     const emailContent = verificationEmailTemplate(user, verificationUrl);
+                  <div style="margin-top: 30px; text-align: center;">
+                    <a href="http://localhost:5173/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
+                  </div>
+                </td>
+              </tr>
 
-//     // Send email with retry mechanism
-//     await emailService.send({
-//       to: user.email,
-//       from: process.env.EMAIL_USER,
-//       subject: "Verify Your Account",
-//       html: emailContent,
-//       retry: 3,
-//     });
+              <!-- Footer -->
+              <tr>
+                <td style="background-color: #f1f5f9; padding: 20px; text-align: center; color: #94a3b8; font-size: 12px;">
+                  This message was sent by Ticketeer for profile update confirmation. <br />
+                  Need help? Email us at <a href="mailto:ticketeer01@gmail.com" style="color: #94a3b8;">ticketeer01@gmail.com</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>
+`;
 
-//     // Update last email sent timestamp
-//     user.lastEmailSentAt = Date.now();
-//     await user.save();
+  let mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: data.email,
+    subject: `Profile Update Confirmation!`,
+    html: htmlContent,
+  };
 
-//     console.log(`Verification email sent to ${user.email}`);
-//     return res
-//       .status(200)
-//       .json({ message: "Verification email sent successfully" });
-//   } catch (error) {
-//     console.error("Error sending verification email:", error);
-//     return res.status(500).json({
-//       message: "Failed to send verification email. Please try again later.",
-//     });
-//   }
-// });
+  transporter.sendMail(mailOptions, (err, success) => {
+    if (err) {
+      console.error("Error sending email:", err);
+    } else {
+      console.log("Profile Update email sent successfully", data.email);
+    }
+  });
+};
 
-// const sendAutomatedEmail = asyncHandler(async (req, res) => {
-//   const { subject, send_to, reply_to, template, url } = req.body;
+const sendUserLogoutMail = (data) => {
+  const nodemailer = require("nodemailer");
 
-//   if (!subject || !send_to || !reply_to || !template) {
-//     return res.status(500).json({ message: "Missing email parameter" });
-//   }
+  let transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
 
-//   // Get user
-//   const user = await User.findOne({ email: send_to });
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Logout Notification</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: Arial, sans-serif;">
+        <table width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 0;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);">
+                <!-- Header -->
+                <tr>
+                  <td style="background-color: #1e293b; padding: 24px; text-align: center; color: #ffffff;">
+                    <h2 style="margin: 0; font-size: 24px;">Ticketeer</h2>
+                    <p style="margin: 4px 0 0; font-size: 14px; color: #cbd5e1;">Logout Confirmation</p>
+                  </td>
+                </tr>
 
-//   if (!user) {
-//     res.status(404);
-//     throw new Error("User not found");
-//   }
+                <!-- Body -->
+                <tr>
+                  <td style="padding: 32px;">
+                    <h3 style="color: #0f172a; margin-top: 0;">Hello ${data.name},</h3>
+                    <p style="color: #334155; line-height: 1.6;">
+                      We're excited to confirm that you've successfully logged out to your account! 🎉
+                    </p>
 
-//   const sent_from = process.env.EMAIL_USER;
-//   const name = user.firstName;
-//   const link = `${process.env.FRONTEND_URL}${url}`;
+                   <p style="color: #334155; margin-top: 24px;">
+                      If you didn’t perform this action, click here to unsubscribe 
+                      <div style="margin-top: 30px; text-align: center;">
+                      <button  style="background-color: #778C99; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Unsubscribe</button>
+                    </div>
+                    </p>
 
-//   try {
-//     await sendEmail(
-//       subject,
-//       send_to,
-//       sent_from,
-//       reply_to,
-//       template,
-//       name,
-//       link
-//     );
-//     res.status(200).json({ message: "Email Sent" });
-//   } catch (error) {
-//     res.status(500);
-//     throw new Error("Email not sent, please try again");
-//   }
-// });
+                    <div style="margin-top: 30px; text-align: center;">
+                      <a href="http://localhost:5173/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #f1f5f9; padding: 20px; text-align: center; color: #94a3b8; font-size: 12px;">
+                    This message was sent by Ticketeer for logout confirmation. <br />
+                    Need help? Email us at <a href="mailto:ticketeer01@gmail.com" style="color: #94a3b8;">ticketeer01@gmail.com</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  let mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: data.email,
+    subject: `Logout Confirmation!`,
+    html: htmlContent,
+  };
+
+  transporter.sendMail(mailOptions, (err, success) => {
+    if (err) {
+      console.error("Error sending email:", err);
+    } else {
+      console.log("Logout email sent successfully", data.email);
+    }
+  });
+};
+
+const sendUserDeleteMail = (data) => {
+  const nodemailer = require("nodemailer");
+
+  let transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Account deletion Notification</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: Arial, sans-serif;">
+        <table width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 0;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);">
+                <!-- Header -->
+                <tr>
+                  <td style="background-color: #1e293b; padding: 24px; text-align: center; color: #ffffff;">
+                    <h2 style="margin: 0; font-size: 24px;">Ticketeer</h2>
+                    <p style="margin: 4px 0 0; font-size: 14px; color: #cbd5e1;">Account deletion Confirmation</p>
+                  </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                  <td style="padding: 32px;">
+                    <h3 style="color: #0f172a; margin-top: 0;">Hello ${data.name},</h3>
+                    <p style="color: #334155; line-height: 1.6;">
+                      We're excited to confirm that you've successfully deleted your account! 🎉
+                    </p>
+
+                   <p style="color: #334155; margin-top: 24px;">
+                      If you didn’t perform this action, click here to unsubscribe 
+                      <div style="margin-top: 30px; text-align: center;">
+                      <button  style="background-color: #778C99; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Unsubscribe</button>
+                    </div>
+                    </p>
+
+                    <div style="margin-top: 30px; text-align: center;">
+                      <a href="http://localhost:5173/dashboard" style="background-color: #f97316; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">Go to Dashboard</a>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #f1f5f9; padding: 20px; text-align: center; color: #94a3b8; font-size: 12px;">
+                    This message was sent by Ticketeer for account deletion confirmation. <br />
+                    Need help? Email us at <a href="mailto:ticketeer01@gmail.com" style="color: #94a3b8;">ticketeer01@gmail.com</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  let mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: data.email,
+    subject: `Account deletion Confirmation!`,
+    html: htmlContent,
+  };
+
+  transporter.sendMail(mailOptions, (err, success) => {
+    if (err) {
+      console.error("Error sending email:", err);
+    } else {
+      console.log("Account deletion email sent successfully", data.email);
+    }
+  });
+};
 
 module.exports = {sendUserLogInMail, sendUserRegisterMail, sendUserUpdateMail, sendUserLogoutMail, sendUserDeleteMail};

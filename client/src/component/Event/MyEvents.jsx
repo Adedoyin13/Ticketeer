@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { IoIosSearch } from "react-icons/io";
+import { IoIosCloseCircle, IoIosSearch } from "react-icons/io";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { MdEventBusy, MdModeEditOutline } from "react-icons/md";
 import { format } from "date-fns";
-import { getUserEvents } from "../../redux/reducers/eventSlice";
 import Loader from "../Spinners/Loader";
 import EditEventModal from "../Modals/EventModal/EditEventModal";
 import DeleteEvent from "../Modals/EventModal/DeleteEvent";
@@ -15,7 +14,6 @@ const formatDate = (dateString) => format(new Date(dateString), "dd-MM-yyyy");
 const formatTime = (timeString) => format(new Date(timeString), "HH:mm");
 
 const MyEvents = () => {
-  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,13 +38,6 @@ const MyEvents = () => {
   };
 
   const { userEvents, loading, error } = useSelector((state) => state.events);
-  const { user, isAuthenticated } = useSelector((state) => state.user);
-
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      dispatch(getUserEvents());
-    }
-  }, [isAuthenticated, user, dispatch]);
 
   useEffect(() => {
     if (error) toast.error("Failed to load events");
@@ -85,7 +76,7 @@ const MyEvents = () => {
   if (loading.userEvents) return <Loader loading={loading.userEvents} />;
 
   return (
-    <section className="font-inter bg-orange-50 dark:bg-zinc-900 min-h-screen py-20 px-4 sm:px-6 md:px-10 lg:px-20">
+    <section className="font-inter bg-orange-50 dark:bg-zinc-900 min-h-screen py-28 px-4 sm:px-6 md:px-10 lg:px-20">
       {/* Search Bar */}
       <div className="mb-6">
         <div className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 shadow-sm rounded-xl p-3">
@@ -103,12 +94,11 @@ const MyEvents = () => {
                 placeholder="Search by name, location, date, category, or time"
               />
               {searchTerm && (
-                <button
+                <IoIosCloseCircle
+                  size={20}
                   onClick={() => setSearchTerm("")}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-red-500"
-                >
-                  ×
-                </button>
+                />
               )}
             </div>
           </div>
@@ -128,7 +118,7 @@ const MyEvents = () => {
                 "Location",
                 "Meet Link",
                 "Capacity",
-                "Actions",
+                // "Actions",
               ].map((title) => (
                 <th
                   key={title}
@@ -191,7 +181,7 @@ const MyEvents = () => {
                   <td className="px-5 py-4 text-sm text-gray-600 dark:text-zinc-400">
                     {event.limit}
                   </td>
-                  <td
+                  {/* <td
                     className="px-5 py-4 text-sm"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -207,7 +197,7 @@ const MyEvents = () => {
                         onClick={openDeleteModal}
                       />
                     </div>
-                  </td>
+                  </td> */}
                 </tr>
               ))
             ) : (
@@ -219,7 +209,7 @@ const MyEvents = () => {
                       className="text-gray-300 dark:text-zinc-500 mb-4"
                     />
                     <p className="text-lg font-semibold text-gray-800 dark:text-zinc-100 mb-2">
-                      No events found
+                      No events match your search
                     </p>
                     <p className="text-sm text-gray-500 dark:text-zinc-400 mb-6">
                       Try adjusting your search or create a new event.
