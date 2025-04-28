@@ -110,11 +110,12 @@ export const getUser = createAsyncThunk(
 
 export const updateUser = createAsyncThunk(
   "user/update",
-  async (eventData, { rejectWithValue, dispatch }) => {
+  async (formData, { rejectWithValue, dispatch }) => {
     try {
-      const response = await api.put("/user/update-user", eventData, {
+      const response = await api.put("/user/update-user", formData, {
         withCredentials: true,
       });
+      console.log(response.data)
       dispatch(getUser());
       return response.data;
     } catch (error) {

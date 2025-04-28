@@ -83,38 +83,31 @@ exports.confirmCheckoutSession = async (req, res) => {
 };
 
 exports.stripeWebhookHandler = async (req, res) => {
-    const sig = req.headers["stripe-signature"];
-    let event;
-  
+  const sig = req.headers["stripe-signature"];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    console.log('Event received:', event);
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    const { userId, eventId, ticketTypeId } = session.metadata;
+
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-
-      console.log('Event', event)
-    } catch (err) {
-      console.error("Webhook error:", err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
+      console.log('Creating ticket for user', userId);
+      await purchaseTicket({ eventId, ticketTypeId, userId });
+      console.log('Ticket purchase successful');
+      return res.status(200).json({ received: true });
+    } catch (error) {
+      console.error("Ticket creation failed in webhook:", error.message);
+      return res.status(500).json({ message: "Ticket creation failed" });
     }
-  
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
+  }
 
-      console.log('Object', session)
-      
-      const { userId, eventId, ticketTypeId } = session.metadata;
-      console.log('Ids', session)
-  
-      try {
-        await purchaseTicket({ eventId, ticketTypeId, userId});
-
-        console.log('Purchasing....')
-  
-        return res.status(200).json({ received: true });
-
-        console.log('Successful')
-      } catch (error) {
-        console.error("Ticket creation failed in webhook:", error.message);
-        return res.status(500).json({ message: "Ticket creation failed" });
-      }
-    }
-    res.status(200).send("Event received.");
+  res.status(200).send("Event received but no action taken.");
 };
