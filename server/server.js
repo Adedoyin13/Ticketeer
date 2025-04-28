@@ -6,7 +6,7 @@ const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const helmet = require("helmet");
-const errorHandler = require("./middleware/errorMiddleware");
+const errorHandler = require("./Middleware/errorMiddleware");
 const userRoute = require("./Route/userRoute");
 const eventRoute = require("./Route/eventRoute");
 const locationRoute = require("./Route/location");
@@ -72,7 +72,7 @@ app.use(
 // CORS setup
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: [process.env.FRONTEND_URL, 'https://ticketeer-event.vercel.app'],
     credentials: true,
     methods: "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS",
   })
