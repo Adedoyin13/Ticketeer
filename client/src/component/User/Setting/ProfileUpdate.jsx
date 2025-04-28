@@ -191,6 +191,7 @@ const ProfileUpdate = () => {
 
           <div className="flex justify-center">
             <button
+              type="submit"
               onClick={handlePhotoUpload}
               disabled={!isPhotoChanged || loading}
               className={`py-2 px-6 rounded-md text-sm font-semibold text-white transition ${
@@ -199,7 +200,7 @@ const ProfileUpdate = () => {
                   : "bg-orange-500 hover:bg-orange-600"
               }`}
             >
-             {isPhotoChanged ? "Upload New Photo" : "Update Photo"}
+              {isPhotoChanged ? "Upload New Photo" : "Update Photo"}
             </button>
           </div>
         </div>
