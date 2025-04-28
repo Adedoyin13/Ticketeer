@@ -72,7 +72,7 @@ app.use(
 // CORS setup
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL, 'https://ticketeer-event.vercel.app'],
+    origin: [process.env.FRONTEND_URL],
     credentials: true,
     methods: "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS",
   })

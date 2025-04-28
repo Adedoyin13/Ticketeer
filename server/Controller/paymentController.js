@@ -47,6 +47,8 @@ exports.createCheckoutSession = async (req, res) => {
       cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
     });
 
+    console.log('Done')
+
     res.status(200).json({ sessionId: session.id });
   } catch (error) {
     console.error("Stripe Checkout session error:", error);
@@ -60,13 +62,18 @@ exports.confirmCheckoutSession = async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.retrieve(session_id);
 
+    console.log('Session', session)
+    
     const lineItems = await stripe.checkout.sessions.listLineItems(session_id);
+    console.log('lineItems', lineItems)
 
     res.status(200).json({
       success: true,
       session,
       lineItems,
     });
+
+    console.log('Seccess...')
   } catch (err) {
     console.error("Stripe session fetch error:", err);
     res
@@ -81,6 +88,8 @@ exports.stripeWebhookHandler = async (req, res) => {
   
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+
+      console.log('Event', event)
     } catch (err) {
       console.error("Webhook error:", err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -88,13 +97,20 @@ exports.stripeWebhookHandler = async (req, res) => {
   
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-  
+
+      console.log('Object', session)
+      
       const { userId, eventId, ticketTypeId } = session.metadata;
+      console.log('Ids', session)
   
       try {
         await purchaseTicket({ eventId, ticketTypeId, userId});
+
+        console.log('Purchasing....')
   
         return res.status(200).json({ received: true });
+
+        console.log('Successful')
       } catch (error) {
         console.error("Ticket creation failed in webhook:", error.message);
         return res.status(500).json({ message: "Ticket creation failed" });

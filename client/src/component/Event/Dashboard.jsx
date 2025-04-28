@@ -130,19 +130,6 @@ const Dashboard = () => {
                     Tickets Purchased
                   </p>
                 </div>
-                <div className="flex flex-col justify-center items-center gap-2 py-5 px-4 w-full h-[100px] bg-white dark:bg-zinc-900 rounded-2xl shadow-md border border-orange-200 dark:border-zinc-700">
-                  <p className="text-xl font-bold text-orange-600">Link</p>
-                  <Link to="/payment-success">
-                    <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                      Success
-                    </p>
-                  </Link>
-                  <Link to="/payment-cancel">
-                    <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                      Cancel
-                    </p>
-                  </Link>
-                </div>
               </div>
             </div>
 

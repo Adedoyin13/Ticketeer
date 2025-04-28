@@ -14,6 +14,7 @@ import Loader from "../../Spinners/Loader";
 const ProfileUpdate = () => {
   const dispatch = useDispatch();
   const { loading, user, error } = useSelector((state) => state.user);
+  console.log({user})
   const navigate = useNavigate();
 
   const [profilePhoto, setProfilePhoto] = useState(""); // ✅ Fix: Added missing state
@@ -94,10 +95,12 @@ const ProfileUpdate = () => {
     dispatch(updateUser(formData))
       .unwrap()
       .then(() => {
+        console.log('prfile updated successfully')
         toast.success("Profile updated successfully!");
         navigate("/settings"); // ✅ Redirect after update
       })
       .catch((err) => {
+        console.log('updated failed')
         toast.error(err || "Update failed");
       });
   };
