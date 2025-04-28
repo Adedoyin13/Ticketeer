@@ -14,7 +14,6 @@ import Loader from "../../Spinners/Loader";
 const ProfileUpdate = () => {
   const dispatch = useDispatch();
   const { loading, user, error } = useSelector((state) => state.user);
-  console.log({ user });
   const navigate = useNavigate();
 
   const [profilePhoto, setProfilePhoto] = useState(""); // ✅ Fix: Added missing state
@@ -36,6 +35,12 @@ const ProfileUpdate = () => {
       telegram: "",
     },
   });
+
+  console.log("user before rendering form:", user);
+
+if (!user) {
+  return <Loader loading={true} />;
+}
 
   if (loading.updateUser) {
     return <Loader loading={loading.updateUser} />;
