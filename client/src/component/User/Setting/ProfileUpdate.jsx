@@ -321,7 +321,7 @@ const ProfileUpdate = () => {
             type="submit"
             onClick={() => console.log("Clicked submit button")}
             disabled={!isFormChanged || loading}
-            className="..."
+            className=""
           >
             Save Changes
           </button>
