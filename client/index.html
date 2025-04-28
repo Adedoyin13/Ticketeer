@@ -5,10 +5,6 @@
     <link rel="icon" type="image/png" href="/Ticketeer-logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ticketeer</title>
-    <!-- <meta
-      http-equiv="Content-Security-Policy"
-      content="script-src 'self' https://checkout.stripe.com; frame-src https://checkout.stripe.com; style-src 'self' 'unsafe-inline';"
-    /> -->
   </head>
   <body>
     <div id="root"></div>
@@ -21,6 +17,8 @@
       }
     </script>
     <script src="https://js.stripe.com/v3/"></script>
+    <!-- Inject the Vite client for HMR (hot reload) -->
+    <script type="module" src="/@vite/client"></script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
