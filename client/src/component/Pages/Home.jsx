@@ -1,23 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BsBell, BsQuote } from "react-icons/bs";
-import { FaStar, FaRegStar } from "react-icons/fa6";
+import { BsBell } from "react-icons/bs";
 import { FaCube, FaMobileAlt, FaStarHalfAlt } from "react-icons/fa";
 
-import event from "./../../assets/event-bg.png";
-// import hero from "./../../assets/event-5.jpg";
-// import hero from "./../../assets/event-6.jpg";
-// import hero from "./../../assets/event-8.avif";
-// import hero from "./../../assets/event-7.jpg";
-// import hero from "./../../assets/event-4.jpg";
-import hero from "./../../assets/hero-bg.png";
+import hero from "./../../assets/Hero-bg.png";
 import business from "./../../assets/Business.png";
 import music from "./../../assets/Music.png";
 import arts from "./../../assets/Arts.png";
-import review from "./../../assets/Client-Reviews.png";
-import designer from "./../../assets/Designer-image.png";
 import SplashScreen from "../Spinners/SplashScreen";
-import { TfiTicket } from "react-icons/tfi";
 import { MdAnalytics, MdOutlineDashboardCustomize } from "react-icons/md";
 import { SiStripe } from "react-icons/si";
 
