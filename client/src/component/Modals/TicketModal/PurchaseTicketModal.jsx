@@ -53,7 +53,7 @@ const PurchaseTicketModal = ({ onClose, tickets, event, user }) => {
     } catch (error) {
       console.error("Checkout error: ", error);
       if (error.response) {
-        console.log("Error Response:", error.response.data); // log error details
+        console.log("Error Response:", error.response.data);
       }
     }
   };
