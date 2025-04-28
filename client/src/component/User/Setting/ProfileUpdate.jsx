@@ -93,6 +93,8 @@ const ProfileUpdate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    console.log('Check if handle submit is running')
+
     const { confirmNewPassword, ...cleanedFormData } = formData;
     // dispatch(updateUser(formData))
     dispatch(updateUser(cleanedFormData))
@@ -191,7 +193,6 @@ const ProfileUpdate = () => {
 
           <div className="flex justify-center">
             <button
-              type="submit"
               onClick={handlePhotoUpload}
               disabled={!isPhotoChanged || loading}
               className={`py-2 px-6 rounded-md text-sm font-semibold text-white transition ${
@@ -314,7 +315,7 @@ const ProfileUpdate = () => {
           {/* Submit Button */}
           <div className="flex justify-center">
             <button
-              type="submit"
+              // type="submit"
               onClick={handleSubmit}
               disabled={!isFormChanged || loading}
               className={`py-3 px-10 rounded-lg text-white font-medium transition ${
