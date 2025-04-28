@@ -38,9 +38,9 @@ const ProfileUpdate = () => {
 
   console.log("user before rendering form:", user);
 
-if (!user) {
-  return <Loader loading={true} />;
-}
+  if (!user) {
+    return <Loader loading={true} />;
+  }
 
   if (loading.updateUser) {
     return <Loader loading={loading.updateUser} />;
@@ -98,7 +98,7 @@ if (!user) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log('Check if handle submit is running')
+    console.log("Check if handle submit is running");
 
     const { confirmNewPassword, ...cleanedFormData } = formData;
     // dispatch(updateUser(formData))
@@ -317,8 +317,17 @@ if (!user) {
           {/* Error */}
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
+          <button
+            type="submit"
+            onClick={() => console.log("Clicked submit button")}
+            disabled={!isFormChanged || loading}
+            className="..."
+          >
+            Save Changes
+          </button>
+
           {/* Submit Button */}
-          <div className="flex justify-center">
+          {/* <div className="flex justify-center">
             <button
               type="submit"
               // onClick={handleSubmit}
@@ -329,10 +338,10 @@ if (!user) {
                   : "bg-gray-300 dark:bg-zinc-600 cursor-not-allowed"
               }`}
             >
-              {/* {loading ? "Updating Profile..." : "Update"} */}
+               {loading ? "Updating Profile..." : "Update"}
               Update
             </button>
-          </div>
+          </div> */}
         </form>
       </div>
     </div>
