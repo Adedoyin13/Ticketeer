@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BsBell } from "react-icons/bs";
-import { FaCube, FaMobileAlt, FaStarHalfAlt } from "react-icons/fa";
+import { FaCube, FaMobileAlt } from "react-icons/fa";
 
 import hero from "./../../assets/Hero-bg.png";
 import business from "./../../assets/Business.png";

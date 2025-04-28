@@ -1,8 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { BsQuote } from "react-icons/bs";
-import { FaStar, FaRegStar, FaAngleDown, FaAngleUp } from "react-icons/fa6";
-import { FaStarHalfAlt } from "react-icons/fa";
+import { FaAngleDown, FaAngleUp } from "react-icons/fa6";
 
 import review from "./../../assets/organizer-review.png";
 import designer from "./../../assets/Designer-image.png";
