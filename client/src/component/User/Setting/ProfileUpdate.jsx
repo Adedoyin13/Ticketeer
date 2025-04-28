@@ -172,8 +172,7 @@ const ProfileUpdate = () => {
                 src={
                   formData?.photo?.imageUrl ||
                   profilePhoto ||
-                  formData?.photo ||
-                  "/user.png"
+                  formData?.photo
                 }
                 alt="Profile"
                 className="w-full h-full object-cover"
