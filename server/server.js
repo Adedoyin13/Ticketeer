@@ -100,7 +100,7 @@ app.set("view engine", "ejs");
 
 // Routes
 
-app.use("/webhook", express.raw({ type: "application/json" }), stripeWebhookHandler);
+app.post("/webhook", express.raw({ type: "application/json" }), stripeWebhookHandler);
 
 app.use("/user", userRoute);
 app.use("/event", eventRoute);
