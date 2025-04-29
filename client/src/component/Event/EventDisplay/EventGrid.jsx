@@ -44,9 +44,9 @@ const EventGrid = ({ events }) => {
     dispatch(getUpcomingEvents()); // Fetch user events on component mount
   }, [dispatch]);
 
-   if (loading.events) {
-      return <Loader loading={loading.events} />;
-    }
+  if (loading.events) {
+    return <Loader loading={loading.events} />;
+  }
   if (error) return toast.error("error");
 
   const handleNavigate = (eventId) => {
@@ -55,16 +55,20 @@ const EventGrid = ({ events }) => {
     });
   };
 
+  // import { Heart } from "lucide-react"; // or any icon library you're using
   return (
+    // Inside your component
     <section className="w-full px-4 sm:px-6 md:px-10 font-inter mt-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {events.map((event, index) => {
           return (
+            
             <div
               key={index}
               onClick={() => handleNavigate(event._id)}
               className="relative h-[220px] rounded-2xl overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg transition duration-300"
             >
+              
               {/* Background image */}
               <div
                 className="absolute inset-0 bg-cover bg-center"
@@ -77,6 +81,21 @@ const EventGrid = ({ events }) => {
 
               {/* Overlay */}
               <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition duration-300 backdrop-blur-sm" />
+
+              {/* Heart Icon */}
+              <div
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent card click
+                  toggleLike(event._id);
+                }}
+                className="absolute top-3 right-3 z-20 bg-white dark:bg-zinc-800 bg-opacity-70 dark:bg-opacity-70 rounded-full p-1 hover:bg-opacity-90 transition"
+              >
+                {/* {isLiked ? (
+                  <FaHeart className="text-red-500 text-2xl transition" />
+                ) : (
+                  <FaRegHeart className="text-gray-400 text-2xl transition" />
+                )} */}
+              </div>
 
               {/* Content */}
               <div className="relative z-10 flex items-end h-full px-2 py-2">

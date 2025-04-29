@@ -28,10 +28,6 @@ const Register = () => {
     (state) => state.user
   ); // Get state
 
-    if(loading.register) {
-      return <Loader loading={loading.register}/>
-    }
-
   useEffect(() => {
     if (user && isAuthenticated) {
       navigate("/dashboard", { replace: true }); // Redirect after login
@@ -88,6 +84,10 @@ const Register = () => {
     toast.error("Cannot paste into this field");
     return;
   };
+
+  if(loading.register) {
+    return <Loader loading={loading.register}/>
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center py-8 md:py-10 bg-orange-50 dark:bg-zinc-900 transition-all duration-300">
@@ -197,7 +197,7 @@ const Register = () => {
               </div>
 
               {/* Error messages */}
-              {error && <p className="text-red-500 text-sm">{error}</p>}
+              {/* {error && <p className="text-red-500 text-sm">{error}</p>} */}
               {passwordStrengthError && (
                 <p className="text-red-500 text-sm">{passwordStrengthError}</p>
               )}

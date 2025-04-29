@@ -110,9 +110,9 @@ const Login = () => {
             </div>
 
             {/* Error Message */}
-            {error && (
+            {/* {error && (
               <p className="text-red-500 text-sm text-center">{error}</p>
-            )}
+            )} */}
 
             {/* Login Button & Google */}
             <div className="flex flex-col gap-4 items-center mt-2">

@@ -291,6 +291,12 @@ const EventDetails = () => {
   const toggleShow = () => setShowFull((prev) => !prev);
   const isLong = description?.length > 50;
 
+  const handleNavigate = (eventId) => {
+    navigate(`/create-ticket/${eventId}`, {
+      state: { from: location.pathname }, // Save previous route
+    });
+  };
+
   return (
     <section className="bg-orange-50 dark:bg-zinc-900 py-24 md:py-28 font-inter text-gray-800 dark:text-zinc-100">
       <div className="flex flex-col px-4 sm:px-6 md:px-10 gap-6 max-w-7xl mx-auto">
@@ -492,71 +498,88 @@ const EventDetails = () => {
           </div>
 
           <div className="bg-orange-100/30 dark:bg-zinc-800/50 backdrop-blur-sm border border-orange-300 dark:border-zinc-700 rounded-2xl p-6 shadow-lg flex-1">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold tracking-wide text-zinc-800 dark:text-zinc-100">
-                Ticket Information
-              </h2>
+            {eventDetails.ticketTypes.length >= 1 ? (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-lg font-bold tracking-wide text-zinc-800 dark:text-zinc-100">
+                    Ticket Information
+                  </h2>
 
-              {eventDetails?.organizer?._id === user._id &&
-                isUpcoming() &&
-                eventDetails.ticketTypes?.map((ticket) => (
-                  <button
-                    key={ticket._id}
-                    onClick={() => openEditTicketModal(ticket)}
-                    className="p-2 rounded-xl bg-white/30 dark:bg-zinc-700 hover:bg-orange-200 dark:hover:bg-zinc-600 transition-colors"
-                  >
-                    <MdOutlineEdit
-                      size={20}
-                      className="text-orange-600 dark:text-zinc-100"
-                    />
-                  </button>
-                ))}
-            </div>
-
-            <div className="space-y-6">
-              {eventDetails?.ticketTypes?.map((ticket, index) => (
-                <div
-                  key={index}
-                  className="bg-white/60 dark:bg-zinc-700/50 backdrop-blur rounded-xl p-4 shadow-sm"
-                >
-                  <h3 className="text-md font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-                    {ticket?.type
-                      .split(" ")
-                      .map(
-                        (word) => word.charAt(0).toUpperCase() + word.slice(1)
-                      )
-                      .join(" ")}
-                  </h3>
-
-                  <div className="space-y-2 text-sm text-zinc-800 dark:text-zinc-200">
-                    <div className="flex justify-between">
-                      <span>Total Quantity:</span>
-                      <span className="font-medium text-right">
-                        {ticket?.totalQuantity}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Available Quantity:</span>
-                      <span className="font-medium text-right">
-                        {ticket?.availableQuantity}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Sold Quantity:</span>
-                      <span className="font-medium text-right">
-                        {ticket?.soldQuantity}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Price:</span>
-                      <span className="font-semibold text-right text-orange-600 dark:text-orange-400">
-                        ${ticket?.price}
-                      </span>
-                    </div>
-                  </div>
+                  {eventDetails?.organizer?._id === user._id &&
+                    isUpcoming() &&
+                    eventDetails.ticketTypes?.map((ticket) => (
+                      <button
+                        key={ticket._id}
+                        onClick={() => openEditTicketModal(ticket)}
+                        className="p-2 rounded-xl bg-white/30 dark:bg-zinc-700 hover:bg-orange-200 dark:hover:bg-zinc-600 transition-colors"
+                      >
+                        <MdOutlineEdit
+                          size={20}
+                          className="text-orange-600 dark:text-zinc-100"
+                        />
+                      </button>
+                    ))}
                 </div>
-              ))}
-            </div>
+
+                <div className="space-y-6">
+                  {eventDetails?.ticketTypes?.map((ticket, index) => (
+                    <div
+                      key={index}
+                      className="bg-white/60 dark:bg-zinc-700/50 backdrop-blur rounded-xl p-4 shadow-sm"
+                    >
+                      <h3 className="text-md font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                        {ticket?.type
+                          .split(" ")
+                          .map(
+                            (word) =>
+                              word.charAt(0).toUpperCase() + word.slice(1)
+                          )
+                          .join(" ")}
+                      </h3>
+
+                      <div className="space-y-2 text-sm text-zinc-800 dark:text-zinc-200">
+                        <div className="flex justify-between">
+                          <span>Total Quantity:</span>
+                          <span className="font-medium text-right">
+                            {ticket?.totalQuantity}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Available Quantity:</span>
+                          <span className="font-medium text-right">
+                            {ticket?.availableQuantity}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Sold Quantity:</span>
+                          <span className="font-medium text-right">
+                            {ticket?.soldQuantity}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Price:</span>
+                          <span className="font-semibold text-right text-orange-600 dark:text-orange-400">
+                            ${ticket?.price}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-4 p-6 border border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm">
+                <p className="text-base sm:text-lg text-gray-700 dark:text-gray-200 font-semibold">
+                  No tickets for this event
+                </p>
+                <button
+                  onClick={() => handleNavigate(eventDetails._id)}
+                  className="px-5 sm:px-8 py-2 text-sm font-medium bg-orange-400 dark:bg-orange-600 text-white rounded-full hover:bg-orange-500 dark:hover:bg-orange-700 transition"
+                >
+                  Create ticket
+                </button>
+              </div>
+            )}
           </div>
 
           {/* <div className="flex-1">

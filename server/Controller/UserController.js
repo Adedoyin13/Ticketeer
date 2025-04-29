@@ -189,78 +189,73 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
+
 const googleLogin = asyncHandler(async (req, res) => {
   try {
-    const { token } = req.body; // This token comes from the frontend after the user signs in with Google
+    const { token } = req.body;
 
-    // console.log('Token received:', token);
+    if (!token) {
+      return res.status(400).json({ message: "Google token is required" });
+    }
 
-    // Verify the Google ID token using the OAuth2 client
+    // Verify the Google ID token
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: GOOGLE_CLIENT_ID, // Verify the client ID matches
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    // Extract the user data from the Google token
     const payload = ticket.getPayload();
     const email = payload.email;
 
-    // Check if the user already exists in the database by email
+    // Check if user already exists
     let user = await User.findOne({ email });
 
     if (!user) {
-      // If the user does not exist, create a new user
-      console.log("User does not exist. Creating new user...");
-
-      // Handle user creation with Google-specific data
+      // Create new user
       user = new User({
         name: payload.name,
         email,
-        googleId: payload.sub, // Google-specific user ID
-        authType: "google", // Mark the user as authenticated with Google
+        googleId: payload.sub,
+        authType: "google",
       });
 
-      // Handle user profile photo
-      const photoUrl = payload.picture; // Google provides a profile picture URL
-
+      // Optionally save profile picture
+      const photoUrl = payload.picture;
       if (photoUrl) {
-        // Create a profile picture document and link it to the user
         const profilePic = new ProfilePicture({
           userId: user._id,
           imageUrl: photoUrl,
         });
-
         await profilePic.save();
-        user.photo = profilePic._id; // Associate the photo with the user
+        user.photo = profilePic._id;
       }
 
       await user.save();
-      // console.log('New user created:', user);
     }
 
-    // Create a JWT token for the user
+    // Generate JWT
     const jwtToken = jwt.sign(
       { id: user._id, email: user.email },
-      process.env.ACCESS_TOKEN, // Your JWT secret
-      { expiresIn: "1d" } // JWT expires in 1 day
+      process.env.ACCESS_TOKEN,
+      { expiresIn: "1d" }
     );
 
+    // Set token cookie
     res.cookie("token", jwtToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "Lax", // or "None" if using cross-site cookies
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      sameSite: "Lax",
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
-    // res.status(200).json({ user });
-
+    // Send login email
     try {
       await sendUserLogInMail({ name: user.name, email: user.email });
     } catch (error) {
       console.error("Failed to send login email:", error.message);
     }
 
-    // Send the user data and JWT token in the response
+    // Respond with user data
     res.status(200).json({
       user: {
         id: user._id,
@@ -271,7 +266,7 @@ const googleLogin = asyncHandler(async (req, res) => {
       },
       token: jwtToken,
     });
-    await sendUserLogInMail({ name: user.name, email: user.email });
+
   } catch (error) {
     console.error("Error during Google login:", error);
     res.status(500).json({ message: "Internal server error" });
