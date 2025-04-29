@@ -22,6 +22,7 @@ const {
   googleLogin,
   resetPassword,
   forgotPassword,
+  connectWallet,
   getProfilePicture,
 } = require("../Controller/UserController");
 const upload = require("../Middleware/multer");
@@ -47,6 +48,7 @@ router.delete("/:userId/delete-photo", protectUser, deleteProfilePicture);
 
 // router.delete("/:userId", protectUser, deleteProfilePicture);
 router.get("/get-user", protectUser, getUser);
+router.put("/connect-wallet", protectUser, connectWallet);
 router.get("/get-user-tickets", protectUser, getUserTickets);
 router.get("/get-users", protectUser, getUsers);
 router.post("/forgot-password", forgotPassword);

@@ -20,6 +20,12 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    walletAddress: {
+      type: String,
+      unique: true,
+      sparse: true, // allows null
+    },    
+
     authType: {
       type: String,
       enum: ['local', 'google'],

@@ -189,7 +189,6 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-
 const googleLogin = asyncHandler(async (req, res) => {
   try {
     const { token } = req.body;
@@ -303,6 +302,37 @@ const loginWithGoogle = async (req, res) => {
 const googleAuth = passport.authenticate("google", {
   scope: ["email", "profile"],
 });
+
+const connectWallet = async (req, res) => {
+  const userId = req.userId; // from auth middleware
+  const { walletAddress } = req.body;
+
+  if (!walletAddress) {
+    return res.status(400).json({ message: 'Wallet address is required.' });
+  }
+
+  try {
+    // Optional: Check if address is already used by someone else
+    const existing = await User.findOne({ walletAddress });
+    if (existing && existing._id.toString() !== userId.toString()) {
+      return res.status(400).json({ message: 'Wallet already connected to another account.' });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { walletAddress },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: 'Wallet connected successfully.',
+      walletAddress: updatedUser.walletAddress,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error while connecting wallet.' });
+  }
+};
 
 const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -1041,6 +1071,7 @@ module.exports = {
   getUser,
   getUsers,
   loginStatus,
+  connectWallet,
   updateUser,
   // changePassword,
   deleteUser,

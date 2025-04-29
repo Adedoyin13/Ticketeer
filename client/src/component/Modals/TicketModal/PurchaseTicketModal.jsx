@@ -108,13 +108,13 @@ const PurchaseTicketModal = ({ onClose, tickets, event, user }) => {
                     <input
                       type="radio"
                       name="payment"
-                      value="paypal"
+                      value="paystack"
                       className="text-2xl cursor-pointer"
                       onChange={(e) => setSelectedPayment(e.target.value)}
-                      checked={selectedPayment === "paypal"}
+                      checked={selectedPayment === "paystack"}
                     />
                     <label className="text-sm sm:text-base">
-                      Pay with PayPal
+                      Pay with Paystack
                     </label>
                   </div>
 

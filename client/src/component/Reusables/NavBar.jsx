@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 const navTitle = [
   { url: "/", title: "Home" },
   { url: "/about", title: "About" },
-  { url: "/events", title: "Explore events" },
+  // { url: "/events", title: "Explore events" },
   { url: "/create", title: "Create event" },
   { url: "/blog", title: "Blog" },
 ];

@@ -498,14 +498,14 @@ const EventDetails = () => {
           </div>
 
           <div className="bg-orange-100/30 dark:bg-zinc-800/50 backdrop-blur-sm border border-orange-300 dark:border-zinc-700 rounded-2xl p-6 shadow-lg flex-1">
-            {eventDetails.ticketTypes.length >= 1 ? (
+            {eventDetails && eventDetails?.ticketTypes && eventDetails?.ticketTypes.length >= 1 ? (
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-lg font-bold tracking-wide text-zinc-800 dark:text-zinc-100">
                     Ticket Information
                   </h2>
 
-                  {eventDetails?.organizer?._id === user._id &&
+                  {eventDetails && eventDetails?.organizer?._id === user._id &&
                     isUpcoming() &&
                     eventDetails.ticketTypes?.map((ticket) => (
                       <button
@@ -522,7 +522,7 @@ const EventDetails = () => {
                 </div>
 
                 <div className="space-y-6">
-                  {eventDetails?.ticketTypes?.map((ticket, index) => (
+                  {eventDetails && eventDetails?.ticketTypes?.map((ticket, index) => (
                     <div
                       key={index}
                       className="bg-white/60 dark:bg-zinc-700/50 backdrop-blur rounded-xl p-4 shadow-sm"

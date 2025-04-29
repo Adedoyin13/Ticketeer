@@ -62,13 +62,13 @@ const Home = () => {
           or show starts here.
         </p>
         <div className="flex flex-wrap gap-4 justify-center">
-          <Link to="/events">
+          {/* <Link to="/events">
             <button className="bg-white text-orange-600 hover:bg-orange-100 px-6 py-3 rounded-full text-lg font-medium transition">
               Browse Events
             </button>
-          </Link>
+          </Link> */}
           <Link to="/create">
-            <button className="bg-orange-500 hover:bg-orange-700 px-6 py-3 rounded-full text-white text-lg font-medium transition">
+            <button className="bg-orange-500 hover:bg-orange-700 px-12 py-3 rounded-full text-white text-lg font-medium transition">
               Create Event
             </button>
           </Link>
