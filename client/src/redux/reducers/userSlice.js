@@ -115,7 +115,7 @@ export const updateUser = createAsyncThunk(
       const response = await api.put("/user/update-user", formData, {
         withCredentials: true,
       });
-      console.log(response.data)
+      console.log(response)
       dispatch(getUser());
       return response.data;
     } catch (error) {

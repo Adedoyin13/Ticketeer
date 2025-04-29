@@ -14,6 +14,9 @@ import Loader from "../../Spinners/Loader";
 const ProfileUpdate = () => {
   const dispatch = useDispatch();
   const { loading, user, error } = useSelector((state) => state.user);
+
+  console.log({ loading, user, error });
+
   const navigate = useNavigate();
 
   const [profilePhoto, setProfilePhoto] = useState(""); // ✅ Fix: Added missing state
@@ -37,22 +40,6 @@ const ProfileUpdate = () => {
   });
 
   console.log("user before rendering form:", user);
-
-  if (!user) {
-    return <Loader loading={true} />;
-  }
-
-  if (loading.updateUser) {
-    return <Loader loading={loading.updateUser} />;
-  }
-
-  if (loading.uploadPhoto) {
-    return <Loader loading={loading.uploadPhoto} />;
-  }
-
-  if (!user) {
-    return <Loader loading={true} />; // Show a general loader when no user is available
-  }
 
   useEffect(() => {
     if (user) {
@@ -100,7 +87,19 @@ const ProfileUpdate = () => {
 
     console.log("Check if handle submit is running");
 
-    const { confirmNewPassword, ...cleanedFormData } = formData;
+    // const { confirmNewPassword, ...cleanedFormData } = formData;
+    const { confirmNewPassword, oldPassword, password, ...restFormData } = formData;
+
+    const cleanedFormData = { ...restFormData };
+
+    // Only add password fields if user is trying to update password
+    if (password && oldPassword && password === confirmNewPassword) {
+      cleanedFormData.password = password;
+      cleanedFormData.oldPassword = oldPassword;
+    } else if (password || oldPassword || confirmNewPassword) {
+      toast.error("Please correctly fill all password fields before updating.");
+      return;
+    }
     // dispatch(updateUser(formData))
     dispatch(updateUser(cleanedFormData))
       .unwrap()
@@ -143,6 +142,18 @@ const ProfileUpdate = () => {
       });
   };
 
+  if (!user) {
+    return <Loader loading={true} />;
+  }
+
+  if (loading.updateUser) {
+    return <Loader loading={loading.updateUser} />;
+  }
+
+  if (loading.uploadPhoto) {
+    return <Loader loading={loading.uploadPhoto} />;
+  }
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 dark:from-zinc-900 dark:to-zinc-950 py-20 font-inter">
       <div className="w-full max-w-2xl bg-white dark:bg-zinc-800 shadow-xl rounded-2xl p-6 md:p-10 space-y-8">
@@ -170,9 +181,7 @@ const ProfileUpdate = () => {
             <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-100 dark:bg-zinc-700 border dark:border-zinc-600">
               <img
                 src={
-                  formData?.photo?.imageUrl ||
-                  profilePhoto ||
-                  formData?.photo
+                  formData?.photo?.imageUrl || profilePhoto || formData?.photo
                 }
                 alt="Profile"
                 className="w-full h-full object-cover"
@@ -198,9 +207,9 @@ const ProfileUpdate = () => {
           <div className="flex justify-center">
             <button
               onClick={handlePhotoUpload}
-              disabled={!isPhotoChanged || loading}
+              disabled={!isPhotoChanged || loading.uploadPhoto}
               className={`py-2 px-6 rounded-md text-sm font-semibold text-white transition ${
-                !isPhotoChanged || loading
+                !isPhotoChanged || loading.uploadPhoto
                   ? "bg-gray-300 dark:bg-zinc-600 cursor-not-allowed"
                   : "bg-orange-500 hover:bg-orange-600"
               }`}
@@ -260,7 +269,7 @@ const ProfileUpdate = () => {
               placeholder="New Password"
               value={formData.password}
               onChange={handleInputChange}
-              disabled={loading}
+              disabled={loading.updateUser}
               className="w-full p-2 rounded-md border border-orange-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-orange-300"
             />
           </div>
@@ -279,7 +288,7 @@ const ProfileUpdate = () => {
               value={formData.confirmNewPassword}
               onChange={handleInputChange}
               onPaste={handlePastePassword}
-              disabled={loading}
+              disabled={loading.updateUser}
               className="w-full p-2 rounded-md border border-orange-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-orange-300"
             />
           </div>
@@ -316,31 +325,32 @@ const ProfileUpdate = () => {
           {/* Error */}
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
-          <button
+          {/* <button
             type="submit"
             onClick={() => console.log("Clicked submit button")}
             disabled={!isFormChanged || loading}
             className=""
           >
             Save Changes
-          </button>
+          </button> */}
 
           {/* Submit Button */}
-          {/* <div className="flex justify-center">
+          <div className="flex justify-center">
             <button
               type="submit"
               // onClick={handleSubmit}
-              disabled={!isFormChanged || loading}
+              disabled={!isFormChanged || loading.updateUser}
               className={`py-3 px-10 rounded-lg text-white font-medium transition ${
                 isFormChanged
                   ? "bg-orange-500 hover:bg-orange-600"
                   : "bg-gray-300 dark:bg-zinc-600 cursor-not-allowed"
               }`}
             >
-               {loading ? "Updating Profile..." : "Update"}
-              Update
+              {console.log("Loading:", loading)}
+              {loading.updateUser ? "Updating Profile..." : "Update Profile"}
+              {/* Update */}
             </button>
-          </div> */}
+          </div>
         </form>
       </div>
     </div>

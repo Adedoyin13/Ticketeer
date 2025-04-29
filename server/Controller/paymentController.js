@@ -73,7 +73,7 @@ exports.confirmCheckoutSession = async (req, res) => {
       lineItems,
     });
 
-    console.log('Seccess...')
+    console.log('Success...')
   } catch (err) {
     console.error("Stripe session fetch error:", err);
     res
@@ -83,6 +83,53 @@ exports.confirmCheckoutSession = async (req, res) => {
 };
 
 exports.stripeWebhookHandler = async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  let event;
+
+  // Log the raw body (you can log this for debugging purposes, be cautious in production)
+  console.log('Raw body received:', req.body.toString());
+
+  try {
+    // Construct the Stripe event using the webhook secret
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+
+    console.log('Event received:', event);  // Logs the entire event object
+
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Log the event type for easy reference
+  console.log('Event type:', event.type);
+
+  // Check if the event is a successful checkout session
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;  // Contains the session object
+
+    // Log the session object
+    console.log('Session object:', session);
+
+    const { userId, eventId, ticketTypeId } = session.metadata;
+
+    try {
+      console.log('Creating ticket for user', userId);
+
+      // Log the ticket creation process for debugging
+      await purchaseTicket({ eventId, ticketTypeId, userId });
+      console.log('Ticket purchase successful');
+      
+      return res.status(200).json({ received: true });
+    } catch (error) {
+      console.error("Ticket creation failed in webhook:", error.message);
+      return res.status(500).json({ message: "Ticket creation failed" });
+    }
+  }
+
+  res.status(200).send("Event received but no action taken.");
+};
+
+exports.strieWebhookHandler = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   let event;
 

@@ -64,69 +64,59 @@ const registerUser = asyncHandler(async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Validate required fields
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Validate password length
     if (password.length < 8 || password.length > 20) {
       return res.status(400).json({
         message: "Password must be between 8 and 20 characters",
       });
     }
 
-    // Check if user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: "Email already in use." });
     }
 
-    // Create a new user
     const user = new User({
       name,
       email,
       password,
     });
 
-    // Then use in your logic like this:
-    const initials = getInitials(name); // e.g. "TU"
+    const initials = getInitials(name);
     const { h, s, l } = getRandomOrangeShade();
-    const bgColor = hslToHex(h, s, l); // e.g. "ffa94d"
+    const bgColor = hslToHex(h, s, l);
     const textColor = "FFFFFF";
 
-    // Final URL
     const DEFAULT_IMAGE_URL = `https://placehold.co/150x150/${bgColor}/${textColor}?text=${initials}&font=roboto`;
 
     const defaultProfilePicture = await ProfilePicture.create({
       userId: user._id,
-      imageUrl: DEFAULT_IMAGE_URL, // Default profile image
-      cloudinaryId: null, // No Cloudinary image for default picture
+      imageUrl: DEFAULT_IMAGE_URL,
+      cloudinaryId: null,
     });
 
-    // Link default profile picture to user
     user.photo = defaultProfilePicture._id;
     await user.save();
 
-    // Generate authentication token
     const token = generateToken(user._id);
 
-    // Set the cookie with the token
     res.cookie("token", token, {
       path: "/",
       httpOnly: true,
-      expires: new Date(Date.now() + 1000 * 86400), // 24 hours expiration
+      expires: new Date(Date.now() + 1000 * 86400),
       sameSite: "none",
       secure: true,
     });
 
-    // Send response with user details
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       isVerified: user.isVerified,
-      photo: defaultProfilePicture.imageUrl, // Send profile picture URL
+      photo: defaultProfilePicture.imageUrl,
       location: user.location,
       interests: user.interests,
       themeMode: user.themeMode,

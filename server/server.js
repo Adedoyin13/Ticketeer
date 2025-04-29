@@ -19,6 +19,7 @@ const http = require("http");
 const socketIo = require("socket.io");
 const { createEventReminderNotifications } = require("./Utils/cronJobs");
 const { createEventReminderMail } = require("./Utils/sendEventEmail");
+const { stripeWebhookHandler } = require("./Controller/paymentController");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -72,7 +73,7 @@ app.use(
 // CORS setup
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL, 'http://localhost:5173'],
+    origin: [process.env.FRONTEND_URL, 'http://localhost:5173', 'https://ticketeer-event.vercel.app'],
     credentials: true,
     methods: "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS",
   })
@@ -98,6 +99,9 @@ app.use(passport.session());
 app.set("view engine", "ejs");
 
 // Routes
+
+app.use("/webhook", express.raw({ type: "application/json" }), stripeWebhookHandler);
+
 app.use("/user", userRoute);
 app.use("/event", eventRoute);
 app.use("/location", locationRoute);
