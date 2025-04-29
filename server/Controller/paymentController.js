@@ -2,33 +2,6 @@ const Stripe = require("stripe");
 const { purchaseTicket } = require("./eventController");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-const crypto = require('crypto');
-
-// Your Stripe webhook secret (found in your Stripe dashboard)
-const stripeWebhookSecret = 'whsec_B5Zt7iARjxM7gjbaTJ7gRDvToTnbL7sF';
-
-// The raw payload received from Stripe (the event data)
-const payload = JSON.stringify({
-  "id": "evt_1IRkhl2eZvXJKhIq8sXJ6H6t",
-  "object": "event",
-  "type": "checkout.session.completed",
-  // Your actual event data here
-});
-
-// The timestamp Stripe sends in the webhook (you can get this from the `Stripe-Signature` header)
-const timestamp = '1634293277'; // For example, you'll get this from the webhook header or simulate it
-
-// Create the string to sign: timestamp + payload
-const stringToSign = `${timestamp}.${payload}`;
-
-// Now create the HMAC with SHA-256 using the signing secret
-const signature = crypto
-  .createHmac('sha256', stripeWebhookSecret)
-  .update(stringToSign)
-  .digest('hex');
-
-console.log('Generated Signature:', signature);
-
 exports.createCheckoutSession = async (req, res) => {
   try {
     const { ticket, userEmail, eventId, userId, ticketTypeId } = req.body;
@@ -196,58 +169,3 @@ exports.strieWebhookHandler = async (req, res) => {
 
   res.status(200).send("Event received but no action taken.");
 };
-
-// This is a public sample test API key.
-// Don’t submit any personally identifiable information in requests made with this key.
-// Sign in to see your own test API key embedded in code samples.
-// const stripe = require('stripe')('sk_test_BQokikJOvBiI2HlWgH4olfQ2');
-// Replace this endpoint secret with your endpoint's unique secret
-// If you are testing with the CLI, find the secret by running 'stripe listen'
-// If you are using an endpoint defined with the API or dashboard, look in your webhook settings
-// at https://dashboard.stripe.com/webhooks
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-const express = require('express');
-const app = express();
-
-app.post('/payments/webhook', express.raw({type: 'application/json'}), (request, response) => {
-  let event = request.body;
-  // Only verify the event if you have an endpoint secret defined.
-  // Otherwise use the basic event deserialized with JSON.parse
-  if (endpointSecret) {
-    // Get the signature sent by Stripe
-    const signature = request.headers['stripe-signature'];
-    try {
-      event = stripe.webhooks.constructEvent(
-        request.body,
-        signature,
-        endpointSecret
-      );
-    } catch (err) {
-      console.log(`⚠️  Webhook signature verification failed.`, err.message);
-      return response.sendStatus(400);
-    }
-  }
-
-  // Handle the event
-  switch (event.type) {
-    case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object;
-      console.log(`PaymentIntent for ${paymentIntent.amount} was successful!`);
-      // Then define and call a method to handle the successful payment intent.
-      // handlePaymentIntentSucceeded(paymentIntent);
-      break;
-    case 'payment_method.attached':
-      const paymentMethod = event.data.object;
-      // Then define and call a method to handle the successful attachment of a PaymentMethod.
-      // handlePaymentMethodAttached(paymentMethod);
-      break;
-    default:
-      // Unexpected event type
-      console.log(`Unhandled event type ${event.type}.`);
-  }
-
-  // Return a 200 response to acknowledge receipt of the event
-  response.send();
-});
-
-// app.listen(4242, () => console.log('Running on port 4242'));
