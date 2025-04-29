@@ -2,6 +2,33 @@ const Stripe = require("stripe");
 const { purchaseTicket } = require("./eventController");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
+const crypto = require('crypto');
+
+// Your Stripe webhook secret (found in your Stripe dashboard)
+const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+// The raw payload received from Stripe (the event data)
+const payload = JSON.stringify({
+  "id": "evt_1IRkhl2eZvXJKhIq8sXJ6H6t",
+  "object": "event",
+  "type": "checkout.session.completed",
+  // Your actual event data here
+});
+
+// The timestamp Stripe sends in the webhook (you can get this from the `Stripe-Signature` header)
+const timestamp = '1634293277'; // For example, you'll get this from the webhook header or simulate it
+
+// Create the string to sign: timestamp + payload
+const stringToSign = `${timestamp}.${payload}`;
+
+// Now create the HMAC with SHA-256 using the signing secret
+const signature = crypto
+  .createHmac('sha256', stripeWebhookSecret)
+  .update(stringToSign)
+  .digest('hex');
+
+console.log('Generated Signature:', signature);
+
 exports.createCheckoutSession = async (req, res) => {
   try {
     const { ticket, userEmail, eventId, userId, ticketTypeId } = req.body;
@@ -83,7 +110,7 @@ exports.confirmCheckoutSession = async (req, res) => {
 };
 
 exports.stripeWebhookHandler = async (req, res) => {
-  const sig = req.headers["stripe-signature"];
+  const sig = req.headers["stripe-signature"] || "mock_signature";
   let event;
 
   // Log the raw body (you can log this for debugging purposes, be cautious in production)
