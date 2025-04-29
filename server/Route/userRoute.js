@@ -15,6 +15,7 @@ const {
   loginWithGoogle,
   getUserBookedEvents,
   getUserTickets,
+  disconnectWallet,
   googleAuth,
   // changePassword,
   loginStatus,
@@ -49,6 +50,7 @@ router.delete("/:userId/delete-photo", protectUser, deleteProfilePicture);
 // router.delete("/:userId", protectUser, deleteProfilePicture);
 router.get("/get-user", protectUser, getUser);
 router.put("/connect-wallet", protectUser, connectWallet);
+router.put("/disconnect-wallet", protectUser, disconnectWallet);
 router.get("/get-user-tickets", protectUser, getUserTickets);
 router.get("/get-users", protectUser, getUsers);
 router.post("/forgot-password", forgotPassword);
@@ -68,6 +70,5 @@ router.put('/theme', protectUser, updateThemeMode); // make sure authenticateUse
 
 // POST Route to handle Google Login
 router.post('/auth/google', googleLogin);
-
 
 module.exports = router;

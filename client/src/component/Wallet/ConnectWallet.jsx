@@ -1,62 +1,98 @@
-// src/components/ConnectWallet.jsx
+import { useDispatch, useSelector } from "react-redux";
+import {
+  disconnectWallet,
+  setWalletAddress,
+  setConnectionStatus,
+} from "../../redux/reducers/walletSlice";
+import api from "../../utils/api";
+import { useEffect } from "react";
 
-import { useState } from "react";
-import { ethers } from "ethers";
-import axios from "axios";
-import { toast } from "react-toastify";
+const ConnectWallet = () => {
+  const dispatch = useDispatch();
+  const { isConnected, walletAddress } = useSelector((state) => state.wallet);
 
-const SERVER_URL = import.meta.env.SERVER_URL;
+  // Connect wallet function
+  const connectWallet = async () => {
+    if (window.ethereum) {
+      try {
+        // Request accounts from MetaMask
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        const walletAddress = accounts[0];
 
-export default function ConnectWallet() {
-  const [walletAddress, setWalletAddress] = useState(null);
+        // Dispatch Redux to store wallet address and set status to connected
+        dispatch(setWalletAddress(walletAddress));
+        dispatch(setConnectionStatus(true));
 
-  const handleConnectWallet = async () => {
-    try {
-      if (!window.ethereum) {
-        toast.error("Please install MetaMask!");
-        return;
+        // Send wallet address to the backend to save it to the user's profile
+        await api.put(
+          "/user/connect-wallet",
+          { walletAddress },
+          { withCredentials: true }
+        );
+
+        console.log("Wallet connected:", walletAddress);
+      } catch (error) {
+        console.error("Error connecting wallet:", error);
       }
-
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
-      setWalletAddress(address);
-
-      // Save to backend
-      await axios.put(
-        `${SERVER_URL}/user/connect-wallet`,
-        { walletAddress: address },
-        {
-          withCredentials: true,
-          //   headers: {
-          //     Authorization: `Bearer ${user.token}`, // your auth token
-          //   },
-        }
-      );
-
-      toast.success("Wallet connected successfully");
-    } catch (error) {
-      console.error("Wallet connection error:", error);
-      toast.error("Could not connect wallet");
+    } else {
+      console.error("MetaMask is not installed.");
     }
   };
 
+  useEffect(() => {
+    const checkIfWalletIsConnected = async () => {
+      if (window.ethereum) {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          setIsConnected(true);
+          setWalletAddress(accounts[0]);
+          // Optional: check network here too
+        }
+      }
+    };
+  
+    checkIfWalletIsConnected();
+  }, []);
+  
+
+  // Disconnect wallet function
+  const disconnectWalletHandler = async () => {
+    // Dispatch Redux to clear wallet address and set status to disconnected
+    dispatch(disconnectWallet());
+
+    // Optionally, call an API to remove wallet address from the backend
+    await api.put("/user/disconnect-wallet", { withCredentials: true });
+
+    console.log("Wallet disconnected.");
+  };
+
   return (
-    <div className="p-4 rounded border max-w-md mx-auto bg-orange-50 dark:bg-zinc-900">
-      {walletAddress ? (
-        <div className="text-green-600 font-medium">
-          Wallet Connected: {walletAddress.slice(0, 6)}...
-          {walletAddress.slice(-4)}
-        </div>
-      ) : (
+    <div className="p-4 rounded-xl shadow-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white w-full max-w-md mx-auto mt-6">
+      {!isConnected ? (
         <button
-          onClick={handleConnectWallet}
-          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
+          onClick={connectWallet}
+          className="w-full py-2 px-4 rounded-lg font-semibold bg-orange-500 text-white hover:bg-orange-600 dark:bg-zinc-700 dark:hover:bg-zinc-600 transition duration-200"
         >
           Connect Wallet
         </button>
+      ) : (
+        <div className="space-y-4">
+          <p className="break-all text-sm">
+            Wallet connected:{" "}
+            <span className="font-medium">{walletAddress}</span>
+          </p>
+          <button
+            onClick={disconnectWalletHandler}
+            className="w-full py-2 px-4 rounded-lg font-semibold bg-gray-200 text-zinc-800 hover:bg-gray-300 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600 transition duration-200"
+          >
+            Disconnect Wallet
+          </button>
+        </div>
       )}
     </div>
   );
-}
+};
+
+export default ConnectWallet;

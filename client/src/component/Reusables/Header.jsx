@@ -10,6 +10,7 @@ import Loader from "../Spinners/Loader";
 import { toast } from "react-toastify";
 import { MdDarkMode, MdLightMode } from "react-icons/md";
 import { toggleThemeMode } from "../../redux/reducers/userSlice";
+import ConnectWallet from "../Wallet/ConnectWallet";
 
 const formatName = (namee) => {
   const name = namee?.split(" ")[0];
@@ -93,6 +94,7 @@ const Header = () => {
 
         {/* Right - Notification & Profile */}
         <div className="flex items-center gap-6">
+        
           <button
             onClick={handleToggle}
             className="text-zinc-800 dark:text-zinc-200 hover:text-orange-600 dark:hover:text-orange-400 transition"
@@ -131,6 +133,8 @@ const Header = () => {
               {formatName(user?.name) || user?.name}
             </p>
           </div>
+
+         
         </div>
       </nav>
 

@@ -304,33 +304,51 @@ const googleAuth = passport.authenticate("google", {
 });
 
 const connectWallet = async (req, res) => {
-  const userId = req.userId; // from auth middleware
+  const userId = req.userId;
   const { walletAddress } = req.body;
 
   if (!walletAddress) {
-    return res.status(400).json({ message: 'Wallet address is required.' });
+    return res.status(400).json({ message: "Wallet address is required." });
   }
 
+  const normalizedAddress = walletAddress.trim().toLowerCase();
+
   try {
-    // Optional: Check if address is already used by someone else
-    const existing = await User.findOne({ walletAddress });
+    const existing = await User.findOne({ walletAddress: normalizedAddress });
     if (existing && existing._id.toString() !== userId.toString()) {
-      return res.status(400).json({ message: 'Wallet already connected to another account.' });
+      return res.status(400).json({ message: "Wallet already connected to another account." });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { walletAddress },
+      { walletAddress: normalizedAddress },
       { new: true }
     );
 
     res.status(200).json({
-      message: 'Wallet connected successfully.',
+      message: "Wallet connected successfully.",
       walletAddress: updatedUser.walletAddress,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error while connecting wallet.' });
+    console.error("Error connecting wallet for user:", userId, err);
+    res.status(500).json({ message: "Server error while connecting wallet." });
+  }
+};
+
+const disconnectWallet = async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.walletAddress = null;
+    await user.save();
+
+    res.status(200).json({ message: "Wallet disconnected successfully." });
+  } catch (err) {
+    console.error("Error disconnecting wallet for user:", userId, err);
+    res.status(500).json({ message: "Server error while disconnecting wallet." });
   }
 };
 
@@ -1072,6 +1090,7 @@ module.exports = {
   getUsers,
   loginStatus,
   connectWallet,
+  disconnectWallet,
   updateUser,
   // changePassword,
   deleteUser,

@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { loginUser, setUser } from "../../../redux/reducers/userSlice";
 import GoogleAuth from "./GoogleAuth";
 import Loader from "../../Spinners/Loader";
+import { setWalletAddress } from "../../../redux/reducers/walletSlice";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -28,6 +29,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const result = await dispatch(loginUser(formData)).unwrap();
+      dispatch(setWalletAddress(user.walletAddress));
       console.log(result);
       toast.success("Login successful!");
       const redirectPath = location.state?.from?.pathname || "/dashboard";
