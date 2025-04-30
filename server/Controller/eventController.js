@@ -1819,6 +1819,7 @@ module.exports = {
   getUserCancelledEvents,
   unCancelEvent,
   getAllTickets,
+  purchaseTicketLogic,
   getOrganizerById,
   getTicketsSold,
   getEventWithTicketById,
