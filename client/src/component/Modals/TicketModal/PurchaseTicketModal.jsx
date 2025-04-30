@@ -4,6 +4,7 @@ import { IoClose } from "react-icons/io5";
 import Loader from "../../Spinners/Loader";
 import { loadStripe } from "@stripe/stripe-js";
 import ConfettiEffect from "../../Layouts/ConfettiEffect";
+import UsingHooks from "../../../UsingHooks";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -108,27 +109,31 @@ const PurchaseTicketModal = ({ onClose, tickets, event, user }) => {
                     <input
                       type="radio"
                       name="payment"
-                      value="paystack"
+                      value="flutterwave"
                       className="text-2xl cursor-pointer"
                       onChange={(e) => setSelectedPayment(e.target.value)}
-                      checked={selectedPayment === "paystack"}
+                      checked={selectedPayment === "flutterwave"}
                     />
                     <label className="text-sm sm:text-base">
-                      Pay with Paystack
+                      Pay with Flutterwave
                     </label>
                   </div>
+
+                  {selectedPayment === 'flutterwave' && (
+                    <UsingHooks user={user} event={event}/>
+                  )}
 
                   {selectedPayment === "stripe" && (
                     <div className="pt-4">
                       <button
                         onClick={handleStripeCheckout}
-                        className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 sm:px-10 rounded-full transition-all duration-300"
+                        className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 sm:px-10 rounded-full transition-all duration-300"
                         // disabled={loading}
                       >
                         {/* {loading
                           ? "Redirecting..."
                           : `Pay $${total.toFixed(2)}`} */}
-                        Pay ${total.toFixed(2)}
+                        Pay ₦{total.toFixed(2)}
                       </button>
                     </div>
                   )}
@@ -147,19 +152,19 @@ const PurchaseTicketModal = ({ onClose, tickets, event, user }) => {
                   <div className="text-sm mt-2 flex justify-between">
                     <span>Price:</span>
                     <span className="font-bold text-base">
-                      ${ticket.price.toFixed(2)}
+                    ₦{ticket.price.toFixed(2)}
                     </span>
                   </div>
                   <div className="text-sm mt-2 flex justify-between border-b border-orange-400 dark:border-zinc-600 pb-2">
                     <span>Fee (2%):</span>
                     <span className="font-bold text-base">
-                      ${fee.toFixed(2)}
+                    ₦{fee.toFixed(2)}
                     </span>
                   </div>
                   <div className="text-sm mt-2 flex justify-between font-semibold">
                     <span>Total:</span>
                     <span className="font-bold text-base">
-                      ${total.toFixed(2)}
+                    ₦{total.toFixed(2)}
                     </span>
                   </div>
                 </div>

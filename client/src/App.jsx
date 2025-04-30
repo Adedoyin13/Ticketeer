@@ -51,6 +51,7 @@ import RouteChangeLoader from "./component/Spinners/RouteChangeLoader";
 import PaymentSuccess from "./component/Modals/TicketModal/PaymentSuccess";
 import PaymentCancel from "./component/Modals/TicketModal/PaymentCancel";
 import ConnectWallet from "./component/Wallet/ConnectWallet";
+import UsingHooks from "./UsingHooks";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -150,6 +151,8 @@ function App() {
             </Layout>
           }
         />
+        <Route path="/hooks" element={<UsingHooks />} />
+        {/* <Route path="/component" element={<UsingComponent />} /> */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/connect-wallet" element={<ConnectWallet />} />

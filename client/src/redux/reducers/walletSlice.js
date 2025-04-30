@@ -15,7 +15,7 @@ const walletSlice = createSlice({
       state.isConnected = true;
     },
     setNetwork(state, action) {
-      state.network = action.payload;
+      state.network = action.payload; // e.g., "Ethereum Mainnet"
     },
     setConnectionStatus(state, action) {
       state.isConnected = action.payload;
@@ -28,5 +28,11 @@ const walletSlice = createSlice({
   },
 });
 
-export const { setWalletAddress, setNetwork, setConnectionStatus, disconnectWallet } = walletSlice.actions;
+export const {
+  setWalletAddress,
+  setNetwork,
+  setConnectionStatus,
+  disconnectWallet,
+} = walletSlice.actions;
+
 export default walletSlice.reducer;
