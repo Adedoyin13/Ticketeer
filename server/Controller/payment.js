@@ -9,14 +9,8 @@ exports.verifyFlutterwavePayment = async (req, res) => {
   const { transaction_id, ticketId, eventId } = req.body;
   const userId = req.userId;
 
-  console.log("Event ID from request body: ", eventId);
-  console.log("Ticket ID from request body: ", ticketId);
-  console.log("Transaction ID from request body: ", transaction_id);
-
   try {
     const response = await flw.Transaction.verify({ id: transaction_id });
-
-    console.log("Transaction verification response", response);
 
     if (!eventId || !ticketId || !userId) {
       return res
@@ -30,19 +24,8 @@ exports.verifyFlutterwavePayment = async (req, res) => {
           .status(400)
           .json({ message: "Missing required fields after success check" });
       }
-      console.log("Event ID from request body after success check: ", eventId);
-      console.log(
-        "Ticket ID from request body after success check: ",
-        ticketId
-      );
-      console.log(
-        "Transaction ID from request body after purchase: ",
-        transaction_id
-      );
 
       await purchaseTicketLogic({ ticketTypeId: ticketId, eventId, userId });
-      console.log("Event ID from request body after purchase: ", eventId);
-      console.log("Ticket ID from request body after purchase: ", ticketTypeId);
       return res.status(201).json({ message: "Ticket purchased successfully" });
     }
 
