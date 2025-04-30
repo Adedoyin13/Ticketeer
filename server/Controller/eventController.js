@@ -314,20 +314,13 @@ const createTicket = asyncHandler(async (req, res) => {
   }
 });
 
-const purchaseTicket = asyncHandler(async (req, res) => {
+const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { eventId, ticketTypeId } = req.body;
-    const userId = req.userId;
-
-    if(!userId) {
-      return res.status(404).json({ message: "Unauthorized to purchase ticket" });
-    }
-
-    if (!eventId || !ticketTypeId) {
-      return res.status(400).json({ message: "Missing required fields" });
+    if (!eventId || !ticketTypeId || !userId) {
+      throw new Error("Missing required fields");
     }
 
     // Validate IDs
@@ -448,17 +441,28 @@ const purchaseTicket = asyncHandler(async (req, res) => {
       console.log("Email sent successfully");
     }
 
-    return res.status(201).json({
-      message: "Ticket purchased successfully",
-      ticket,
-    });
+    await session.commitTransaction();
+    session.endSession();
+
+    return { success: true, message: "Ticket purchased successfully", ticket };
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    console.log("Error purchasing ticket", error.message);
-    return res
-      .status(500)
-      .json({ message: "Error purchasing ticket", error: error.message });
+    throw error;
+  }
+};
+
+const purchaseTicket = asyncHandler(async (req, res) => {
+  try {
+    const { eventId, ticketTypeId } = req.body;
+    const userId = req.userId;
+
+    const result = await purchaseTicketLogic({ eventId, ticketTypeId, userId });
+
+    return res.status(201).json(result);
+  } catch (error) {
+    console.error("Ticket purchase failed:", error.message);
+    return res.status(500).json({ message: error.message });
   }
 });
 

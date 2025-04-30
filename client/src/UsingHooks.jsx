@@ -57,7 +57,7 @@ export default function UsingHooks({ user, event }) {
               navigate("/payment-success");
             } catch (error) {
               toast.error(error || "Payment failed!");
-              console.log("error");
+              console.log("error:", error);
               navigate("/payment-failed");
             }
           },

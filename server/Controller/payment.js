@@ -40,7 +40,7 @@ exports.verifyFlutterwavePayment = async (req, res) => {
         transaction_id
       );
 
-      await purchaseTicket(ticketId, eventId, userId, transaction_id);
+      await purchaseTicketLogic(ticketId, eventId, userId);
       console.log("Event ID from request body after purchase: ", eventId);
       console.log("Ticket ID from request body after purchase: ", ticketId);
       console.log(
