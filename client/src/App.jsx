@@ -189,7 +189,7 @@ function App() {
           }
         />
         <Route
-          path="/payment-cancel"
+          path="/payment-failed"
           element={
             <ProtectedRoute>
               <UserLayout>

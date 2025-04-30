@@ -1,16 +1,28 @@
 const Flutterwave = require("flutterwave-node-v3");
-const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_KEY);
+const flw = new Flutterwave(
+  process.env.FLW_PUBLIC_KEY,
+  process.env.FLW_SECRET_KEY
+);
 const { purchaseTicket } = require("./eventController");
 
 exports.verifyFlutterwavePayment = async (req, res) => {
   const { transaction_id, ticketId, eventId } = req.body;
   const userId = req.userId;
 
+  console.log("Event ID from request body: ", eventId);
+  console.log("Ticket ID from request body: ", ticketId);
+  console.log("Transaction ID from request body: ", transaction_id);
+
   try {
     const response = await flw.Transaction.verify({ id: transaction_id });
 
+    console.log("Transaction verification response", response);
+
     if (response.data.status === "successful") {
       await purchaseTicket(ticketId, eventId, userId, transaction_id);
+      console.log("Event ID from request body after purchase: ", eventId);
+      console.log("Ticket ID from request body after purchase: ", ticketId);
+      console.log("Transaction ID from request body after purchase: ", transaction_id);
       return res.status(201).json({ message: "Ticket purchased successfully" });
     }
 

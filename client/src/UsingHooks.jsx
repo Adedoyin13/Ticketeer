@@ -2,6 +2,7 @@ import React from "react";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 import api from "./utils/api";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function UsingHooks({ user, event }) {
   const navigate = useNavigate();
@@ -51,15 +52,16 @@ export default function UsingHooks({ user, event }) {
                 { withCredentials: true }
               );
 
-              // Redirect to success page
+              console.log({ res });
+              toast.success("Payment Successful!");
               navigate("/payment-success");
             } catch (error) {
-              // Redirect to failure page
-              navigate("/payment-cancel");
+              toast.error(err || "Payment failed!");
+              console.log("error");
+              navigate("/payment-failed");
             }
           },
           onClose: () => {
-            // Optional: Can be left empty if you're already handling redirect in callback
           },
         });
       }}
