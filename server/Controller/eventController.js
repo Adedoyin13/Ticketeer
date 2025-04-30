@@ -314,10 +314,15 @@ const createTicket = asyncHandler(async (req, res) => {
   }
 });
 
-const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
-  console.log("Event ID from request body: ", eventId);
-  console.log("Ticket ID from request body: ", ticketTypeId);
-  console.log("Transaction ID from request body: ", userId);
+const purchaseTicketLogic = async ({
+  eventId,
+  ticketTypeId,
+  userId,
+  reqUser,
+}) => {
+  console.log("Event ID from request body:", eventId);
+  console.log("Ticket Type ID from request body:", ticketTypeId);
+  console.log("User ID from request body:", userId);
 
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -331,28 +336,24 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
       !mongoose.Types.ObjectId.isValid(eventId) ||
       !mongoose.Types.ObjectId.isValid(ticketTypeId)
     ) {
-      return res
-        .status(400)
-        .json({ message: "Invalid Event ID or Ticket Type ID" });
+      throw new Error("Invalid Event ID or Ticket Type ID");
     }
 
     const user = await User.findById(userId).session(session);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      throw new Error("User not found");
     }
 
     const event = await Event.findById(eventId).session(session);
     if (!event) {
-      return res.status(404).json({ message: "Event not found" });
+      throw new Error("Event not found");
     }
 
     const now = new Date();
     const datePart = new Date(event.startDate).toISOString().split("T")[0];
     const eventStartDateTime = new Date(`${datePart}T${event.startTime}`);
     if (now >= eventStartDateTime) {
-      return res
-        .status(400)
-        .json({ message: "Event has already started. Ticket sales closed." });
+      throw new Error("Event has already started. Ticket sales closed.");
     }
 
     const existingTicket = await Ticket.findOne({
@@ -361,9 +362,7 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
       ticketTypeId,
     }).session(session);
     if (existingTicket) {
-      return res
-        .status(400)
-        .json({ message: "You already purchased a ticket for this event" });
+      throw new Error("You already purchased a ticket for this event");
     }
 
     const ticketType = await TicketType.findOne({
@@ -371,7 +370,7 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
       eventId,
     }).session(session);
     if (!ticketType) {
-      return res.status(404).json({ message: "Ticket type not found" });
+      throw new Error("Ticket type not found");
     }
 
     if (
@@ -379,9 +378,10 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
       ticketType.status === "sold_out" ||
       ticketType.status === "closed"
     ) {
-      return res.status(400).json({ message: "Ticket is not available" });
+      throw new Error("Ticket is not available");
     }
 
+    // Update ticket type availability
     ticketType.availableQuantity -= 1;
     ticketType.soldQuantity = (ticketType.soldQuantity || 0) + 1;
     if (ticketType.availableQuantity === 0) {
@@ -389,6 +389,7 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
     }
     await ticketType.save({ session });
 
+    // Create ticket
     const ticket = new Ticket({
       userId,
       eventId,
@@ -412,11 +413,11 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
     await session.commitTransaction();
     session.endSession();
 
-    if (req.user) {
-      const { name, email } = req.user;
+    // Optional email notification
+    if (reqUser?.name && reqUser?.email) {
       const mailData = {
-        name,
-        email,
+        name: reqUser.name,
+        email: reqUser.email,
         title: event.title,
         startDate: event.startDate,
         startTime: event.startTime,
@@ -433,9 +434,6 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
       console.log("Email sent successfully");
     }
 
-    await session.commitTransaction();
-    session.endSession();
-
     return { success: true, message: "Ticket purchased successfully", ticket };
   } catch (error) {
     await session.abortTransaction();
@@ -450,7 +448,7 @@ const purchaseTicket = asyncHandler(async (req, res) => {
     const userId = req.userId;
 
     const result = await purchaseTicketLogic({ eventId, ticketTypeId, userId });
-    console.log('Result after purhasing ticket: ', result)
+    console.log("Result after purhasing ticket: ", result);
 
     return res.status(201).json(result);
   } catch (error) {
