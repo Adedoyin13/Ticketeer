@@ -5,12 +5,16 @@ export default function UsingComponent({ user, event }) {
   console.log({ user });
   console.log({ event });
 
-  const ticket = event?.ticketTypes[0]
+  const ticket = event?.ticketTypes?.[0];
+  if (!ticket) return null;
+
+  const fee = ticket.price * 0.02;
+  const total = ticket.price + fee;
 
   const config = {
     public_key: import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY,
     tx_ref: Date.now(),
-    amount: ticket.price,
+    amount: total,
     currency: "NGN",
     payment_options: "card,mobilemoney,ussd",
     customer: {
@@ -27,7 +31,7 @@ export default function UsingComponent({ user, event }) {
 
   const fwConfig = {
     ...config,
-    text: `Pay ₦${ticket.price}`,
+    text: `Pay ₦${total}`,
     callback: (response) => {
       console.log(response);
       closePaymentModal();
