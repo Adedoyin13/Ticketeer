@@ -327,7 +327,6 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
       throw new Error("Missing required fields");
     }
 
-    // Validate IDs
     if (
       !mongoose.Types.ObjectId.isValid(eventId) ||
       !mongoose.Types.ObjectId.isValid(ticketTypeId)
@@ -337,19 +336,16 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
         .json({ message: "Invalid Event ID or Ticket Type ID" });
     }
 
-    // Validate user
     const user = await User.findById(userId).session(session);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Validate event
     const event = await Event.findById(eventId).session(session);
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // Check if event has already started
     const now = new Date();
     const datePart = new Date(event.startDate).toISOString().split("T")[0];
     const eventStartDateTime = new Date(`${datePart}T${event.startTime}`);
@@ -359,7 +355,6 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
         .json({ message: "Event has already started. Ticket sales closed." });
     }
 
-    // Check if the user already has a ticket for this event
     const existingTicket = await Ticket.findOne({
       userId,
       eventId,
@@ -371,7 +366,6 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
         .json({ message: "You already purchased a ticket for this event" });
     }
 
-    // Validate ticket type
     const ticketType = await TicketType.findOne({
       _id: ticketTypeId,
       eventId,
@@ -380,7 +374,6 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
       return res.status(404).json({ message: "Ticket type not found" });
     }
 
-    // Check availability and status
     if (
       ticketType.availableQuantity <= 0 ||
       ticketType.status === "sold_out" ||
@@ -389,7 +382,6 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
       return res.status(400).json({ message: "Ticket is not available" });
     }
 
-    // Update ticket type availability
     ticketType.availableQuantity -= 1;
     ticketType.soldQuantity = (ticketType.soldQuantity || 0) + 1;
     if (ticketType.availableQuantity === 0) {
@@ -397,23 +389,20 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
     }
     await ticketType.save({ session });
 
-    // Create ticket
     const ticket = new Ticket({
       userId,
       eventId,
       ticketTypeId,
       qrCode: `${userId}-${eventId}-${ticketTypeId}-${Date.now()}`,
       status: "active",
-      purchaseDate: new Date(), // Set purchase date
+      purchaseDate: new Date(),
     });
     await ticket.save({ session });
 
-    // Save ticket to user
     user.ticket = user.ticket || [];
     user.ticket.push(ticket._id);
     await user.save({ session });
 
-    // Add user to attendees
     await Event.findByIdAndUpdate(
       eventId,
       { $addToSet: { attendees: userId } },
@@ -423,7 +412,6 @@ const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
     await session.commitTransaction();
     session.endSession();
 
-    // Send email
     if (req.user) {
       const { name, email } = req.user;
       const mailData = {
@@ -462,6 +450,7 @@ const purchaseTicket = asyncHandler(async (req, res) => {
     const userId = req.userId;
 
     const result = await purchaseTicketLogic({ eventId, ticketTypeId, userId });
+    console.log('Result after purhasing ticket: ', result)
 
     return res.status(201).json(result);
   } catch (error) {
