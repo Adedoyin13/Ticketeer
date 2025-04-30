@@ -3,7 +3,7 @@ const flw = new Flutterwave(
   process.env.FLW_PUBLIC_KEY,
   process.env.FLW_SECRET_KEY
 );
-const { purchaseTicket, purchaseTicketLogic } = require("./eventController");
+const { purchaseTicketLogic } = require("./eventController");
 
 exports.verifyFlutterwavePayment = async (req, res) => {
   const { transaction_id, ticketId, eventId } = req.body;
@@ -40,9 +40,9 @@ exports.verifyFlutterwavePayment = async (req, res) => {
         transaction_id
       );
 
-      await purchaseTicketLogic(ticketId, eventId, userId);
+      await purchaseTicketLogic( {ticketTypeId: ticketId , eventId, userId});
       console.log("Event ID from request body after purchase: ", eventId);
-      console.log("Ticket ID from request body after purchase: ", ticketId);
+      console.log("Ticket ID from request body after purchase: ", ticketTypeId);
       console.log(
         "Transaction ID from request body after purchase: ",
         transaction_id

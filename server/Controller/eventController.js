@@ -315,6 +315,10 @@ const createTicket = asyncHandler(async (req, res) => {
 });
 
 const purchaseTicketLogic = async ({ eventId, ticketTypeId, userId }) => {
+  console.log("Event ID from request body: ", eventId);
+  console.log("Ticket ID from request body: ", ticketTypeId);
+  console.log("Transaction ID from request body: ", transaction_id);
+
   const session = await mongoose.startSession();
   session.startTransaction();
 
