@@ -3,7 +3,7 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.ACCESS_TOKEN, { expiresIn: "1d" });
+  return jwt.sign({ id }, process.env.ACCESS_TOKEN, { expiresIn: "7d" });
 };
 
 // Hash Token

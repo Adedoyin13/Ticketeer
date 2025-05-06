@@ -11,6 +11,7 @@ import Loader from "../Spinners/Loader";
 import { toast } from "react-toastify";
 import { getEventDetails } from "../../redux/reducers/eventSlice";
 import PurchaseTicketModal from "../Modals/TicketModal/PurchaseTicketModal";
+import Ticket from "../Modals/TicketModal/Ticket";
 
 const formatTime = (timeString) => {
   const [hours, minutes] = timeString.split(":");
@@ -37,6 +38,7 @@ const EventView = () => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [attendeeModalOpen, setAttendeeModalOpen] = useState(false);
   const [purhaseModalOpen, setPurhaseModalOpen] = useState(false);
+  const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
@@ -56,6 +58,13 @@ const EventView = () => {
 
   const closePurchaseModal = () => {
     setPurhaseModalOpen(false);
+  };
+  const openTicketModal = () => {
+    setTicketModalOpen(true);
+  };
+
+  const closeTicketModal = () => {
+    setTicketModalOpen(false);
   };
 
   const openAttendeeModal = () => {
@@ -309,12 +318,10 @@ const EventView = () => {
                       />
                       <p className="text-lg font-semibold">{user.name}</p>
                     </div>
-                    <Link to="/my-tickets">
-                      <button className="border border-orange-400 hover:bg-orange-100 dark:hover:bg-orange-800/30 hover:border-orange-300 hover:text-orange-800 dark:hover:text-orange-300 rounded-lg px-4 py-3 text-sm text-orange-700 dark:text-orange-300 flex gap-2">
+                      <button onClick={openTicketModal} className="border border-orange-400 hover:bg-orange-100 dark:hover:bg-orange-800/30 hover:border-orange-300 hover:text-orange-800 dark:hover:text-orange-300 rounded-lg px-4 py-3 text-sm text-orange-700 dark:text-orange-300 flex gap-2">
                         <TbTicket size={20} />
                         My Ticket
                       </button>
-                    </Link>
                   </div>
                   <p className="text-md text-gray-600 dark:text-zinc-400">
                     A confirmation email has been sent to {user.email}
@@ -328,7 +335,9 @@ const EventView = () => {
               <h3 className="text-sm font-semibold text-gray-500 dark:text-zinc-400">
                 About the Event
               </h3>
-              <p className="text-base">{eventDetails.description}</p>
+              <section className="prose dark:prose-invert max-w-none text-gray-600 dark:text-zinc-400">
+                  <div dangerouslySetInnerHTML={{ __html: eventDetails.description }} />
+                </section>
             </div>
           </div>
         </div>
@@ -351,6 +360,14 @@ const EventView = () => {
       {purhaseModalOpen && (
         <PurchaseTicketModal
           onClose={closePurchaseModal}
+          tickets={eventDetails.ticketTypes}
+          event={eventDetails}
+          user={user}
+        />
+      )}
+      {ticketModalOpen && (
+        <Ticket
+          onClose={closeTicketModal}
           tickets={eventDetails.ticketTypes}
           event={eventDetails}
           user={user}

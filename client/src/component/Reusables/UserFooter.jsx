@@ -11,19 +11,21 @@ const UserFooter = () => {
       <footer className="flex items-center justify-between px-4 sm:px-6 md:px-10 py-3 sm:py-4 transition-all duration-500">
         {/* Left Section */}
         <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300 text-sm sm:text-base font-medium">
-          <span className="text-orange-600 dark:text-orange-400 font-semibold text-base">
-            Ticketeer
-          </span>
+          <Link to="/">
+            <span className="text-orange-600 dark:text-orange-400 font-semibold text-base">
+              Ticketeer
+            </span>
+          </Link>
           <span>&copy; {getCurrentYear()}</span>
         </div>
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
           <Link
-            to="/reviews"
+            to="/"
             className="text-sm sm:text-base text-zinc-700 dark:text-zinc-300 hover:text-orange-600 dark:hover:text-orange-400 transition"
           >
-            Reviews
+            Home
           </Link>
           {/* Add more footer links here later */}
         </div>

@@ -37,9 +37,36 @@ export default {
         xl: "1280px",
       },
       animation: {
+        fadeIn: "fadeIn 0.6s ease-in-out",
+      },
+      keyframes: {
+        fadeIn: {
+          from: { opacity: 0, transform: "translateY(20px)" },
+          to: { opacity: 1, transform: "translateY(0)" },
+        },
+      },
+      keyframes: {
+        'fade-in-up': {
+          '0%': { opacity: 0, transform: 'translateY(10px) scale(0.95)' },
+          '100%': { opacity: 1, transform: 'translateY(0) scale(1)' },
+        },
+      },
+      animation: {
+        'fade-in-up': 'fade-in-up 0.3s ease-out',
+      },
+      animation: {
         pop: "popIn 0.4s ease-out",
         "bounce-slow": "bounceSlow 2.2s infinite",
         "pulse-glow": "glowPulse 2.5s ease-in-out infinite",
+      },
+      keyframes: {
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(4px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-in': 'fade-in 0.3s ease-out',
       },
       keyframes: {
         popIn: {
@@ -107,5 +134,8 @@ export default {
       },
     },
   },
-  plugins: [require("tailwind-scrollbar-hide")],
+  plugins: [
+    require("tailwind-scrollbar-hide"),
+    require("@tailwindcss/typography")
+  ],  
 };

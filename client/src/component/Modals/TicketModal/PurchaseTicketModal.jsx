@@ -5,6 +5,7 @@ import Loader from "../../Spinners/Loader";
 import { loadStripe } from "@stripe/stripe-js";
 import ConfettiEffect from "../../Layouts/ConfettiEffect";
 import UsingHooks from "../../../UsingHooks";
+import PaystackCheckout from "../../../PaystackCheckout";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -23,41 +24,6 @@ const PurchaseTicketModal = ({ onClose, tickets, event, user }) => {
   const total = ticket.price + fee;
 
   console.log({ticket})
-
-  const handleStripeCheckout = async () => {
-    try {
-      const res = await axios.post(
-        `${SERVER_URL}/payments/create-checkout-session`,
-        {
-          ticket,
-          userEmail: user.email,
-          eventId: event._id,
-          ticketTypeId: ticket._id,
-          userId: user._id,
-        },
-        { withCredentials: true }
-      );
-
-      const { sessionId } = res.data;
-      const stripe = await stripePromise;
-      if (!stripe) {
-        console.error("Stripe failed to load.");
-        return;
-      }
-
-      if (stripe) {
-        const result = await stripe.redirectToCheckout({ sessionId });
-        if (result.error) {
-          console.log("Stripe Checkout error:", result.error.message);
-        }
-      }
-    } catch (error) {
-      console.error("Checkout error: ", error);
-      if (error.response) {
-        console.log("Error Response:", error.response.data);
-      }
-    }
-  };
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 px-4 sm:px-6 md:px-10 animate-fadeIn">
@@ -95,13 +61,13 @@ const PurchaseTicketModal = ({ onClose, tickets, event, user }) => {
                     <input
                       type="radio"
                       name="payment"
-                      value="stripe"
+                      value="paystack"
                       className="text-2xl cursor-pointer"
                       onChange={(e) => setSelectedPayment(e.target.value)}
-                      checked={selectedPayment === "stripe"}
+                      checked={selectedPayment === "paystack"}
                     />
                     <label className="text-sm sm:text-base">
-                      Pay with Stripe
+                      Pay with Paystack
                     </label>
                   </div>
 
@@ -123,19 +89,8 @@ const PurchaseTicketModal = ({ onClose, tickets, event, user }) => {
                     <UsingHooks user={user} event={event}/>
                   )}
 
-                  {selectedPayment === "stripe" && (
-                    <div className="pt-4">
-                      <button
-                        onClick={handleStripeCheckout}
-                        className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 sm:px-10 rounded-full transition-all duration-300"
-                        // disabled={loading}
-                      >
-                        {/* {loading
-                          ? "Redirecting..."
-                          : `Pay $${total.toFixed(2)}`} */}
-                        Pay ₦{total.toFixed(2)}
-                      </button>
-                    </div>
+                  {selectedPayment === "paystack" && (
+                    <PaystackCheckout user={user} event={event}/>
                   )}
                 </div>
 

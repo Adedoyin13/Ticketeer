@@ -222,22 +222,24 @@ const EventDetails = () => {
         })
       ).unwrap();
 
-      // Assuming your backend returns the new image URL
       const newImageUrl = response?.image?.imageUrl;
 
       if (newImageUrl) {
-        setProfilePhoto(newImageUrl); // Update with actual URL
+        setProfilePhoto(newImageUrl);
         toast.success("Event image updated successfully!");
+
+        // ✅ Re-fetch updated event details instead of relying on reload
+        await dispatch(getEventDetails(eventId));
+
+        // ✅ Optionally still reload if you *need* a fresh page
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 3000);
       } else {
         toast.warn("Image uploaded, but URL not returned.");
       }
-
-      // const bustCacheUrl = `${newImageUrl}?t=${Date.now()}`;
-      // setProfilePhoto(bustCacheUrl);
     } catch (error) {
       toast.error("Failed to upload photo. Please try again.");
-    } finally {
-      window.location.reload();
     }
   };
 
@@ -299,6 +301,8 @@ const EventDetails = () => {
     });
   };
 
+  if (!eventDetails) return <Loader loading={true} />;
+
   return (
     <section className="bg-orange-50 dark:bg-zinc-900 py-24 md:py-28 font-inter text-gray-800 dark:text-zinc-100">
       <div className="flex flex-col px-4 sm:px-6 md:px-10 gap-6 max-w-7xl mx-auto">
@@ -314,21 +318,26 @@ const EventDetails = () => {
           <p className="text-3xl font-bold">{eventDetails.title}</p>
           {isUpcoming() ? (
             <div className="text-base text-gray-600 dark:text-zinc-300">
-              <div>
-                <p>
-                  {showFull || !isLong
-                    ? description
-                    : `${description.slice(0, 50)}...`}
-                </p>
-                {isLong && (
-                  <button
-                    onClick={toggleShow}
-                    className="text-orange-500 underline text-sm mt-1"
-                  >
-                    {showFull ? "See less" : "See more"}
-                  </button>
-                )}
-              </div>
+              {showFull ? (
+                <section className="prose dark:prose-invert max-w-none">
+                  <div dangerouslySetInnerHTML={{ __html: description }} />
+                </section>
+              ) : (
+                <div>
+                  <p className="text-sm text-slate-700 dark:text-slate-300">
+                    {description.replace(/<[^>]+>/g, "").slice(0, 120)}...
+                  </p>
+                </div>
+              )}
+
+              {isLong && (
+                <button
+                  onClick={toggleShow}
+                  className="text-orange-500 underline text-sm mt-1"
+                >
+                  {showFull ? "See less" : "See more"}
+                </button>
+              )}
 
               <p className="mt-1 text-sm font-medium text-primary/80">
                 {eventDetails.categories
@@ -349,7 +358,7 @@ const EventDetails = () => {
             <span className="text-red-500 font-bold">Canceled</span>
           )}
         </div>
-
+        {/* 
         {console.log({ eventDetails })}
 
         {user && eventDetails && (
@@ -357,7 +366,7 @@ const EventDetails = () => {
             <UsingHooks user={user} event={eventDetails} />
             <UsingComponent user={user} event={eventDetails} />
           </>
-        )}
+        )} */}
 
         <div className="flex flex-wrap gap-3 sm:gap-4">
           {[
@@ -644,6 +653,7 @@ const EventDetails = () => {
             <IoLinkOutline size={20} />
             <p className="text-sm sm:text-base break-words line-clamp-1">
               {CLIENT_URL}
+              {location.pathname}
             </p>
           </div>
           <button title="Copy link">

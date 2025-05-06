@@ -73,37 +73,45 @@ const MyEvents = () => {
     });
   }, [debouncedSearch, userEvents]);
 
+  const clearSearch = () => {
+    setSearchTerm("");
+  };
+
   if (loading.userEvents) return <Loader loading={loading.userEvents} />;
 
   return (
-    <section className="font-inter bg-orange-50 dark:bg-zinc-900 min-h-screen py-28 px-4 sm:px-6 md:px-10 lg:px-20">
-      {/* Search Bar */}
-      <div className="mb-6">
-        <div className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 shadow-sm rounded-xl p-3">
-          <div className="flex items-center gap-3">
-            <IoIosSearch
-              size={20}
-              className="text-gray-500 dark:text-zinc-400"
-            />
-            <div className="relative flex-grow">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full text-sm px-3 py-2 bg-transparent placeholder-gray-400 dark:placeholder-zinc-500 text-gray-800 dark:text-zinc-100 outline-none"
-                placeholder="Search by name, location, date, category, or time"
-              />
-              {searchTerm && (
-                <IoIosCloseCircle
-                  size={20}
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-red-500"
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+    <section className="font-inter bg-orange-50 dark:bg-zinc-900 min-h-screen py-28 px-4 sm:px-6 md:px-10 lg:px-20">      
+
+       <div className="border-b border-gray-200 dark:border-zinc-700">
+                <div className="bg-gradient-to-br from-orange-100 via-orange-50 to-white dark:from-orange-300/10 dark:via-orange-200/5 dark:to-zinc-900 p-1 rounded-2xl shadow-sm my-6">
+                  <div className="flex items-center w-full py-2.5 px-4 bg-white dark:bg-zinc-800 rounded-2xl shadow-inner">
+                    <form
+                      onSubmit={(e) => e.preventDefault()}
+                      className="relative w-full flex items-center"
+                    >
+                      <IoIosSearch
+                        size={22}
+                        className="text-gray-500 dark:text-zinc-400 absolute left-3"
+                      />
+                      <input
+                        type="text"
+                        className="pl-10 pr-9 py-2 w-full bg-transparent outline-none text-sm text-gray-700 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 rounded-md transition"
+                        placeholder="Search by event name, location, date, or category"
+                        name="search"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                      {searchTerm && (
+                        <IoIosCloseCircle
+                          size={20}
+                          onClick={clearSearch}
+                          className="absolute right-3 text-gray-500 dark:text-zinc-400 hover:text-orange-400 cursor-pointer transition"
+                        />
+                      )}
+                    </form>
+                  </div>
+                </div>
+              </div>
 
       {/* Events Table */}
       <div className="overflow-x-auto bg-white dark:bg-zinc-800 shadow-md rounded-xl border border-gray-200 dark:border-zinc-700">

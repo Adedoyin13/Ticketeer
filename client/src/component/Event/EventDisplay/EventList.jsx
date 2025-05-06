@@ -133,7 +133,7 @@ const EventList = ({ events }) => {
                       className="px-5 py-4 whitespace-nowrap cursor-pointer"
                     >
                       {isLiked ? (
-                        <FaHeart className="text-red-500 text-2xl transition" />
+                        <FaHeart className="text-orange-500 text-2xl transition" />
                       ) : (
                         <FaRegHeart className="text-gray-400 text-2xl transition" />
                       )}

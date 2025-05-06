@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import Loader from "../../Spinners/Loader";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import EventDescriptionEditor from "../../Event/EventDescripionInput";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -172,6 +173,10 @@ const EditEventModal = ({ event, onClose }) => {
     }));
   };
 
+  const handleDescriptionChange = (value) => {
+    setFormData((prev) => ({ ...prev, description: value }));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -207,13 +212,16 @@ const EditEventModal = ({ event, onClose }) => {
 
     const formattedData = {
       ...formData,
-      location: [
-        formData.location.address,
-        formData.location.country,
-        formData.location.state,
-        formData.location.city,
-        formData.location.venueName,
-      ],
+      location:
+        formData.eventType === "physical"
+          ? [
+              formData.location.address,
+              formData.location.country,
+              formData.location.state,
+              formData.location.city,
+              formData.location.venueName,
+            ]
+          : [], // virtual event → no location required
     };
 
     console.log("Submitting data:", formattedData);
@@ -222,6 +230,7 @@ const EditEventModal = ({ event, onClose }) => {
       await dispatch(
         updateEvent({ eventId: event._id, updatedData: formattedData })
       ).unwrap();
+
       toast.success("Event updated successfully!");
     } catch (error) {
       console.error("Update failed:", error);
@@ -450,18 +459,17 @@ const EditEventModal = ({ event, onClose }) => {
                 </div>
               )}
             </div>
+
             <div>
               <label className="block mb-1 text-sm font-medium">
                 Description
               </label>
-              <textarea
-                name="description"
+              <EventDescriptionEditor
                 value={formData.description}
-                onChange={handleChange}
-                rows={4}
-                className="w-full border px-3 py-2 rounded-md bg-white dark:bg-zinc-800"
+                onChange={handleDescriptionChange}
               />
             </div>
+
             <div>
               <label className="block mb-1 text-sm font-medium">
                 Event Capacity

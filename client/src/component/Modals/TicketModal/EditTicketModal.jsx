@@ -23,8 +23,8 @@ const EditTicketModal = ({ onClose, event, ticketType }) => {
     description: "",
   });
 
-  console.log(event)
-  console.log(ticketType)
+  console.log(event);
+  console.log(ticketType);
 
   useEffect(() => {
     if (ticket) {
@@ -48,26 +48,16 @@ const EditTicketModal = ({ onClose, event, ticketType }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // await dispatch(
-      //   updateTicketType({
-      //     eventId,
-      //     ticketId: ticket._id,
-      //     ticketData,
-      //   })
-      // ).unwrap();
-      console.log("eventId being sent to backend:", event?._id);
-      console.log("eventId being sent to backend:", ticketType?._id);
-      console.log("eventId being sent to backend:", ticketData);
       await dispatch(
         updateTicketType({
           ticketId: ticketType._id,
-          ticketData: {
+          updatedTicketData: {
             ...ticketData,
             eventId: eventId, // include eventId in the body!
           },
         })
       ).unwrap();
-      
+
       toast.success("Ticket updated successfully");
     } catch (error) {
       console.log(error);
@@ -102,7 +92,10 @@ const EditTicketModal = ({ onClose, event, ticketType }) => {
           <form className="flex flex-col gap-5 text-sm" onSubmit={handleSubmit}>
             {/* Ticket Type */}
             <div className="flex flex-col gap-1">
-              <label htmlFor="type" className="font-medium text-gray-700 dark:text-zinc-200">
+              <label
+                htmlFor="type"
+                className="font-medium text-gray-700 dark:text-zinc-200"
+              >
                 Ticket Type
               </label>
               <input
@@ -118,7 +111,10 @@ const EditTicketModal = ({ onClose, event, ticketType }) => {
 
             {/* Price */}
             <div className="flex flex-col gap-1">
-              <label htmlFor="price" className="font-medium text-gray-700 dark:text-zinc-200">
+              <label
+                htmlFor="price"
+                className="font-medium text-gray-700 dark:text-zinc-200"
+              >
                 Price
               </label>
               <input
@@ -133,7 +129,10 @@ const EditTicketModal = ({ onClose, event, ticketType }) => {
 
             {/* Quantity */}
             <div className="flex flex-col gap-1">
-              <label htmlFor="totalQuantity" className="font-medium text-gray-700 dark:text-zinc-200">
+              <label
+                htmlFor="totalQuantity"
+                className="font-medium text-gray-700 dark:text-zinc-200"
+              >
                 Quantity
               </label>
               <input
@@ -148,8 +147,14 @@ const EditTicketModal = ({ onClose, event, ticketType }) => {
 
             {/* Description */}
             <div className="flex flex-col gap-1">
-              <label htmlFor="description" className="font-medium text-gray-700 dark:text-zinc-200">
-                Description <span className="text-gray-400 dark:text-zinc-400">(optional)</span>
+              <label
+                htmlFor="description"
+                className="font-medium text-gray-700 dark:text-zinc-200"
+              >
+                Description{" "}
+                <span className="text-gray-400 dark:text-zinc-400">
+                  (optional)
+                </span>
               </label>
               <textarea
                 id="description"

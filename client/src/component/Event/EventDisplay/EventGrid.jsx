@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import image from "./../../../assets/event-image.png";
-import { getUpcomingEvents } from "../../../redux/reducers/eventSlice";
+import { getUpcomingEvents, toggleLike } from "../../../redux/reducers/eventSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import Loader from "../../Spinners/Loader";
@@ -33,12 +33,9 @@ const EventGrid = ({ events }) => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
-  // const { upcomingEvents, loading, error } = useSelector(
-  //   (state) => state.events
-  // );
-  const { loading, error } = useSelector((state) => state.events);
 
-  // console.log(upcomingEvents);
+  const { loading, error } = useSelector((state) => state.events);
+  const currentUserId = useSelector((state) => state.user.user._id);
 
   useEffect(() => {
     dispatch(getUpcomingEvents()); // Fetch user events on component mount
@@ -55,20 +52,25 @@ const EventGrid = ({ events }) => {
     });
   };
 
-  // import { Heart } from "lucide-react"; // or any icon library you're using
+   const handleToggleLike = (eventId, e) => {
+      e.stopPropagation();
+      dispatch(toggleLike(eventId));
+    };
+
   return (
     // Inside your component
     <section className="w-full px-4 sm:px-6 md:px-10 font-inter mt-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {events.map((event, index) => {
+          const isLiked = event.likedUsers?.some(
+            (user) => user._id === currentUserId
+          );
           return (
-            
             <div
               key={index}
               onClick={() => handleNavigate(event._id)}
               className="relative h-[220px] rounded-2xl overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg transition duration-300"
             >
-              
               {/* Background image */}
               <div
                 className="absolute inset-0 bg-cover bg-center"
@@ -84,17 +86,14 @@ const EventGrid = ({ events }) => {
 
               {/* Heart Icon */}
               <div
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent card click
-                  toggleLike(event._id);
-                }}
-                className="absolute top-3 right-3 z-20 bg-white dark:bg-zinc-800 bg-opacity-70 dark:bg-opacity-70 rounded-full p-1 hover:bg-opacity-90 transition"
+                onClick={(e) => handleToggleLike(event._id, e)}
+                className="absolute top-3 right-3 z-20 dark:bg-zinc-800 bg-opacity-70 dark:bg-opacity-70 rounded-full p-1 hover:bg-opacity-90 transition"
               >
-                {/* {isLiked ? (
-                  <FaHeart className="text-red-500 text-2xl transition" />
+                {isLiked ? (
+                  <FaHeart className="text-orange-500 text-2xl transition" />
                 ) : (
                   <FaRegHeart className="text-gray-400 text-2xl transition" />
-                )} */}
+                )}
               </div>
 
               {/* Content */}

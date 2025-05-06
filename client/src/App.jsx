@@ -52,6 +52,9 @@ import PaymentSuccess from "./component/Modals/TicketModal/PaymentSuccess";
 import PaymentCancel from "./component/Modals/TicketModal/PaymentCancel";
 import ConnectWallet from "./component/Wallet/ConnectWallet";
 import UsingHooks from "./UsingHooks";
+import EventDescriptionInput from "./component/Event/EventDescripionInput";
+import PaystackHook from "./PaystackHook";
+import PaystackCheckout from "./PaystackCheckout";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -156,6 +159,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/connect-wallet" element={<ConnectWallet />} />
+        <Route path="/paystack" element={<PaystackHook />} />
+        <Route path="/paystack-checkout" element={<PaystackCheckout />} />
 
         {/* Protected Routes */}
         <Route
@@ -164,6 +169,16 @@ function App() {
             <ProtectedRoute>
               <UserLayout>
                 <Dashboard />
+              </UserLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/description"
+          element={
+            <ProtectedRoute>
+              <UserLayout>
+                <EventDescriptionInput />
               </UserLayout>
             </ProtectedRoute>
           }

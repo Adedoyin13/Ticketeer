@@ -7,7 +7,7 @@ import { getUserTickets } from "../../redux/reducers/eventSlice";
 import Loader from "../Spinners/Loader";
 import { toast } from "react-toastify";
 import { IoIosSearch } from "react-icons/io";
-import { IoIosCloseCircle } from "react-icons/io";  // Import the clear icon
+import { IoIosCloseCircle } from "react-icons/io"; // Import the clear icon
 
 const formatTime = (timeString) => {
   const [hours, minutes] = timeString.split(":");
@@ -68,33 +68,35 @@ const MyTickets = () => {
   };
 
   return (
-    <section className="mt-6 py-10 md:py-28 px-4 md:px-16 lg:px-20 bg-orange-100 dark:bg-zinc-900 min-h-screen font-inter">
+    <section className="mt-6 py-10 md:py-20 px-4 md:px-16 lg:px-20 bg-orange-100 dark:bg-zinc-900 min-h-screen font-inter">
       <div className="flex flex-col gap-8">
-        {/* Search Input */}
-        <div className="mb-6">
-          <div className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 shadow-sm rounded-xl p-3">
-            <div className="flex items-center gap-3">
-              <IoIosSearch
-                size={20}
-                className="text-gray-500 dark:text-zinc-400"
-              />
-              <div className="relative flex-grow">
+        <div className="border-b border-gray-200 dark:border-zinc-700">
+          <div className="bg-gradient-to-br from-orange-100 via-orange-50 to-white dark:from-orange-300/10 dark:via-orange-200/5 dark:to-zinc-900 p-1 rounded-2xl shadow-sm my-6">
+            <div className="flex items-center w-full py-2.5 px-4 bg-white dark:bg-zinc-800 rounded-2xl shadow-inner">
+              <form
+                onSubmit={(e) => e.preventDefault()}
+                className="relative w-full flex items-center"
+              >
+                <IoIosSearch
+                  size={22}
+                  className="text-gray-500 dark:text-zinc-400 absolute left-3"
+                />
                 <input
                   type="text"
+                  className="pl-10 pr-9 py-2 w-full bg-transparent outline-none text-sm text-gray-700 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 rounded-md transition"
+                  placeholder="Search by event name, location, date, or category"
+                  name="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full text-sm px-3 py-2 bg-transparent placeholder-gray-400 dark:placeholder-zinc-500 text-gray-800 dark:text-zinc-100 outline-none"
-                  placeholder="Search by name, location, date, category, or time"
                 />
-                {/* Clear button */}
                 {searchQuery && (
                   <IoIosCloseCircle
                     size={20}
                     onClick={clearSearch}
-                    className="absolute right-3 top-2.5 text-gray-500 dark:text-zinc-400 cursor-pointer"
+                    className="absolute right-3 text-gray-500 dark:text-zinc-400 hover:text-orange-400 cursor-pointer transition"
                   />
                 )}
-              </div>
+              </form>
             </div>
           </div>
         </div>
@@ -175,7 +177,7 @@ const MyTickets = () => {
 
                   <button
                     onClick={() => handleNavigate(upcoming?.eventId?._id)}
-                    className="mt-3 w-fit px-6 py-2 rounded-full bg-zinc-700 hover:bg-zinc-800 text-white text-sm font-medium transition"
+                    className="mt-3 w-fit px-6 py-2 rounded-full bg-zinc-700 dark:bg-orange-500 dark:hover:bg-orange-600 hover:bg-zinc-800 text-white text-sm font-medium transition"
                   >
                     View Details
                   </button>
@@ -184,7 +186,9 @@ const MyTickets = () => {
                 {/* Event Image */}
                 <div className="w-full sm:w-full lg:w-[260px] h-[180px] rounded-xl overflow-hidden shadow-md">
                   <img
-                    src={upcoming?.eventId?.image.imageUrl || "/default-image.png"}
+                    src={
+                      upcoming?.eventId?.image.imageUrl || "/default-image.png"
+                    }
                     alt="Event"
                     className="w-full h-full object-cover"
                   />

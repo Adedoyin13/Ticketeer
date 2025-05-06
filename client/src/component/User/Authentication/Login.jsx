@@ -123,7 +123,14 @@ const Login = () => {
                 className="py-3 px-6 w-full md:w-2/3 font-semibold rounded-full transition-all duration-300 text-white bg-orange-500 hover:bg-orange-600 focus:ring-4 focus:ring-orange-300"
                 disabled={loading.login}
               >
-                {loading.login ? "Logging in..." : "Login"}
+                {loading.login ? (
+                  <>
+                    <Loader />
+                    Logging in...
+                  </>
+                ) : (
+                  "Login"
+                )}
               </button>
 
               <p className="font-bold text-sm text-gray-500 dark:text-gray-300">

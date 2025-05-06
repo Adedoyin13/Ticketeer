@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import EventDescriptionEditor from "./EventDescripionInput";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -29,6 +30,7 @@ const CreateEvent = () => {
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
 
   const navigate = useNavigate();
 
@@ -81,6 +83,10 @@ const CreateEvent = () => {
 
       return newData;
     });
+  };
+
+  const handleDescriptionChange = (value) => {
+    setEventData((prev) => ({ ...prev, description: value }));
   };
 
   const handleEventTypeChange = (e) => {
@@ -145,6 +151,11 @@ const CreateEvent = () => {
 
     const finalData = cleanEventData(eventData); // Ensure location is an array
     console.log("Submitting cleaned data:", finalData);
+
+    if (!eventData.description || eventData.description === "<p><br></p>") {
+      alert("Description is required");
+      return;
+    }
 
     setIsSubmitting(true);
     setLoading(true);
@@ -393,19 +404,28 @@ const CreateEvent = () => {
               </div>
             )}
 
+            <button
+              type="button"
+              onClick={() => setShowPreview((prev) => !prev)}
+              className="mb-2 text-sm font-medium text-orange-600 hover:underline dark:text-orange-400"
+            >
+              {showPreview ? "Edit Description" : "Preview Description"}
+            </button>
+
+            <section className="prose dark:prose-invert max-w-none">
+              <div
+                dangerouslySetInnerHTML={{ __html: eventData.description }}
+              />
+            </section>
+
             {/* Description & Guest Limit */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
                 Description
               </label>
-              <textarea
-                name="description"
+              <EventDescriptionEditor
                 value={eventData.description}
-                onChange={handleInputChange}
-                rows="4"
-                className="w-full bg-orange-50 dark:bg-zinc-800 dark:text-zinc-300 border border-orange-300 dark:border-zinc-600 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"
-                placeholder="What is this event about?"
-                required
+                onChange={handleDescriptionChange}
               />
             </div>
 

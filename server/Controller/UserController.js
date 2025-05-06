@@ -236,7 +236,7 @@ const googleLogin = asyncHandler(async (req, res) => {
     const jwtToken = jwt.sign(
       { id: user._id, email: user.email },
       process.env.ACCESS_TOKEN,
-      { expiresIn: "1d" }
+      { expiresIn: "7d" }
     );
 
     // Set token cookie

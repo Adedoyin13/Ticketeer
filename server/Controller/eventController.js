@@ -224,15 +224,14 @@ const createTicket = asyncHandler(async (req, res) => {
       });
     }
 
-    // 🔒 Enforce uniqueness of type per event
-    const existingType = await TicketType.findOne({
+    // 🔒 Enforce only ONE ticket type per event
+    const existingTicketType = await TicketType.findOne({
       eventId: eventObjectId,
-      type: type.trim(),
     });
 
-    if (existingType) {
+    if (existingTicketType) {
       return res.status(400).json({
-        message: `Ticket type "${type}" already exists for this event.`,
+        message: "Only one ticket type can be created per event.",
       });
     }
 
@@ -268,7 +267,7 @@ const createTicket = asyncHandler(async (req, res) => {
 
     await ticketType.save();
 
-    // ✅ Now you can call this safely
+    // ✅ Check and update status
     await checkAndUpdateTicketStatus(ticketType);
 
     // 🔄 Link to event
@@ -282,7 +281,7 @@ const createTicket = asyncHandler(async (req, res) => {
 
     await event.save();
 
-    // 📧 Email Notification (optional)
+    // 📧 Email Notification
     if (req.user) {
       const { name, email } = req.user;
 
@@ -295,7 +294,7 @@ const createTicket = asyncHandler(async (req, res) => {
         totalQuantity: ticketType.totalQuantity,
         ticketTypeId: ticketType._id,
         createdAt: ticketType.createdAt,
-        eventId: event._id, // ✅ Add this
+        eventId: event._id,
       };
 
       await sendCreateTicketMail(mailData);

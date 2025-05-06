@@ -54,15 +54,19 @@ export default function UsingHooks({ user, event }) {
 
               console.log({ res });
               toast.success("Payment Successful!");
-              navigate("/payment-success");
+              navigate("/payment-success", {
+                state: {
+                  ticket,
+                  event,
+                },
+              });
             } catch (error) {
               toast.error(error || "Payment failed!");
               console.log("error:", error);
               navigate("/payment-failed");
             }
           },
-          onClose: () => {
-          },
+          onClose: () => {},
         });
       }}
     >
