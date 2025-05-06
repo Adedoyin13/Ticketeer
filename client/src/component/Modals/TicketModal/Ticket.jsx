@@ -3,6 +3,7 @@ import { IoIosCloseCircle } from "react-icons/io";
 
 const Ticket = ({ event, onClose }) => {
   const ticket = event && event?.ticketTypes[0];
+  console.log(ticket)
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-end px-4 py-8">

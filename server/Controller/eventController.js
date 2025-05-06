@@ -445,7 +445,6 @@ const purchaseTicketLogic = async ({
   }
 };
 
-
 const purchaseTicket = asyncHandler(async (req, res) => {
   try {
     const { eventId, ticketTypeId } = req.body;
@@ -1156,6 +1155,10 @@ const getEvent = asyncHandler(async (req, res) => {
       )
       .populate(
         "tickets",
+        "userId eventId qrCode purchaseDate ticketTypeId availableQuantity ticketQuantity soldQuantity"
+      )
+      .populate(
+        "ticket",
         "userId eventId qrCode purchaseDate ticketTypeId availableQuantity ticketQuantity soldQuantity"
       );
 
