@@ -319,10 +319,6 @@ const purchaseTicketLogic = async ({
   userId,
   reqUser,
 }) => {
-  console.log("Event ID from request body:", eventId);
-  console.log("Ticket Type ID from request body:", ticketTypeId);
-  console.log("User ID from request body:", userId);
-
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -339,14 +335,10 @@ const purchaseTicketLogic = async ({
     }
 
     const user = await User.findById(userId).session(session);
-    if (!user) {
-      throw new Error("User not found");
-    }
+    if (!user) throw new Error("User not found");
 
     const event = await Event.findById(eventId).session(session);
-    if (!event) {
-      throw new Error("Event not found");
-    }
+    if (!event) throw new Error("Event not found");
 
     const now = new Date();
     const datePart = new Date(event.startDate).toISOString().split("T")[0];
@@ -368,9 +360,7 @@ const purchaseTicketLogic = async ({
       _id: ticketTypeId,
       eventId,
     }).session(session);
-    if (!ticketType) {
-      throw new Error("Ticket type not found");
-    }
+    if (!ticketType) throw new Error("Ticket type not found");
 
     if (
       ticketType.availableQuantity <= 0 ||
@@ -388,21 +378,35 @@ const purchaseTicketLogic = async ({
     }
     await ticketType.save({ session });
 
-    // Create ticket
+    // Step 1: Create ticket (initially without QR)
     const ticket = new Ticket({
       userId,
       eventId,
       ticketTypeId,
-      qrCode: `${userId}-${eventId}-${ticketTypeId}-${Date.now()}`,
       status: "active",
       purchaseDate: new Date(),
     });
+
+    // Step 2: Prepare payload for QR code
+    const qrPayload = JSON.stringify({
+      ticketId: ticket._id.toString(),
+      userId,
+      eventId,
+    });
+
+    // Step 3: Generate QR code image (base64 string)
+    const qrCodeDataURL = await QRCode.toDataURL(qrPayload);
+
+    // Step 4: Attach to ticket and save
+    ticket.qrCode = qrCodeDataURL;
     await ticket.save({ session });
 
+    // Attach ticket to user
     user.ticket = user.ticket || [];
     user.ticket.push(ticket._id);
     await user.save({ session });
 
+    // Add user to event attendees
     await Event.findByIdAndUpdate(
       eventId,
       { $addToSet: { attendees: userId } },
@@ -430,7 +434,7 @@ const purchaseTicketLogic = async ({
       };
 
       await sendCreateTicketMail(mailData);
-      console.log("Email sent successfully");
+      console.log("Ticket Purchase Email sent successfully");
     }
 
     return { success: true, message: "Ticket purchased successfully", ticket };
@@ -440,6 +444,7 @@ const purchaseTicketLogic = async ({
     throw error;
   }
 };
+
 
 const purchaseTicket = asyncHandler(async (req, res) => {
   try {

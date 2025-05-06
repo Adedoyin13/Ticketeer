@@ -87,7 +87,7 @@ const ProfileModal = ({ onClose, isOpen }) => {
           })}
         </div>
         <div>
-            <ConnectWallet/>
+            {/* <ConnectWallet/> */}
           </div>
       </div>
     </div>

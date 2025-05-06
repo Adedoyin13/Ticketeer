@@ -40,7 +40,7 @@ const PaystackCheckout = ({ event, user }) => {
       }
     } catch (error) {
       console.error("Verification error:", error);
-      alert("Server error during verification.");
+      toast.error("Server error during verification.");
     }
   };
 
