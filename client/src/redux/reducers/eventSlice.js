@@ -159,6 +159,26 @@ export const getUserTickets = createAsyncThunk(
   }
 );
 
+export const getTicket = createAsyncThunk(
+  "events/getTicket",
+  async (ticketId, { rejectWithValue }) => {
+    console.log("🔹 Redux Action: get ticket called with ID:", ticketId);
+    try {
+      const response = await api.get(`/event/getTicket/${ticketId}`, {
+        withCredentials: true,
+      });
+      console.log({ data: response.data });
+      return response.data;
+    } catch (error) {
+      console.log(
+        "❌ Error fetching event:",
+        error.response?.data || error.message
+      );
+      return rejectWithValue(error.response?.data || "Failed to fetch event");
+    }
+  }
+);
+
 export const updateEvent = createAsyncThunk(
   "events/updateEvent",
   async ({ eventId, updatedData }, { rejectWithValue }) => {
@@ -300,18 +320,19 @@ export const toggleLike = createAsyncThunk(
   async (eventId, { rejectWithValue }) => {
     try {
       const response = await api.put(`/event/like/${eventId}`);
-      console.log(response.data)
+      console.log(response.data);
       return response.data.event; // return the updated event
     } catch (error) {
       return rejectWithValue(error.response.data.message);
     }
   }
-)
+);
 
 const initialState = {
   events: [],
   userEvents: [],
   eventDetails: {},
+  ticket: {},
   upcomingEvents: [],
   cancelledEvents: [],
   userTickets: [],
@@ -326,6 +347,7 @@ const initialState = {
     userTickets: false,
     updateEvent: false,
     updateTicketType: false,
+    ticket: false,
     upcomingEvents: false,
     userUpcomingEvents: false,
     deleteEvent: false,
@@ -369,12 +391,14 @@ const eventSlice = createSlice({
       })
       .addCase(toggleLike.fulfilled, (state, action) => {
         const updatedEvent = action.payload;
-        console.log('Action payload', action.payload)
-        const index = state.upcomingEvents.findIndex(e => e._id === updatedEvent._id);
+        console.log("Action payload", action.payload);
+        const index = state.upcomingEvents.findIndex(
+          (e) => e._id === updatedEvent._id
+        );
         if (index !== -1) {
           state.upcomingEvents[index] = updatedEvent;
         }
-        console.log('Index', index)
+        console.log("Index", index);
         // Optionally also update currentEvent if it's the same one
         if (state.currentEvent && state.currentEvent._id === updatedEvent._id) {
           state.currentEvent = updatedEvent;
@@ -490,6 +514,21 @@ const eventSlice = createSlice({
       })
       .addCase(getEventDetails.rejected, (state, action) => {
         state.loading.eventDetails = false;
+        state.error = action.payload;
+        console.log("Error fetching event:", action.payload);
+      })
+
+      .addCase(getTicket.pending, (state) => {
+        state.loading.ticket = true;
+        state.error = null;
+      })
+      .addCase(getTicket.fulfilled, (state, action) => {
+        console.log("Event fetched successfully:", action.payload);
+        state.loading.ticket = false;
+        state.ticket = action.payload;
+      })
+      .addCase(getTicket.rejected, (state, action) => {
+        state.loading.ticket = false;
         state.error = action.payload;
         console.log("Error fetching event:", action.payload);
       })

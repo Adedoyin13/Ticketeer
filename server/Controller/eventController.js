@@ -495,6 +495,11 @@ const purchaseTicket = asyncHandler(async (req, res) => {
 const getTicket = asyncHandler(async (req, res) => {
   try {
     const { ticketId } = req.params;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
     if (!ticketId) {
       return res.status(400).json({ message: "Ticket ID is required" });
@@ -502,19 +507,28 @@ const getTicket = asyncHandler(async (req, res) => {
 
     console.log(ticketId);
 
-    const ticket = await Ticket.findById(ticketId)
+    const ticket = await Ticket.findById(userId, ticketId)
       .populate({
         path: "userId",
         select: "name email photo",
         populate: {
-          path: "photo", // Only if 'photo' is a reference field
+          path: "photo",
           select: "imageUrl cloudinaryId",
         },
       })
-      .populate(
-        "eventId",
-        "title description eventType meetLink category location startDate startTime"
-      )
+      .populate({
+        path: "eventId",
+        select:
+          "title startDate startTime endDate endTime location image organizer eventType meetLink limit",
+        populate: {
+          path: "organizer",
+          select: "name email photo",
+          populate: {
+            path: "photo",
+            select: "imageUrl cloudinaryId",
+          },
+        },
+      })
       .populate(
         "ticketTypeId",
         "type price description availableQuantity totalQuantity ticketQuantity"
@@ -1171,6 +1185,34 @@ const getEvent = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: error.message });
   }
 });
+
+// const getTicket = async (req, res) => {
+//   try {
+//     const ticket = await Ticket.find({ userId: req.userId, ticketId: req.params.ticketId })
+//       .populate({
+//         path: "eventId",
+//         select:
+//           "title startDate startTime endDate endTime location image organizer eventType meetLink limit",
+//         populate: {
+//           path: "organizer",
+//           select: "name email photo",
+//           populate: {
+//             path: "photo",
+//             select: "imageUrl cloudinaryId",
+//           },
+//         },
+//       })
+//       .populate(
+//         "ticketTypeId",
+//         "type price availableQuantity totalQuantity soldQuantity"
+//       );
+
+//     res.status(200).json(ticket);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ success: false, message: "Server Error" });
+//   }
+// };
 
 const getMyTickets = async (req, res) => {
   try {

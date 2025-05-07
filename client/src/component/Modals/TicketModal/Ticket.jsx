@@ -1,9 +1,19 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { IoIosCloseCircle } from "react-icons/io";
+import { getTicket } from "../../../redux/reducers/eventSlice";
+import { useDispatch, useSelector } from "react-redux";
 
-const Ticket = ({ event, onClose }) => {
-  const ticket = event && event?.ticketTypes[0];
-  console.log(ticket)
+const Ticket = ({ event, onClose, ticket }) => {
+  const dispatch = useDispatch();
+  const {user, isAuthenticated} = useSelector((state) => state.user)
+  const ticketType = event && event?.ticketTypes[0];
+  console.log(ticket);
+
+  useEffect(() => {
+    if(user && isAuthenticated) {
+      dispatch(getTicket(ticket?._id))
+    }
+  })
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-end px-4 py-8">
@@ -77,24 +87,25 @@ const Ticket = ({ event, onClose }) => {
         {/* Ticket Details */}
         <div className="space-y-2 text-sm sm:text-base text-slate-700 dark:text-zinc-300">
           <p>
-            <span className="font-semibold">Ticket Type:</span> {ticket.type}
+            <span className="font-semibold">Ticket Type:</span>{" "}
+            {ticketType.type}
           </p>
           <p>
-            <span className="font-semibold">Price:</span> ${ticket.price}
+            <span className="font-semibold">Price:</span> ${ticketType.price}
           </p>
           <p>
-            <span className="font-semibold">Ticket ID:</span> #{ticket._id}
+            <span className="font-semibold">Ticket ID:</span> #{ticketType?._id}
           </p>
           <p>
             <span className="font-semibold">Purchase Date:</span>{" "}
-            {ticket.purchaseDate}
+            {ticket?.purchaseDate}
           </p>
         </div>
 
         {/* QR Code or Badge */}
         <div className="flex justify-center mt-6">
           <img
-            src={ticket.qrCodeUrl || "/sample-qr.png"}
+            src={ticket?.qrCodeUrl || "/sample-qr.png"}
             alt="Ticket QR Code"
             className="w-32 h-32 border rounded-lg shadow-sm"
           />

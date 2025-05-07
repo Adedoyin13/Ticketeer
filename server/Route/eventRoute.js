@@ -53,16 +53,16 @@ router.patch("/uncancel/:eventId", protectUser, unCancelEvent);
 router.put("/like/:eventId", protectUser, likeEvent);
 router.put("/unlike/:eventId", protectUser, unlikeEvent);
 
-router.get("/upcoming-events", upcomingEvents);
+router.get("/upcoming-events", protectUser, upcomingEvents);
 router.get("/my/upcoming-events", protectUser, userUpcomingEvents);
-router.get("/my/past-events", protectUser, getUserPastEvents);
-router.get("/past-events", pastEvents);
-router.get("/trending-events", trendingEvents);
-router.get("/ticket/:id", getEventWithTicketById);
+router.get("/my/past-events", protectUser, protectUser, getUserPastEvents);
+router.get("/past-events", protectUser, pastEvents);
+router.get("/trending-events", protectUser, trendingEvents);
+router.get("/ticket/:id", protectUser, getEventWithTicketById);
 
 router.post("/buy-ticket/:eventId", protectUser, buyTicket);
-router.get("/organizer/:id", getOrganizerById);
-router.get("/tickets-sold/:eventId", getTicketsSold);
+router.get("/organizer/:id", protectUser, getOrganizerById);
+router.get("/tickets-sold/:eventId", protectUser, getTicketsSold);
 
 // Ticket routes
 router.post("/create-ticket/:eventId", protectUser, createTicket);

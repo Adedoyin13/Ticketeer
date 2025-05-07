@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import { getEventDetails } from "../../redux/reducers/eventSlice";
 import PurchaseTicketModal from "../Modals/TicketModal/PurchaseTicketModal";
 import Ticket from "../Modals/TicketModal/Ticket";
+import MyTickets from "../Ticket/MyTickets";
 
 const formatTime = (timeString) => {
   const [hours, minutes] = timeString.split(":");
@@ -34,7 +35,7 @@ const formatDate = (dateString) => {
   });
 };
 
-const EventView = () => {
+const EventView = ({ticket}) => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [attendeeModalOpen, setAttendeeModalOpen] = useState(false);
   const [purhaseModalOpen, setPurhaseModalOpen] = useState(false);
@@ -368,7 +369,7 @@ const EventView = () => {
       {ticketModalOpen && (
         <Ticket
           onClose={closeTicketModal}
-          tickets={eventDetails.ticketTypes}
+          ticket={ticket}
           event={eventDetails}
           user={user}
         />

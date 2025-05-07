@@ -7,7 +7,9 @@ import { getUserTickets } from "../../redux/reducers/eventSlice";
 import Loader from "../Spinners/Loader";
 import { toast } from "react-toastify";
 import { IoIosSearch } from "react-icons/io";
-import { IoIosCloseCircle } from "react-icons/io"; // Import the clear icon
+import { IoIosCloseCircle } from "react-icons/io";
+import Ticket from "../Modals/TicketModal/Ticket";
+import EventView from "../Event/EventView";
 
 const formatTime = (timeString) => {
   const [hours, minutes] = timeString.split(":");
@@ -30,13 +32,14 @@ const formatDate = (dateString) => {
   });
 };
 
-const MyTickets = () => {
+const MyTickets = ({ event, onClose }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
 
   const { user, isAuthenticated } = useSelector((state) => state.user);
   const { userTickets, loading, error } = useSelector((state) => state.events);
+  console.log({userTickets})
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -226,6 +229,9 @@ const MyTickets = () => {
             </div>
           </div>
         )}
+      </div>
+      <div className="hidden">
+        <EventView ticket={userTickets}/>
       </div>
     </section>
   );
