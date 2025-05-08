@@ -529,21 +529,25 @@ const getTicket = asyncHandler(async (req, res) => {
         "type price description availableQuantity totalQuantity ticketQuantity"
       );
 
-    const now = new Date();
-    const eventEnd = new Date(
-      `${ticket.eventId.endDate}T${ticket.eventId.endTime}`
-    );
-    const eventCancelled = ticket.eventId.canceled;
+      const now = new Date();
 
-    let computedStatus = "active";
-
-    if (eventCancelled) {
-      computedStatus = "cancelled";
-    } else if (now > eventEnd) {
-      computedStatus = ticket.status === "used" ? "used" : "passed";
-    } else {
-      computedStatus = "active";
-    }
+      // Extract date part (YYYY-MM-DD) from endDate
+      const datePart = new Date(ticket.eventId.endDate).toISOString().split("T")[0]; // "2025-04-18"
+      
+      // Combine with endTime to form a full datetime string (local time)
+      const combinedDateTimeString = `${datePart}T${ticket.eventId.endTime}:00`;
+      
+      // Parse combined datetime
+      const eventEndDateTime = new Date(combinedDateTimeString);
+      
+      // Status logic
+      let computedStatus = "active";
+      
+      if (ticket.eventId.isCancelled) {
+        computedStatus = "cancelled";
+      } else if (now > eventEndDateTime) {
+        computedStatus = ticket.status === "used" ? "used" : "passed";
+      }
 
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
