@@ -41,7 +41,7 @@ const TicketPage = () => {
     return toast.error(error);
   }
 
-  const { eventId, ticketTypeId, purchaseDate, status, qrCode } = ticket;
+  const { eventId, computedStatus, ticketTypeId, purchaseDate, status, qrCode } = ticket;
 
   return (
     <div className="flex justify-center items-center w-full min-h-screen bg-orange-50 dark:bg-zinc-950 px-4 py-8 font-inter">
@@ -93,7 +93,7 @@ const TicketPage = () => {
             )}
 
             <p>
-              <strong>Status:</strong> {status || "N/A"}
+              <strong>Status:</strong> {status || "N/A"} {computedStatus}
             </p>
 
             <p>

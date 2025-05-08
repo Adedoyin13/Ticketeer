@@ -502,10 +502,6 @@ const getTicket = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Ticket ID is required" });
     }
 
-    if (!ticket) {
-      return res.status(404).json({ message: "Ticket not found" });
-    }
-
     const ticket = await Ticket.findOne({ _id: ticketId, userId })
       .populate({
         path: "userId",
@@ -549,7 +545,10 @@ const getTicket = asyncHandler(async (req, res) => {
       computedStatus = "active";
     }
 
-    // Return computedStatus in the response:
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
     res.status(200).json({ ...ticket.toObject(), computedStatus });
 
     // res.status(200).json(ticket);
