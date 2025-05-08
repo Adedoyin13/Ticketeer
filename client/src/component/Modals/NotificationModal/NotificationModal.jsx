@@ -4,7 +4,7 @@ import { MdNotificationsOff } from "react-icons/md";
 import api from "../../../utils/api";
 
 const NotificationModal = ({ onClose }) => {
-  const [notifications, setNotifications] = useState();
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -13,6 +13,7 @@ const NotificationModal = ({ onClose }) => {
           withCredentials: true,
         });
         setNotifications(res.data);
+        console.log(res.data);
       } catch (err) {
         console.error("Failed to fetch notifications", err);
       }
@@ -20,6 +21,8 @@ const NotificationModal = ({ onClose }) => {
 
     fetchNotifications();
   }, []);
+
+  console.log({notifications})
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex justify-end z-50 font-inter">
