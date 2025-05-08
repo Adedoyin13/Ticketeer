@@ -40,18 +40,19 @@ const NotificationModal = ({ onClose }) => {
         {/* Notifications List */}
         <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-3 space-y-3 max-h-[70vh]">
           {Array.isArray(notifications) && notifications.length > 0 ? (
-            notifications.map(({ message, date }, index) => (
+            notifications.map((note, index) => (
               <div
                 key={index}
                 className="flex items-start gap-3 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl cursor-pointer shadow-sm hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
               >
                 <div className="flex-1">
                   <p className="text-sm text-zinc-800 dark:text-zinc-200">
-                    {message}
+                    {note.message}
                   </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  <span className="text-xs text-zinc-500 ml-2">{new Date(note.createdAt).toLocaleString()}</span>
+                  {/* <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                     {date}
-                  </p>
+                  </p> */}
                 </div>
                 <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-600 active:bg-orange-100 transition">
                   <IoClose
