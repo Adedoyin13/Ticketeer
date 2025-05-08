@@ -3,14 +3,17 @@ import { IoIosCloseCircle } from "react-icons/io";
 import { getTicket } from "../../../redux/reducers/eventSlice";
 import { useDispatch, useSelector } from "react-redux";
 
-const Ticket = ({ event, onClose, ticket }) => {
+const Ticket = ({ onClose, ticket }) => {
   const dispatch = useDispatch();
-  const {user, isAuthenticated} = useSelector((state) => state.user)
-  const ticketType = event && event?.ticketTypes[0];
-  console.log(ticket);
+  const {user} = useSelector((state) => state.user)
+  const tickets = useSelector((state) => state.events.ticket)
+  // const ticketType = event && event?.ticketTypes[0];
+  console.log({ticket});
+  console.log({tickets});
+  console.log({user});
 
   useEffect(() => {
-    if(user && isAuthenticated) {
+    if(user) {
       dispatch(getTicket(ticket?._id))
     }
   })
@@ -29,7 +32,7 @@ const Ticket = ({ event, onClose, ticket }) => {
         {/* Event Title */}
         <h2 className="font-merriweather text-xl sm:text-2xl font-bold text-slate-800 dark:text-zinc-100 mb-4">
           🎟️ Your Ticket to{" "}
-          <span className="text-orange-500">{event.title}</span>
+          <span className="text-orange-500">{ticket?.eventId?.title}</span>
         </h2>
 
         {/* Event Details */}
@@ -37,7 +40,7 @@ const Ticket = ({ event, onClose, ticket }) => {
           {event?.startDate && (
             <p>
               <span className="font-semibold">Date:</span>{" "}
-              {new Date(event.startDate).toLocaleDateString("en-US", {
+              {new Date(ticket?.eventId?.startDate).toLocaleDateString("en-US", {
                 weekday: "short",
                 month: "short",
                 day: "numeric",
@@ -48,7 +51,7 @@ const Ticket = ({ event, onClose, ticket }) => {
           {event?.startTime && (
             <p>
               <span className="font-semibold">Time:</span>{" "}
-              {new Date(`1970-01-01T${event.startTime}`).toLocaleTimeString(
+              {new Date(`1970-01-01T${ticket?.eventId?.startTime}`).toLocaleTimeString(
                 "en-US",
                 {
                   hour: "numeric",
@@ -60,23 +63,23 @@ const Ticket = ({ event, onClose, ticket }) => {
           )}
 
           <p>
-            <span className="font-semibold">Event Type:</span> {event.eventType}
+            <span className="font-semibold">Event Type:</span> {ticket?.eventId?.eventType}
           </p>
 
-          {event.eventType === "physical" ? (
+          {ticket?.eventId?.eventType === "physical" ? (
             <p>
-              <span className="font-semibold">Location:</span> {event.location}
+              <span className="font-semibold">Location:</span> {ticket?.eventId?.location}
             </p>
           ) : (
             <p>
               <span className="font-semibold">Meet Link:</span>{" "}
               <a
-                href={event.meetLink}
+                href={ticket?.eventId?.meetLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-orange-500 underline"
               >
-                {event.meetLink}
+                {ticket?.eventId?.meetLink}
               </a>
             </p>
           )}
@@ -88,13 +91,13 @@ const Ticket = ({ event, onClose, ticket }) => {
         <div className="space-y-2 text-sm sm:text-base text-slate-700 dark:text-zinc-300">
           <p>
             <span className="font-semibold">Ticket Type:</span>{" "}
-            {ticketType.type}
+            {ticket?.ticketTypeId?.type}
           </p>
           <p>
-            <span className="font-semibold">Price:</span> ${ticketType.price}
+            <span className="font-semibold">Price:</span> ${ticket?.ticketTypeId?.price}
           </p>
           <p>
-            <span className="font-semibold">Ticket ID:</span> #{ticketType?._id}
+            <span className="font-semibold">Ticket ID:</span> #{ticket?.ticketTypeId?._id}
           </p>
           <p>
             <span className="font-semibold">Purchase Date:</span>{" "}

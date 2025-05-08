@@ -19,7 +19,6 @@ const http = require("http");
 const socketIo = require("socket.io");
 const { createEventReminderNotifications } = require("./Utils/cronJobs");
 const { createEventReminderMail } = require("./Utils/sendEventEmail");
-const { stripeWebhookHandler } = require("./Controller/paymentController");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -29,41 +28,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use((req, res, next) => {
-  res.setHeader(
-    "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' https://js.stripe.com https://checkout.stripe.com; frame-src https://js.stripe.com https://checkout.stripe.com; connect-src 'self' https://api.stripe.com"
-  );
-  next();
-});
 
-// Helmet for security headers
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          "'unsafe-inline'", // Allows your inline theme script
-          "https://js.stripe.com",
-          "https://checkout.stripe.com",
-        ],
-        scriptSrcElem: [
-          "'self'",
-          "'unsafe-inline'",
-          "https://js.stripe.com",
-          "https://checkout.stripe.com",
-        ],
-        frameSrc: ["https://js.stripe.com", "https://checkout.stripe.com"],
-        connectSrc: ["'self'", "https://api.stripe.com"],
-        imgSrc: ["'self'", "data:", "https://*.stripe.com"],
-        styleSrc: ["'self'", "'unsafe-inline'"], // For Tailwind CSS and custom styles
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      },
-    },
-  })
-);
 
 // cron.schedule('0 0 * * *', () => {
 //   console.log('Sending event reminder emails...');
@@ -97,10 +62,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.set("view engine", "ejs");
-
-// Routes
-
-app.post("/webhook", express.raw({ type: "application/json" }), stripeWebhookHandler);
 
 app.use("/user", userRoute);
 app.use("/event", eventRoute);

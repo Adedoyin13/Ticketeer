@@ -505,9 +505,7 @@ const getTicket = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Ticket ID is required" });
     }
 
-    console.log(ticketId);
-
-    const ticket = await Ticket.findById(userId, ticketId)
+    const ticket = await Ticket.findOne({ _id: ticketId, userId })
       .populate({
         path: "userId",
         select: "name email photo",

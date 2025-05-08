@@ -32,31 +32,29 @@ const formatDate = (dateString) => {
   });
 };
 
-const MyTickets = ({ event, onClose }) => {
+const MyTickets = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
 
-  const { user, isAuthenticated } = useSelector((state) => state.user);
+  const { user } = useSelector((state) => state.user);
   const { userTickets, loading, error } = useSelector((state) => state.events);
-  console.log({userTickets})
 
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    if (user && isAuthenticated) {
-      dispatch(getUserTickets());
+    if (error) {
+      return toast.error("error");
     }
-  }, [user, isAuthenticated, dispatch]);
-
+  }, [error]);
   if (loading.userTickets) {
     return <Loader loading={loading.userTickets} />;
   }
-  if (error) return toast.error("error");
+  console.log({ error });
 
-  const handleNavigate = (eventId) => {
-    navigate(`/view-event/${eventId}`, {
-      state: { from: location.pathname }, // Save previous route
+  const handleNavigate = (ticketId) => {
+    navigate(`/ticket-page/${ticketId}`, {
+      state: { from: location.pathname },
     });
   };
 
@@ -133,6 +131,11 @@ const MyTickets = ({ event, onClose }) => {
                     </p>
                   </div>
 
+                  <div className="hidden">
+                    <EventView ticket={upcoming?._id} />
+                  </div>
+                  {console.log({ upcoming })}
+
                   {/* Organizer */}
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full overflow-hidden shadow">
@@ -179,7 +182,7 @@ const MyTickets = ({ event, onClose }) => {
                   </div>
 
                   <button
-                    onClick={() => handleNavigate(upcoming?.eventId?._id)}
+                    onClick={() => handleNavigate(upcoming?._id)}
                     className="mt-3 w-fit px-6 py-2 rounded-full bg-zinc-700 dark:bg-orange-500 dark:hover:bg-orange-600 hover:bg-zinc-800 text-white text-sm font-medium transition"
                   >
                     View Details
@@ -229,9 +232,6 @@ const MyTickets = ({ event, onClose }) => {
             </div>
           </div>
         )}
-      </div>
-      <div className="hidden">
-        <EventView ticket={userTickets}/>
       </div>
     </section>
   );

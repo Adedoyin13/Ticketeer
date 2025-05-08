@@ -1,15 +1,8 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { IoClose } from "react-icons/io5";
 import Loader from "../../Spinners/Loader";
-import { loadStripe } from "@stripe/stripe-js";
-import ConfettiEffect from "../../Layouts/ConfettiEffect";
 import UsingHooks from "../../../UsingHooks";
 import PaystackCheckout from "../../../PaystackCheckout";
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 const PurchaseTicketModal = ({ onClose, tickets, event, user }) => {
   console.log({tickets})

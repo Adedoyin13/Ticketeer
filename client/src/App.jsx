@@ -2,9 +2,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { getUser } from "./redux/reducers/userSlice";
-import { getUserEvents } from "./redux/reducers/eventSlice";
-import { loadStripe } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
+import { getUserEvents, getUserTickets } from "./redux/reducers/eventSlice";
 
 // Layouts
 import Layout from "./component/Layouts/Layout";
@@ -55,8 +53,7 @@ import UsingHooks from "./UsingHooks";
 import EventDescriptionInput from "./component/Event/EventDescripionInput";
 import PaystackHook from "./PaystackHook";
 import PaystackCheckout from "./PaystackCheckout";
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+import TicketPage from "./component/Ticket/TicketPage";
 
 function App() {
   const dispatch = useDispatch();
@@ -77,6 +74,12 @@ function App() {
   useEffect(() => {
     dispatch(getUser());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (user) {
+      dispatch(getUserTickets());
+    }
+  }, [user, dispatch]);
 
   // Re-fetch user when navigating to non-auth pages and user is null
   useEffect(() => {
@@ -169,6 +172,16 @@ function App() {
             <ProtectedRoute>
               <UserLayout>
                 <Dashboard />
+              </UserLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ticket-page/:ticketId"
+          element={
+            <ProtectedRoute>
+              <UserLayout>
+                <TicketPage />
               </UserLayout>
             </ProtectedRoute>
           }

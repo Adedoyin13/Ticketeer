@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import image from "./../../assets/default-img.png";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import EventShareModal from "../Modals/EventModal/EventShareModal";
 import AttendeeModal from "../Modals/EventModal/AttendeeModal";
@@ -9,10 +8,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { TbTicket } from "react-icons/tb";
 import Loader from "../Spinners/Loader";
 import { toast } from "react-toastify";
-import { getEventDetails } from "../../redux/reducers/eventSlice";
+import { getEventDetails, getUserTickets } from "../../redux/reducers/eventSlice";
 import PurchaseTicketModal from "../Modals/TicketModal/PurchaseTicketModal";
 import Ticket from "../Modals/TicketModal/Ticket";
-import MyTickets from "../Ticket/MyTickets";
 
 const formatTime = (timeString) => {
   const [hours, minutes] = timeString.split(":");
@@ -35,7 +33,7 @@ const formatDate = (dateString) => {
   });
 };
 
-const EventView = ({ticket}) => {
+const EventView = () => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [attendeeModalOpen, setAttendeeModalOpen] = useState(false);
   const [purhaseModalOpen, setPurhaseModalOpen] = useState(false);
@@ -43,6 +41,7 @@ const EventView = ({ticket}) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
+
   const { eventId } = useParams();
 
   const openShareModal = () => {
@@ -77,7 +76,7 @@ const EventView = ({ticket}) => {
   };
 
   const handleBack = () => {
-    navigate(location.state?.from || "/dashboard"); // Go back to the saved route or home if undefined
+    navigate(location.state?.from || "/dashboard");
   };
 
   const { user, isAuthenticated } = useSelector((state) => state.user);
@@ -87,7 +86,7 @@ const EventView = ({ticket}) => {
 
   useEffect(() => {
     if (!eventId) {
-      toast.error("Event ID is missing");
+      // toast.error("Event ID is missing");
       return;
     }
 
@@ -124,7 +123,6 @@ const EventView = ({ticket}) => {
   );
 
   const attendees = eventDetails?.attendees || [];
-  console.log({ eventDetails });
 
   return (
     <section className="bg-orange-50 dark:bg-zinc-900 py-20 md:py-28 px-4 md:px-10 font-inter text-gray-800 dark:text-zinc-100">
@@ -267,7 +265,6 @@ const EventView = ({ticket}) => {
                       <p className="text-sm md:text-lg font-semibold">
                         View Location
                       </p>
-                      {/* <p className="text-sm">d{eventDetails?.location[0]}</p> */}
                     </div>
                   </div>
                 )}
@@ -369,11 +366,10 @@ const EventView = ({ticket}) => {
       {ticketModalOpen && (
         <Ticket
           onClose={closeTicketModal}
-          ticket={ticket}
-          event={eventDetails}
-          user={user}
-        />
-      )}
+          // ticket={ticket}
+          />
+        )}
+        {/* {console.log({ticket})} */}
     </section>
   );
 };

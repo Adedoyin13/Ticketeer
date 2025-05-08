@@ -125,7 +125,7 @@ const Login = () => {
               >
                 {loading.login ? (
                   <>
-                    <Loader />
+                    <Loader loading={loading.login}/>
                     Logging in...
                   </>
                 ) : (
