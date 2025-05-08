@@ -383,16 +383,13 @@ const purchaseTicketLogic = async ({
       userId,
       eventId,
       ticketTypeId,
-      status: "active",
+      status,
       purchaseDate: new Date(),
     });
 
     // Step 2: Prepare payload for QR code
-    const qrPayload = JSON.stringify({
-      ticketId: ticket._id.toString(),
-      userId,
-      eventId,
-    });
+    const clientUrl = process.env.CLIENT_URL;
+    const qrPayload = `${clientUrl}/ticket/${ticket._id}`;
 
     // Step 3: Generate QR code image (base64 string)
     const qrCodeDataURL = await QRCode.toDataURL(qrPayload);
@@ -505,6 +502,10 @@ const getTicket = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Ticket ID is required" });
     }
 
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
     const ticket = await Ticket.findOne({ _id: ticketId, userId })
       .populate({
         path: "userId",
@@ -532,11 +533,26 @@ const getTicket = asyncHandler(async (req, res) => {
         "type price description availableQuantity totalQuantity ticketQuantity"
       );
 
-    if (!ticket) {
-      return res.status(404).json({ message: "Ticket not found" });
+    const now = new Date();
+    const eventEnd = new Date(
+      `${ticket.eventId.endDate}T${ticket.eventId.endTime}`
+    );
+    const eventCancelled = ticket.eventId.canceled;
+
+    let computedStatus = "active";
+
+    if (eventCancelled) {
+      computedStatus = "cancelled";
+    } else if (now > eventEnd) {
+      computedStatus = ticket.status === "used" ? "used" : "passed";
+    } else {
+      computedStatus = "active";
     }
 
-    res.status(200).json(ticket);
+    // Return computedStatus in the response:
+    res.status(200).json({ ...ticket.toObject(), computedStatus });
+
+    // res.status(200).json(ticket);
   } catch (error) {
     console.error("❌ Error fetching ticket:", error);
     res

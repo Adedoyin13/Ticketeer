@@ -49,8 +49,7 @@ const ticketSchema = new mongoose.Schema(
     purchaseDate: { type: Date, default: Date.now },
     status: {
       type: String,
-      enum: ["active", "used", "cancelled"],
-      default: "active",
+      enum: ["used", "cancelled"],
     },
     expiresAt: { type: Date }, // useful for checking ticket validity
   },
