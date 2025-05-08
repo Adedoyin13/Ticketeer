@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {
-  notification,
+  getUserNotifications,
   getNotification,
   readNotification,
   getUnreadNotifications,
@@ -13,7 +13,7 @@ const {
 const { protectUser } = require("../Middleware/authMiddleware");
 
 // Endpoint to create a new notification
-router.post("/create-notification", protectUser, notification);
+router.post("/get-notifications", protectUser, getUserNotifications);
 
 // Endpoint to get notifications for a specific user
 router.get("/get-notifications", protectUser, getNotification);

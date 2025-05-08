@@ -5,13 +5,13 @@ import { useNavigate } from "react-router-dom";
 
 const PaystackCheckout = ({ event, user }) => {
   const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const ticket = event?.ticketTypes?.[0];
-    if (!ticket) return null;
-  
-    const fee = ticket.price * 0.02;
-    const total = ticket.price + fee;
+  const ticket = event?.ticketTypes?.[0];
+  if (!ticket) return null;
+
+  const fee = ticket.price * 0.02;
+  const total = ticket.price + fee;
 
   const handleSuccess = async (reference) => {
     console.log("Payment Success:", reference);
@@ -21,7 +21,7 @@ const PaystackCheckout = ({ event, user }) => {
         "/payments/paystack/verify",
         {
           reference: reference.reference,
-          ticketId: ticket._id,
+          ticketTypeId: ticket._id, // <-- FIXED
           eventId: event._id,
         },
         { withCredentials: true }
@@ -40,7 +40,7 @@ const PaystackCheckout = ({ event, user }) => {
       }
     } catch (error) {
       console.error("Verification error:", error);
-      navigate('/payment-cancel')
+      navigate("/payment-failed");
       toast.error("Server error during verification.");
     }
   };

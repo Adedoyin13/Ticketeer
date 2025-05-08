@@ -55,6 +55,7 @@ import PaystackHook from "./PaystackHook";
 import PaystackCheckout from "./PaystackCheckout";
 import TicketPage from "./component/Ticket/TicketPage";
 import CheckInPage from "./component/Ticket/CheckInPage";
+import ProfilePage from "./component/User/Profile/ProfilePage";
 
 function App() {
   const dispatch = useDispatch();
@@ -201,6 +202,16 @@ function App() {
             <ProtectedRoute>
               <UserLayout>
                 <EventDescriptionInput />
+              </UserLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <UserLayout>
+                <ProfilePage />
               </UserLayout>
             </ProtectedRoute>
           }

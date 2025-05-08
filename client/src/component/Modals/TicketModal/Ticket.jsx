@@ -18,6 +18,8 @@ const Ticket = ({ onClose, ticket }) => {
     }
   })
 
+  console.log((ticket?._id))
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-end px-4 py-8">
       <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 relative animate-fade-in-up">

@@ -1,8 +1,8 @@
 const asyncHandler = require("express-async-handler");
 // const User = require("../Model/authModel");
 const { Event, Ticket, TicketType } = require("../Model/eventModel");
-const { User, ProfilePicture } = require("../Model/authModel");
-const { check, validationResult } = require("express-validator");
+const { User } = require("../Model/authModel");
+const { Notification } = require("../Model/notificationModel");
 const nodemailer = require("nodemailer");
 const QRCode = require("qrcode");
 const mongoose = require("mongoose");
@@ -134,6 +134,13 @@ const createEvent = asyncHandler(async (req, res) => {
         createdAt: newEvent.createdAt,
       });
     }
+
+    await Notification.create({
+      user: req.userId, // The recipient
+      type: "event",
+      message: `You created a new event: ${newEvent.title}`,
+      metadata: { eventId: newEvent._id },
+    });
 
     return res
       .status(201)
@@ -300,6 +307,13 @@ const createTicket = asyncHandler(async (req, res) => {
       await sendCreateTicketMail(mailData);
     }
 
+    await Notification.create({
+      user: userId, // The recipient
+      type: "ticket",
+      message: `You created a new ticket: ${ticketType.type}`,
+      metadata: { ticketTypeId: ticketType._id, eventId: event._id },
+    });
+
     res.status(201).json({
       message: `Ticket created successfully for this event. Status: ${ticketStatus}`,
       ticketType,
@@ -433,6 +447,13 @@ const purchaseTicketLogic = async ({
       await sendCreateTicketMail(mailData);
       console.log("Ticket Purchase Email sent successfully");
     }
+
+    await Notification.create({
+      user: reqUser,
+      type: "ticket",
+      message: `You purchased a ticket for ${event.title}`,
+      metadata: { ticketId: ticket._id, eventId: event._id },
+    });    
 
     return { success: true, message: "Ticket purchased successfully", ticket };
   } catch (error) {
@@ -1181,7 +1202,7 @@ const getEvent = asyncHandler(async (req, res) => {
     const event = await Event.findById(req.params.id)
       .populate({
         path: "organizer",
-        select: "name email photo userId",
+        select: "name email photo userId socialMediaLinks",
         populate: {
           path: "photo",
           select: "imageUrl cloudinaryId",
@@ -1220,12 +1241,8 @@ const getEvent = asyncHandler(async (req, res) => {
         "type price description availableQuantity totalQuantity soldQuantity"
       )
       .populate(
-        "tickets",
-        "userId eventId qrCode purchaseDate ticketTypeId availableQuantity ticketQuantity soldQuantity"
-      )
-      .populate(
         "ticket",
-        "userId eventId qrCode purchaseDate ticketTypeId availableQuantity ticketQuantity soldQuantity"
+        "qrCode purchaseDate ticketTypeId availableQuantity ticketQuantity soldQuantity"
       );
 
     if (event) {

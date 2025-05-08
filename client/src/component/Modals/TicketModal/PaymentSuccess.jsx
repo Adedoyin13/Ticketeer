@@ -3,6 +3,15 @@ import { motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import ConfettiEffect from "../../Layouts/ConfettiEffect";
 
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
 const SuccessPage = () => {
   const [showConfetti, setShowConfetti] = useState(true);
   const { state } = useLocation();
@@ -41,9 +50,9 @@ const SuccessPage = () => {
           You've successfully purchased a ticket to <strong>{event.title}</strong>.
         </p>
 
-        <div className="text-left bg-slate-50 dark:bg-slate-700 p-6 rounded-xl shadow-sm mb-6 space-y-3">
+        <div className="text-left bg-slate-50 dark:bg-slate-700 p-6 rounded-xl shadow-sm mb-6 space-y-3 font-inter">
           <p><span className="font-semibold">Event:</span> {event.title}</p>
-          <p><span className="font-semibold">Date:</span> {event.startDate} at {event.startTime}</p>
+          <p><span className="font-semibold">Date:</span> {formatDate(event.startDate)} at {event.startTime}</p>
           <p><span className="font-semibold">Type:</span> {event.eventType}</p>
           <p><span className="font-semibold">Ticket Type ID:</span> {ticket._id}</p>
           {/* <p><span className="font-semibold">Ticket Type ID:</span> {event.ticketTypes[0]._id}</p> */}

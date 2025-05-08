@@ -8,13 +8,15 @@ import { useSelector } from "react-redux";
 import ConnectWallet from "../../Wallet/ConnectWallet";
 
 const profileLink = [
+  { link: "Profile", route: "/profile" },
   { link: "Tickets", route: "/my-tickets" },
-  { link: "Edit Profile", route: "/settings/profile-update" },
+  // { link: "Edit Profile", route: "/settings/profile-update" },
   { link: "Settings", route: "/settings" },
   { link: "Log out", route: "/settings" },
 ];
 
 const iconMap = {
+  profile: FaUser,
   "Edit Profile": FaUser,
   Settings: FaCog,
   Tickets: TbTicket,

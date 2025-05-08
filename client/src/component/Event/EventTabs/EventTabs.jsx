@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PastEvents from "../EventView/PastEvents";
 import FavouriteEvents from "../EventView/FavouriteEvents";
 import UpcomingEvents from "../EventView/UpcomingEvents";
@@ -20,6 +20,20 @@ const tabList = ["upcoming", "past", "favorites"];
 const EventTabs = () => {
   const [activeTab, setActiveTab] = useState("upcoming");
 
+  // Load saved tab from localStorage on mount
+  useEffect(() => {
+    const savedTab = localStorage.getItem("activeEventTab");
+    if (savedTab && tabList.includes(savedTab)) {
+      setActiveTab(savedTab);
+    }
+  }, []);
+
+  // Save tab to localStorage on change
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    localStorage.setItem("activeEventTab", tab);
+  };
+
   return (
     <div className="font-inter w-full px-4 sm:px-6 md:px-10">
       {/* Tab Header */}
@@ -33,7 +47,7 @@ const EventTabs = () => {
             {tabList.map((tab) => (
               <motion.button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => handleTabChange(tab)}
                 variants={buttonVariants}
                 animate={activeTab === tab ? "active" : "inactive"}
                 whileHover={{ scale: 1.08 }}

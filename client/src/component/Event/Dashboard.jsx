@@ -32,7 +32,7 @@ const Dashboard = () => {
   }
 
   useEffect(() => {
-    dispatch(getUpcomingEvents()); // Fetch upcoming events on component mount
+    dispatch(getUpcomingEvents());
   }, [dispatch]);
 
   if (userLoading.getUser) {

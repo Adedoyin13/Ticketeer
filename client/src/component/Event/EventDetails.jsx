@@ -179,16 +179,11 @@ const EventDetails = () => {
   const handleDelete = async () => {
     if (user) {
       try {
-        const resultAction = await dispatch(deleteEvent(eventId)).unwrap();
-
-        if (deleteEvent.fulfilled.match(resultAction)) {
-          toast.success("Event deleted successfully");
-          navigate("/dashboard");
-        } else {
-          toast.error(resultAction.payload || "Failed to delete event");
-        }
+        await dispatch(deleteEvent(eventId)).unwrap();
+        toast.success("Event deleted successfully");
+        navigate("/dashboard");
       } catch (error) {
-        toast.error("Something went wrong.");
+        toast.error(error || "Failed to delete event");
       }
     } else {
       toast.error("Unable to delete event");
@@ -347,9 +342,9 @@ const EventDetails = () => {
               </p>
             </div>
           ) : (
-            <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-600 rounded-lg px-4 py-3 text-sm text-red-700 dark:text-red-200">
+            <div className="bg-red-100 dark:bg-zinc-800 border border-red-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-sm text-red-800 dark:text-red-300">
               <p className="font-semibold">This event has ended!</p>
-              <p className="text-xs mt-1">
+              <p className="text-xs mt-1 text-red-700 dark:text-zinc-400">
                 Thank you for hosting, we hope it was a success!
               </p>
             </div>
@@ -438,7 +433,7 @@ const EventDetails = () => {
                 <button
                   type="button"
                   onClick={handlePhotoUpload}
-                  className="bg-slate-700 hover:bg-slate-800 text-white px-6 py-2 rounded-md text-sm font-medium shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-zinc-700 hover:bg-zinc-800 text-white px-6 py-2 rounded-md text-sm font-medium shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isUpdateDisabled}
                 >
                   {loadingUploadImage ? (
@@ -592,8 +587,8 @@ const EventDetails = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center gap-4 p-6 border border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm">
-                <p className="text-base sm:text-lg text-gray-700 dark:text-gray-200 font-semibold">
+              <div className="flex flex-col items-center justify-center gap-4 p-6 border border-dashed border-zinc-300 dark:border-zinc-600 rounded-xl bg-zinc-50 dark:bg-zinc-800 shadow-sm">
+                <p className="text-base sm:text-lg text-zinc-700 dark:text-zinc-200 font-semibold">
                   No tickets for this event
                 </p>
                 <button

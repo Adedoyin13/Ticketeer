@@ -173,11 +173,6 @@ const eventSchema = new mongoose.Schema(
     },
     attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     trending: { type: Boolean, default: false },
-    tickets: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Ticket",
-      required: false,
-    },
     ticketType: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "TicketType",

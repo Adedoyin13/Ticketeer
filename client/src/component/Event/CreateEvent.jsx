@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import EventDescriptionEditor from "./EventDescripionInput";
+import Loader from "../Spinners/Loader";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -77,10 +78,6 @@ const CreateEvent = () => {
       ].includes(name)
         ? { ...prev, location: { ...prev.location, [name]: value } }
         : { ...prev, [name]: value };
-
-      console.log("Updating:", name, value); // Debugging: See what field is updating
-      console.log("New Event Data:", newData); // Debugging: Check updated state
-
       return newData;
     });
   };
@@ -163,7 +160,7 @@ const CreateEvent = () => {
     try {
       const response = await axios.post(
         `${SERVER_URL}/event/createEvent`,
-        finalData, // Use finalData instead of eventData
+        finalData,
         {
           withCredentials: true,
         }
@@ -450,7 +447,14 @@ const CreateEvent = () => {
                 onClick={handleSubmit}
                 className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-full transition"
               >
-                Create Event
+                {loading || isSubmitting ? (
+                  <>
+                    Creating Event...
+                    <Loader loading={loading || isSubmitting} />
+                  </>
+                ) : (
+                  " Create Event"
+                )}
               </button>
             </div>
           </form>

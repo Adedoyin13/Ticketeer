@@ -4,6 +4,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import EventShareModal from "../Modals/EventModal/EventShareModal";
 import AttendeeModal from "../Modals/EventModal/AttendeeModal";
 import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
+import { FaTwitter, FaLinkedin, FaInstagram } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { TbTicket } from "react-icons/tb";
 import Loader from "../Spinners/Loader";
@@ -171,14 +172,60 @@ const EventView = () => {
                 </p>
 
                 {label === "Host" ? (
+                  <div className="flex items-center gap-3">
+                  {/* Organizer avatar and name */}
                   <div className="flex items-center gap-2">
-                    <img
-                      src={eventDetails?.organizer?.photo?.imageUrl}
-                      className="w-6 h-6 rounded-full object-cover"
-                      alt="Host"
-                    />
-                    <p className="text-sm font-medium">{value}</p>
+                    {eventDetails?.organizer?.photo?.imageUrl && (
+                      <img
+                        src={eventDetails.organizer.photo.imageUrl}
+                        className="w-6 h-6 rounded-full object-cover"
+                        alt="Host"
+                      />
+                    )}
+                    <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
+                      {eventDetails?.organizer?.name || "Unknown Organizer"}
+                    </p>
                   </div>
+                
+                  {/* Social links (conditionally rendered) */}
+                  <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-300">
+                    {eventDetails?.organizer?.socialMediaLinks?.x && (
+                      <a
+                        href={eventDetails.organizer?.socialMediaLinks?.x}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-blue-500"
+                        aria-label="Twitter"
+                      >
+                        <FaTwitter className="w-4 h-4" />
+                      </a>
+                    )}
+                
+                    {eventDetails?.organizer?.socialMediaLinks?.linkedin && (
+                      <a
+                        href={eventDetails.organizer?.socialMediaLinks?.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-blue-700"
+                        aria-label="LinkedIn"
+                      >
+                        <FaLinkedin className="w-4 h-4" />
+                      </a>
+                    )}
+                
+                    {eventDetails?.organizer?.socialMediaLinks?.instagram && (
+                      <a
+                        href={eventDetails.organizer?.socialMediaLinks?.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-pink-500"
+                        aria-label="Instagram"
+                      >
+                        <FaInstagram className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                </div>
                 ) : label === "Attending" ? (
                   <div
                     className="flex items-center gap-2 cursor-pointer hover:underline"
@@ -263,7 +310,12 @@ const EventView = () => {
                     </div>
                     <div className="flex flex-col">
                       <p className="text-sm md:text-lg font-semibold">
-                        View Location
+                        {/* View Location */}
+                        {`${eventDetails.location[2]}, ${eventDetails.location[1]}.`}
+                      </p>
+                      <p className="text-xs md:text-sm text-gray-500 dark:text-zinc-400">
+                        {/* View Location */}
+                        {`${eventDetails.location[0]}, ${eventDetails.location[4]}, ${eventDetails.location[3]}.`}
                       </p>
                     </div>
                   </div>
