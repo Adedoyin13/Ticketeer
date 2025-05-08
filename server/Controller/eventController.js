@@ -383,13 +383,13 @@ const purchaseTicketLogic = async ({
       userId,
       eventId,
       ticketTypeId,
-      status,
+      status: ticketType.status,
       purchaseDate: new Date(),
     });
 
     // Step 2: Prepare payload for QR code
     const clientUrl = process.env.CLIENT_URL;
-    const qrPayload = `${clientUrl}/ticket/${ticket._id}`;
+    const qrPayload = `${clientUrl}/check-in/${ticket._id}`;
 
     // Step 3: Generate QR code image (base64 string)
     const qrCodeDataURL = await QRCode.toDataURL(qrPayload);

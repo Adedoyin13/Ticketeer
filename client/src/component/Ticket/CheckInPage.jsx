@@ -7,12 +7,12 @@ const CheckInPage = () => {
   const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("");
 
-  const SERVER_URL = import.meta.env.SERVER_URL 
+  const SERVER_URL = import.meta.env.VITE_SERVER_URL 
 
   useEffect(() => {
     const checkIn = async () => {
       try {
-        const { data } = await axios.put(`/${SERVER_URL}/tickets/check-in/${ticketId}`);
+        const { data } = await axios.put(`${SERVER_URL}/event/check-in/${ticketId}`);
         console.log({data})
         setStatus("success");
         setMessage(data.message);
@@ -28,7 +28,7 @@ const CheckInPage = () => {
   }, [ticketId]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-orange-50 dark:bg-zinc-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-orange-50 dark:bg-zinc-900 px-4 font-inter">
       <div className="max-w-md w-full bg-white dark:bg-zinc-800 rounded-2xl shadow-lg p-6 text-center">
         <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">
           Ticket Check-In

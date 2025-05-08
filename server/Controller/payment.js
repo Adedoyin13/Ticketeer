@@ -38,8 +38,12 @@ exports.verifyFlutterwavePayment = async (req, res) => {
 };
 
 exports.verifyPaystackPayment = async (req, res) => {
-  const { reference, ticketId, eventId } = req.body;
+  const { reference, ticketTypeId, eventId } = req.body;
   const userId = req.userId;
+
+  if (!reference || !ticketTypeId || !eventId || !userId) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
 
   try {
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
@@ -48,21 +52,17 @@ exports.verifyPaystackPayment = async (req, res) => {
       },
     });
 
-    const paymentData = response.data.data;
+    const paymentData = response?.data?.data;
+
+    if (!paymentData) {
+      return res.status(400).json({ success: false, message: "Invalid response from Paystack" });
+    }
 
     if (paymentData.status === 'success') {
-      if (!eventId || !ticketId || !userId) {
-        return res
-          .status(400)
-          .json({ message: "Missing required fields after success check" });
-      }
-
-      await purchaseTicketLogic({ ticketTypeId: ticketId, eventId, userId });
-      // return res.status(201).json({ message: "Ticket purchased successfully" });
-
+      await purchaseTicketLogic({ ticketTypeId, eventId, userId });
       return res.status(200).json({ success: true, paymentData });
     } else {
-      return res.status(400).json({ success: false, message: 'Payment not successful' });
+      return res.status(403).json({ success: false, message: 'Payment not successful' });
     }
   } catch (error) {
     console.error(error.response?.data || error.message);
