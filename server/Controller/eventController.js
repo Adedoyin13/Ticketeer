@@ -564,6 +564,41 @@ const getTicket = asyncHandler(async (req, res) => {
   }
 });
 
+const checkInTicket = asyncHandler(async (req, res) => {
+  const { ticketId } = req.params;
+
+  const ticket = await Ticket.findById(ticketId)
+    .populate("eventId");
+
+  if (!ticket) {
+    return res.status(404).json({ message: "Ticket not found" });
+  }
+
+  const now = new Date();
+  const eventEnd = new Date(
+    ticket.eventId.endDate + "T" + ticket.eventId.endTime
+  );
+
+  if (ticket.status === "used") {
+    return res.status(400).json({ message: "Ticket already used" });
+  }
+
+  if (now > eventEnd) {
+    return res.status(400).json({ message: "Event has ended" });
+  }
+
+  if (ticket.status === "cancelled") {
+    return res.status(400).json({ message: "Event cancelled" });
+  }
+
+  ticket.status = "used";
+  ticket.usedAt = now;
+  await ticket.save();
+
+  res.status(200).json({ message: "Check-in successful", ticket });
+});
+
+
 const getAllTickets = asyncHandler(async (req, res) => {
   const { eventId } = req.params;
 
@@ -1856,6 +1891,7 @@ module.exports = {
   unlikeEvent,
   likeEvent,
   getTicket,
+  checkInTicket,
   getEvents,
   getUserEvents,
   cancelEvent,

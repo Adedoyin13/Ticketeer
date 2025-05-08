@@ -93,7 +93,7 @@ const TicketPage = () => {
             )}
 
             <p>
-              <strong>Status:</strong> {status || "N/A"} {computedStatus}
+              <strong>Status:</strong> {computedStatus || "N/A"}
             </p>
 
             <p>

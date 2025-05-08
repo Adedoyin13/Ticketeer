@@ -54,6 +54,7 @@ import EventDescriptionInput from "./component/Event/EventDescripionInput";
 import PaystackHook from "./PaystackHook";
 import PaystackCheckout from "./PaystackCheckout";
 import TicketPage from "./component/Ticket/TicketPage";
+import CheckInPage from "./component/Ticket/CheckInPage";
 
 function App() {
   const dispatch = useDispatch();
@@ -154,6 +155,14 @@ function App() {
           element={
             <Layout>
               <Reviews />
+            </Layout>
+          }
+        />
+        <Route
+          path="/check-in/:ticketId"
+          element={
+            <Layout>
+              <CheckInPage />
             </Layout>
           }
         />

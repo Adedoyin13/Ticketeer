@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   createEvent,
   likeStatus,
+  checkInTicket,
   getAllLikedEvents,
   getEvents,
   createTicket,
@@ -52,6 +53,7 @@ router.patch("/cancelEvent/:eventId", protectUser, cancelEvent);
 router.patch("/uncancel/:eventId", protectUser, unCancelEvent);
 router.put("/like/:eventId", protectUser, likeEvent);
 router.put("/unlike/:eventId", protectUser, unlikeEvent);
+router.put("/check-in/:eventId", checkInTicket);
 
 router.get("/upcoming-events", protectUser, upcomingEvents);
 router.get("/my/upcoming-events", protectUser, userUpcomingEvents);
