@@ -9,7 +9,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { TbTicket } from "react-icons/tb";
 import Loader from "../Spinners/Loader";
 import { toast } from "react-toastify";
-import { getEventDetails, getUserTickets } from "../../redux/reducers/eventSlice";
+import {
+  getEventDetails,
+  getUserTickets,
+} from "../../redux/reducers/eventSlice";
 import PurchaseTicketModal from "../Modals/TicketModal/PurchaseTicketModal";
 import Ticket from "../Modals/TicketModal/Ticket";
 
@@ -93,7 +96,7 @@ const EventView = () => {
 
     const handleEventDetails = async () => {
       try {
-        if(user && isAuthenticated) {
+        if (user && isAuthenticated) {
           dispatch(getEventDetails(eventId));
         }
       } catch (error) {
@@ -124,6 +127,12 @@ const EventView = () => {
   );
 
   const attendees = eventDetails?.attendees || [];
+
+  const handleNavigate = (eventId) => {
+    navigate(`/ticket-page/${eventId}`, {
+      state: { from: location.pathname }, // Save previous route
+    });
+  };
 
   return (
     <section className="bg-orange-50 dark:bg-zinc-900 py-20 md:py-28 px-4 md:px-10 font-inter text-gray-800 dark:text-zinc-100">
@@ -173,59 +182,63 @@ const EventView = () => {
 
                 {label === "Host" ? (
                   <div className="flex items-center gap-3">
-                  {/* Organizer avatar and name */}
-                  <div className="flex items-center gap-2">
-                    {eventDetails?.organizer?.photo?.imageUrl && (
-                      <img
-                        src={eventDetails.organizer.photo.imageUrl}
-                        className="w-6 h-6 rounded-full object-cover"
-                        alt="Host"
-                      />
-                    )}
-                    <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-                      {eventDetails?.organizer?.name || "Unknown Organizer"}
-                    </p>
+                    {/* Organizer avatar and name */}
+                    <div className="flex items-center gap-2">
+                      {eventDetails?.organizer?.photo?.imageUrl && (
+                        <img
+                          src={eventDetails.organizer.photo.imageUrl}
+                          className="w-6 h-6 rounded-full object-cover"
+                          alt="Host"
+                        />
+                      )}
+                      <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
+                        {eventDetails?.organizer?.name || "Unknown Organizer"}
+                      </p>
+                    </div>
+
+                    {/* Social links (conditionally rendered) */}
+                    <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-300">
+                      {eventDetails?.organizer?.socialMediaLinks?.x && (
+                        <a
+                          href={eventDetails.organizer?.socialMediaLinks?.x}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-blue-500"
+                          aria-label="Twitter"
+                        >
+                          <FaTwitter className="w-4 h-4" />
+                        </a>
+                      )}
+
+                      {eventDetails?.organizer?.socialMediaLinks?.linkedin && (
+                        <a
+                          href={
+                            eventDetails.organizer?.socialMediaLinks?.linkedin
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-blue-700"
+                          aria-label="LinkedIn"
+                        >
+                          <FaLinkedin className="w-4 h-4" />
+                        </a>
+                      )}
+
+                      {eventDetails?.organizer?.socialMediaLinks?.instagram && (
+                        <a
+                          href={
+                            eventDetails.organizer?.socialMediaLinks?.instagram
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-pink-500"
+                          aria-label="Instagram"
+                        >
+                          <FaInstagram className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                
-                  {/* Social links (conditionally rendered) */}
-                  <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-300">
-                    {eventDetails?.organizer?.socialMediaLinks?.x && (
-                      <a
-                        href={eventDetails.organizer?.socialMediaLinks?.x}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-blue-500"
-                        aria-label="Twitter"
-                      >
-                        <FaTwitter className="w-4 h-4" />
-                      </a>
-                    )}
-                
-                    {eventDetails?.organizer?.socialMediaLinks?.linkedin && (
-                      <a
-                        href={eventDetails.organizer?.socialMediaLinks?.linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-blue-700"
-                        aria-label="LinkedIn"
-                      >
-                        <FaLinkedin className="w-4 h-4" />
-                      </a>
-                    )}
-                
-                    {eventDetails?.organizer?.socialMediaLinks?.instagram && (
-                      <a
-                        href={eventDetails.organizer?.socialMediaLinks?.instagram}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-pink-500"
-                        aria-label="Instagram"
-                      >
-                        <FaInstagram className="w-4 h-4" />
-                      </a>
-                    )}
-                  </div>
-                </div>
                 ) : label === "Attending" ? (
                   <div
                     className="flex items-center gap-2 cursor-pointer hover:underline"
@@ -311,11 +324,14 @@ const EventView = () => {
                     <div className="flex flex-col">
                       <p className="text-sm md:text-lg font-semibold">
                         {/* View Location */}
-                        {`${eventDetails.location[2]}, ${eventDetails.location[1]}.`}
+                        {eventDetails &&
+                          eventDetails.location &&
+                          `${eventDetails.location[2]}, ${eventDetails.location[1]}.`}
                       </p>
                       <p className="text-xs md:text-sm text-gray-500 dark:text-zinc-400">
-                        {/* View Location */}
-                        {`${eventDetails.location[0]}, ${eventDetails.location[4]}, ${eventDetails.location[3]}.`}
+                        {eventDetails &&
+                          eventDetails.location &&
+                          `${eventDetails.location[0]}, ${eventDetails.location[4]}, ${eventDetails.location[3]}.`}
                       </p>
                     </div>
                   </div>
@@ -368,10 +384,13 @@ const EventView = () => {
                       />
                       <p className="text-lg font-semibold">{user.name}</p>
                     </div>
-                      <button onClick={openTicketModal} className="border border-orange-400 hover:bg-orange-100 dark:hover:bg-orange-800/30 hover:border-orange-300 hover:text-orange-800 dark:hover:text-orange-300 rounded-lg px-4 py-3 text-sm text-orange-700 dark:text-orange-300 flex gap-2">
-                        <TbTicket size={20} />
-                        My Ticket
-                      </button>
+                    <button
+                      onClick={() => handleNavigate(eventDetails._id)}
+                      className="border border-orange-400 hover:bg-orange-100 dark:hover:bg-orange-800/30 hover:border-orange-300 hover:text-orange-800 dark:hover:text-orange-300 rounded-lg px-4 py-3 text-sm text-orange-700 dark:text-orange-300 flex gap-2"
+                    >
+                      <TbTicket size={20} />
+                      My Ticket
+                    </button>
                   </div>
                   <p className="text-md text-gray-600 dark:text-zinc-400">
                     A confirmation email has been sent to {user.email}
@@ -386,8 +405,10 @@ const EventView = () => {
                 About the Event
               </h3>
               <section className="prose dark:prose-invert max-w-none text-gray-600 dark:text-zinc-400">
-                  <div dangerouslySetInnerHTML={{ __html: eventDetails.description }} />
-                </section>
+                <div
+                  dangerouslySetInnerHTML={{ __html: eventDetails.description }}
+                />
+              </section>
             </div>
           </div>
         </div>
@@ -419,9 +440,9 @@ const EventView = () => {
         <Ticket
           onClose={closeTicketModal}
           // ticket={ticket}
-          />
-        )}
-        {/* {console.log({ticket})} */}
+        />
+      )}
+      {/* {console.log({ticket})} */}
     </section>
   );
 };

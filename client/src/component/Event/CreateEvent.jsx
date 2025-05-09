@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import EventDescriptionEditor from "./EventDescripionInput";
 import Loader from "../Spinners/Loader";
+import PreviewDescription from "../Modals/EventModal/PreviewDescription";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -401,21 +402,13 @@ const CreateEvent = () => {
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={() => setShowPreview((prev) => !prev)}
-              className="mb-2 text-sm font-medium text-orange-600 hover:underline dark:text-orange-400"
-            >
-              {showPreview ? "Edit Description" : "Preview Description"}
-            </button>
-
-            <section className="prose dark:prose-invert max-w-none">
-              <div
-                dangerouslySetInnerHTML={{ __html: eventData.description }}
+            {showPreview && (
+              <PreviewDescription
+                description={eventData.description}
+                onClose={() => setShowPreview(false)}
               />
-            </section>
+            )}
 
-            {/* Description & Guest Limit */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
                 Description
@@ -425,6 +418,14 @@ const CreateEvent = () => {
                 onChange={handleDescriptionChange}
               />
             </div>
+
+            <button
+              type="button"
+              onClick={() => setShowPreview(true)}
+              className="mb-2 text-sm font-medium text-orange-600 hover:underline dark:text-orange-400"
+            >
+              Preview Description
+            </button>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">

@@ -1072,6 +1072,7 @@ const upcomingEvents = async (req, res) => {
       })
       .populate({
         path: "ticket",
+        select: "userId eventId qrCode purchaseDate status ticketTypeId",
         populate: [
           {
             path: "eventId",
@@ -1081,7 +1082,6 @@ const upcomingEvents = async (req, res) => {
         ],
       })
       .populate("ticketTypes", "type price description quantity")
-      .populate("tickets", "userId eventId qrCode purchaseDate ticketTypeId")
       .sort({ startDate: 1 })
       .exec();
 
@@ -1144,7 +1144,7 @@ const userUpcomingEvents = async (req, res) => {
         "ticketTypes",
         "type price description totalQuantity soldQuantity availableQuantity"
       )
-      .populate("tickets", "userId eventId qrCode purchaseDate ticketTypeId")
+      .populate("ticket", "userId eventId qrCode purchaseDate ticketTypeId")
       .exec();
 
     // Filter based on full datetime (startDate + startTime)
@@ -1738,13 +1738,13 @@ const buyTicket = async (req, res) => {
 
   try {
     // Find the event by ID and populate ticket details
-    const event = await Event.findById(eventId).populate("tickets");
+    const event = await Event.findById(eventId).populate("ticket");
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
     // Find the ticket associated with the event
-    const ticket = await Ticket.findById(event.tickets);
+    const ticket = await Ticket.findById(event.ticket);
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
     }

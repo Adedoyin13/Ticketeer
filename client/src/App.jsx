@@ -56,6 +56,7 @@ import PaystackCheckout from "./PaystackCheckout";
 import TicketPage from "./component/Ticket/TicketPage";
 import CheckInPage from "./component/Ticket/CheckInPage";
 import ProfilePage from "./component/User/Profile/ProfilePage";
+import PreviewDescription from "./component/Modals/EventModal/PreviewDescription";
 
 function App() {
   const dispatch = useDispatch();
@@ -182,6 +183,16 @@ function App() {
             <ProtectedRoute>
               <UserLayout>
                 <Dashboard />
+              </UserLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/preview"
+          element={
+            <ProtectedRoute>
+              <UserLayout>
+                <PreviewDescription />
               </UserLayout>
             </ProtectedRoute>
           }
