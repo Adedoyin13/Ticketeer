@@ -39,6 +39,7 @@ const Header = () => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
   const { user, loading = {}, error, themeMode } = useSelector((state) => state.user);
+  const { notifications } = useSelector((state) => state.events);
 
   const handleToggle = () => {
     dispatch(toggleThemeMode());
@@ -114,7 +115,7 @@ const Header = () => {
           >
             <IoMdNotificationsOutline size={24} />
             <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-              0
+              {notifications && notifications?.length}
             </span>
           </button>
 

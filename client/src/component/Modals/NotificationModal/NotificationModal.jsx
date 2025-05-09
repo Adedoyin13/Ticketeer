@@ -2,25 +2,29 @@ import React, { useEffect, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { MdNotificationsOff } from "react-icons/md";
 import api from "../../../utils/api";
+import Header from "../../Reusables/Header";
+import { useSelector } from "react-redux";
 
 const NotificationModal = ({ onClose }) => {
-  const [notifications, setNotifications] = useState([]);
+  // const [notifications, setNotifications] = useState([]);
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const res = await api.get("/notification/get-notifications", {
-          withCredentials: true,
-        });
-        setNotifications(res.data);
-        console.log(res.data);
-      } catch (err) {
-        console.error("Failed to fetch notifications", err);
-      }
-    };
+  const {notifications} = useSelector(state => state.events)
 
-    fetchNotifications();
-  }, []);
+  // useEffect(() => {
+  //   const fetchNotifications = async () => {
+  //     try {
+  //       const res = await api.get("/notification/get-notifications", {
+  //         withCredentials: true,
+  //       });
+  //       setNotifications(res.data);
+  //       console.log(res.data);
+  //     } catch (err) {
+  //       console.error("Failed to fetch notifications", err);
+  //     }
+  //   };
+
+  //   fetchNotifications();
+  // }, []);
 
   console.log({notifications})
 
@@ -85,6 +89,10 @@ const NotificationModal = ({ onClose }) => {
             </button>
           </div>
         )}
+      </div>
+
+      <div className="hidden">
+        <Header notification={notifications} />
       </div>
     </div>
   );

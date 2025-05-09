@@ -2,7 +2,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { getUser } from "./redux/reducers/userSlice";
-import { getUserEvents, getUserTickets } from "./redux/reducers/eventSlice";
+import { fetchNotifications, getUserEvents, getUserTickets } from "./redux/reducers/eventSlice";
 
 // Layouts
 import Layout from "./component/Layouts/Layout";
@@ -81,6 +81,7 @@ function App() {
   useEffect(() => {
     if (user) {
       dispatch(getUserTickets());
+      dispatch(fetchNotifications());
     }
   }, [user, dispatch]);
 

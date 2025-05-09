@@ -159,6 +159,22 @@ export const getUserTickets = createAsyncThunk(
   }
 );
 
+export const fetchNotifications = createAsyncThunk(
+  "notifications/fetchNotifications",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/notification/get-notifications", {
+        withCredentials: true,
+      });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch tickets"
+      );
+    }
+  }
+);
+
 export const getTicket = createAsyncThunk(
   "events/getTicket",
   async (ticketId, { rejectWithValue }) => {
@@ -333,6 +349,7 @@ const initialState = {
   userEvents: [],
   eventDetails: {},
   ticket: {},
+  notifications: [],
   upcomingEvents: [],
   cancelledEvents: [],
   userTickets: [],
@@ -346,6 +363,7 @@ const initialState = {
     eventDetails: false,
     userTickets: false,
     updateEvent: false,
+    notifications: false,
     updateTicketType: false,
     ticket: false,
     upcomingEvents: false,
@@ -421,6 +439,19 @@ const eventSlice = createSlice({
       })
       .addCase(getUserTickets.rejected, (state, action) => {
         state.loading.userTickets = false;
+        state.error = action.payload;
+      })
+
+      .addCase(fetchNotifications.pending, (state) => {
+        state.loading.notifications = true;
+        state.error = null;
+      })
+      .addCase(fetchNotifications.fulfilled, (state, action) => {
+        state.loading.notifications = false;
+        state.notifications = action.payload;
+      })
+      .addCase(fetchNotifications.rejected, (state, action) => {
+        state.loading.notifications = false;
         state.error = action.payload;
       })
 

@@ -47,7 +47,7 @@ const TicketPage = () => {
     ticket;
 
   const handleBack = () => {
-    navigate(location.state?.from || "/dashboard");
+    navigate(location.state?.from || '/my-tickets' || "/dashboard");
   };
 
   return (

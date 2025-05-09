@@ -25,6 +25,10 @@ const Logout = ({ onClose }) => {
     }
   }, [user, isAuthenticated, navigate]);
 
+  if(loading.logout) {
+    return <Loader loading={loading.logout}/>
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 font-inter flex items-center justify-center px-4">
       <div
