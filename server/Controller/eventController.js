@@ -11,7 +11,6 @@ const {
   sendCancelEventMail,
   sendReactivateEventMail,
 } = require("../Utils/sendEventEmail");
-const { Event } = require("../Model/eventModel");
 const clientUrl = process.env.FRONTEND_URL;
 const Notification = require("../Model/notificationModel");
 const DEFAULT_EVENT_IMAGE_URL = process.env.DEFAULT_EVENT_IMAGE_URL;
