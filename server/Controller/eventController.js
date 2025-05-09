@@ -1,8 +1,6 @@
 const asyncHandler = require("express-async-handler");
-// const User = require("../Model/authModel");
 const { Event, Ticket, TicketType } = require("../Model/eventModel");
 const { User } = require("../Model/authModel");
-const { Notification } = require("../Model/notificationModel");
 const nodemailer = require("nodemailer");
 const QRCode = require("qrcode");
 const mongoose = require("mongoose");
@@ -13,7 +11,9 @@ const {
   sendCancelEventMail,
   sendReactivateEventMail,
 } = require("../Utils/sendEventEmail");
+const { Event } = require("../Model/eventModel");
 const clientUrl = process.env.FRONTEND_URL;
+const Notification = require("../Model/notificationModel");
 const DEFAULT_EVENT_IMAGE_URL = process.env.DEFAULT_EVENT_IMAGE_URL;
 const cloudinary = require("cloudinary").v2;
 
@@ -554,6 +554,7 @@ const getTicket = asyncHandler(async (req, res) => {
       );
 
       const now = new Date();
+      console.log({ticket})
 
       // Extract date part (YYYY-MM-DD) from endDate
       const datePart = new Date(ticket.eventId.endDate).toISOString().split("T")[0]; // "2025-04-18"
