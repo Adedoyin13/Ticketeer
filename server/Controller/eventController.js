@@ -134,7 +134,7 @@ const createEvent = asyncHandler(async (req, res) => {
       });
     }
 
-    console.lod('Hey')
+    console.log('Hey')
     
     await Notification.create({
       user: req.userId, // The recipient
@@ -142,7 +142,7 @@ const createEvent = asyncHandler(async (req, res) => {
       message: `You created a new event: ${newEvent.title}`,
       metadata: { eventId: newEvent._id },
     });
-    console.lod('Heyy')
+    console.log('Heyy')
 
     return res
       .status(201)
