@@ -1,5 +1,5 @@
 const Notification = require("../Model/notificationModel");
-const { User } = require("../Model/authModel");
+const expressAsyncHandler = require("express-async-handler");
 
 exports.getUserNotifications = async (req, res) => {
   try {
@@ -26,7 +26,7 @@ exports.deleteNotification = expressAsyncHandler(async (req, res) => {
       return res.status(404).json({ message: "Notification not found" });
     }
 
-    if (notification.userId.toString() !== req.userId.toString()) {
+    if (notification.user.toString() !== req.userId.toString()) {
       return res
         .status(403)
         .json({ message: "You can only delete your own notifications" });
@@ -43,9 +43,9 @@ exports.deleteNotification = expressAsyncHandler(async (req, res) => {
 
 exports.deleteAllNotifications = expressAsyncHandler(async (req, res) => {
   try {
-    const result = await Notification.deleteMany({ userId: req.user._id });
+    const result = await Notification.deleteMany({ userId: req.userId });
 
-    if (result.deletedCount === 0) {
+    if (result.length <= 0) {
       return res
         .status(404)
         .json({ message: "No notifications found to delete" });

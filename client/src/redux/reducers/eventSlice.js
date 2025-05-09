@@ -291,10 +291,44 @@ export const getAttendeesForEvent = createAsyncThunk(
 );
 
 export const deleteEvent = createAsyncThunk(
-  "user/deleteEvent",
+  "event/deleteEvent",
   async (eventId, { rejectWithValue }) => {
     try {
       const response = await api.delete(`/event/deleteEvent/${eventId}`, {
+        withCredentials: true,
+      });
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Delete failed"
+      );
+    }
+  }
+);
+
+export const deleteNotification = createAsyncThunk(
+  "notifications/deleteEvent",
+  async (notificationId, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/notifications/delete-notification/${notificationId}`, {
+        withCredentials: true,
+      });
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Delete failed"
+      );
+    }
+  }
+);
+
+export const deleteAllNotifications = createAsyncThunk(
+  "notifications/deleteAllNotifications",
+  async (notificationId, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/notifications/delete-all-notifications/${notificationId}`, {
         withCredentials: true,
       });
       console.log(response.data);
