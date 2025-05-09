@@ -308,7 +308,7 @@ export const deleteEvent = createAsyncThunk(
 );
 
 export const deleteNotification = createAsyncThunk(
-  "notifications/deleteEvent",
+  "notifications/deleteNotification",
   async (notificationId, { rejectWithValue }) => {
     try {
       const response = await api.delete(`/notifications/delete-notification/${notificationId}`, {
@@ -326,9 +326,9 @@ export const deleteNotification = createAsyncThunk(
 
 export const deleteAllNotifications = createAsyncThunk(
   "notifications/deleteAllNotifications",
-  async (notificationId, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/notifications/delete-all-notifications/${notificationId}`, {
+      const response = await api.delete(`/notifications/delete-all-notifications`, {
         withCredentials: true,
       });
       console.log(response.data);
@@ -399,6 +399,8 @@ const initialState = {
     updateEvent: false,
     notifications: false,
     updateTicketType: false,
+    deleteNotification: false,
+    deleteNotifications: false,
     ticket: false,
     upcomingEvents: false,
     userUpcomingEvents: false,
@@ -745,7 +747,37 @@ const eventSlice = createSlice({
       .addCase(deleteEvent.rejected, (state, action) => {
         state.loading.deleteEvent = true;
         state.error = action.payload;
-      });
+      })
+
+      .addCase(deleteNotification.pending, (state, action) => {
+        state.loading.deleteNotification = true;
+        state.error = null;
+      })
+      .addCase(deleteNotification.fulfilled, (state, action) => {
+        state.loading.deleteNotification = false;
+        state.notifications = state.notifications.filter(
+          (event) => event._id !== action.payload.eventId
+        );
+        state.error = null;
+      })
+      .addCase(deleteNotification.rejected, (state, action) => {
+        state.loading.deleteEvent = true;
+        state.error = action.payload;
+      })
+
+      .addCase(deleteAllNotifications.pending, (state, action) => {
+        state.loading.deleteNotifications = true;
+        state.error = null;
+      })
+      .addCase(deleteAllNotifications.fulfilled, (state, action) => {
+        state.loading.deleteNotifications = false;
+        state.notifications = [];
+        state.error = null;
+      })
+      .addCase(deleteAllNotifications.rejected, (state, action) => {
+        state.loading.deleteNotifications = true;
+        state.error = action.payload;
+      })
   },
 });
 

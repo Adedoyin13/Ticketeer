@@ -8,6 +8,7 @@ import axios from "axios";
 import EditEventModal from "../Modals/EventModal/EditEventModal";
 import { useSelector } from "react-redux";
 import EventDetails from "../Event/EventDetails";
+import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -154,7 +155,7 @@ const CreateTicket = () => {
               <p className="font-semibold text-xl text-orange-600 dark:text-orange-400">
                 {event?.title}
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 {event?.startDate &&
                 event?.startTime &&
                 event?.endDate &&
@@ -170,21 +171,32 @@ const CreateTicket = () => {
               </p>
               <p className="text-sm">
                 {event.eventType === "virtual" ? (
-                  <a
-                    href={event.meetLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-blue-400 underline"
-                  >
-                    Join Meeting
-                  </a>
+                  <>
+                    <IoVideocamOutline size={18} />
+                    <a
+                      href={event.meetLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 dark:text-blue-400 underline"
+                    >
+                      Join Meeting
+                    </a>
+                  </>
                 ) : event?.location?.[2] && event?.location?.[1] ? (
-                  `${event.location[2]}, ${event.location[1]}`
+                  <div className="flex gap-2">
+                    <IoLocationOutline size={18} />
+                    <p>{`${event.location[2]}, ${event.location[1]}`}</p>
+                  </div>
                 ) : (
-                  "Location unavailable"
+                  <>
+                    <IoLocationOutline size={18} />
+                    <p>Location unavailable</p>
+                  </>
                 )}
               </p>
-              <p className="text-sm">{event?.description}</p>
+              {/* <section className="prose dark:prose-invert max-w-none">
+                <div dangerouslySetInnerHTML={{ __html: event?.description }} />
+              </section> */}
             </div>
           </div>
 

@@ -79,16 +79,6 @@ const Sidebar = ({ isOpen, onClose }) => {
               className="w-[100px] object-contain opacity-90 dark:opacity-80"
             />
           </Link>
-          <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
-            Need help?{" "}
-            <Link
-              to="/contact"
-              onClick={onClose}
-              className="text-orange-600 hover:underline"
-            >
-              Contact Support
-            </Link>
-          </p>
         </div>
       </div>
     </aside>

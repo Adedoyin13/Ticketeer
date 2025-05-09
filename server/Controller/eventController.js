@@ -1609,8 +1609,8 @@ const deleteEvent = asyncHandler(async (req, res) => {
       `${event.startDate}T${event.startTime}`
     );
 
-    if (eventStartDateTime < now) {
-      return res.status(400).json({ message: "Cannot delete past event" });
+    if (eventStartDateTime > now) {
+      return res.status(400).json({ message: "Cannot delete upcoming event" });
     }
 
     // 🧹 Delete Cloudinary image if exists

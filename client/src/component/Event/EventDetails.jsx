@@ -3,11 +3,7 @@ import { FaArrowLeft, FaRegUser } from "react-icons/fa";
 import { IoLinkOutline, IoShareSocialOutline } from "react-icons/io5";
 import AttendeeModal from "../Modals/EventModal/AttendeeModal";
 import { VscBug } from "react-icons/vsc";
-import {
-  MdFeedback,
-  MdOutlineCalendarMonth,
-  MdOutlineEdit,
-} from "react-icons/md";
+import { MdOutlineCalendarMonth, MdOutlineEdit } from "react-icons/md";
 import CopyToClipboard from "../ClipboardCopy/CopyToClipboard";
 
 import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
@@ -26,13 +22,10 @@ import { toast } from "react-toastify";
 import EventShareModal from "../Modals/EventModal/EventShareModal";
 import EditEventModal from "../Modals/EventModal/EditEventModal";
 import { TbCancel } from "react-icons/tb";
-import { LuTicket } from "react-icons/lu";
 import CancelEvent from "../Modals/EventModal/CancelEvent";
 import DeleteEvent from "../Modals/EventModal/DeleteEvent";
 import ReactivateModal from "../Modals/EventModal/ReactivateModal";
 import EditTicketModal from "../Modals/TicketModal/EditTicketModal";
-import UsingHooks from "../../UsingHooks";
-import UsingComponent from "../../UsingComponent";
 
 const CLIENT_URL = import.meta.env.VITE_CLIENT_URL;
 
@@ -318,11 +311,15 @@ const EventDetails = () => {
                   <div dangerouslySetInnerHTML={{ __html: description }} />
                 </section>
               ) : (
-                <div>
-                  <p className="text-sm text-slate-700 dark:text-slate-300">
-                    {description.replace(/<[^>]+>/g, "").slice(0, 120)}...
-                  </p>
-                </div>
+                <section className="prose dark:prose-invert max-w-none">
+    <div
+      dangerouslySetInnerHTML={{
+        __html: (typeof description === "string"
+          ? description.replace(/<[^>]+>/g, "").slice(0, 120)
+          : ""),
+      }}
+    />
+  </section>
               )}
 
               {isLong && (
@@ -374,15 +371,6 @@ const EventDetails = () => {
               label: "Share event",
               icon: <IoShareSocialOutline size={18} />,
               onClick: openShareModal,
-            },
-            eventDetails?.canceled === false && {
-              label: "Cancel event",
-              icon: <TbCancel size={18} />,
-              onClick: openCancelModal,
-            },
-            eventDetails?.canceled && {
-              label: "Resume Event",
-              onClick: openReactivateModal,
             },
             {
               label: "Delete event",
