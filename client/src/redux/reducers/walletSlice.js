@@ -15,7 +15,7 @@ const walletSlice = createSlice({
       state.isConnected = true;
     },
     setNetwork(state, action) {
-      state.network = action.payload; // e.g., "Ethereum Mainnet"
+      state.network = action.payload;
     },
     setConnectionStatus(state, action) {
       state.isConnected = action.payload;
