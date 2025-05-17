@@ -25,3 +25,33 @@ body,
 .input-style {
   @apply w-full p-2 border rounded-md dark:bg-slate-800 dark:text-white;
 }
+
+/* Dark mode overrides for scanner library elements */
+.dark #scanner,
+.dark #scanner * {
+  background-color: transparent !important;
+  color: #f1f5f9 !important; /* Tailwind zinc-100 */
+  border-color: #52525b !important; /* Tailwind zinc-600 */
+}
+
+/* Optional: fix common html5-qrcode permission text */
+.dark #html5-qrcode-button-camera-permission,
+.dark #html5-qrcode-info-message,
+.dark #html5-qrcode-anchor-scan-type-change {
+  color: #f1f5f9 !important;
+}
+
+/* If scanner uses other IDs or classes, target those too */
+/* Override scanner icons and text colors for dark mode */
+.dark #scanner svg,
+.dark #scanner img,
+.dark #scanner * {
+  filter: brightness(1000%) !important; /* makes black icons white */
+  color: #f1f5f9 !important; /* zinc-100 */
+}
+
+/* Optionally, for any default texts like "request camera permission" */
+.dark #scanner {
+  color: #f1f5f9 !important; /* zinc-100 */
+  background-color: #18181b !important; /* zinc-950 */
+}

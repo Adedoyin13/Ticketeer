@@ -16,8 +16,17 @@ const SuccessPage = () => {
   const [showConfetti, setShowConfetti] = useState(true);
   const { state } = useLocation();
 
-  const ticket = state?.ticket || {};
+  console.log({ state });
+  // const tickets = state?.tickets || [];
+  const tickets = state?.tickets?.tickets || [];
   const event = state?.event || {};
+
+  console.log({ tickets });
+
+  const totalTicketCount = tickets.reduce(
+    (sum, group) => sum + (group.tickets?.length || 0),
+    0
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => setShowConfetti(false), 8000);
@@ -47,19 +56,49 @@ const SuccessPage = () => {
           Payment Successful!
         </h1>
         <p className="text-slate-600 dark:text-slate-300 mb-6">
-          You've successfully purchased a ticket to <strong>{event.title}</strong>.
+          You’ve successfully purchased {totalTicketCount} {""}
+          ticket
+          {tickets.length > 1 ? "s" : ""} to <strong>{event.title}</strong>.
         </p>
 
-        <div className="text-left bg-slate-50 dark:bg-slate-700 p-6 rounded-xl shadow-sm mb-6 space-y-3 font-inter">
-          <p><span className="font-semibold">Event:</span> {event.title}</p>
-          <p><span className="font-semibold">Date:</span> {formatDate(event.startDate)} at {event.startTime}</p>
-          <p><span className="font-semibold">Type:</span> {event.eventType}</p>
-          <p><span className="font-semibold">Ticket Type ID:</span> {ticket._id}</p>
-          {/* <p><span className="font-semibold">Ticket Type ID:</span> {event.ticketTypes[0]._id}</p> */}
-          <p><span className="font-semibold">Status:</span> {ticket.status}</p>
-          {ticket.qrCode && (
-            <p><span className="font-semibold">QR Code:</span> {ticket.qrCode}</p>
-          )}
+        <div className="bg-slate-50 dark:bg-slate-700 p-6 rounded-xl shadow-sm mb-6 font-inter space-y-6 text-left">
+          <div className="space-y-2">
+            <p>
+              <span className="font-semibold">Event:</span> {event.title}
+            </p>
+            <p>
+              <span className="font-semibold">Date:</span>{" "}
+              {formatDate(event.startDate)} at {event.startTime}
+            </p>
+            <p>
+              <span className="font-semibold">Type:</span> {event.eventType}
+            </p>
+          </div>
+
+          <div className="border-t pt-4 border-slate-400 gap-4 grid grid-cols-2">
+            {tickets.map((ticket, index) => (
+              <div key={ticket._id || index} className="gap-2 flex flex-col">
+                <p>
+                  <span className="font-semibold">Ticket Type:</span>{" "}
+                  {ticket?.ticketTypeName}
+                </p>
+                <p>
+                  <span className="font-semibold">Quantity:</span>{" "}
+                  {ticket?.quantity}
+                </p>
+                <p>
+                  <span className="font-semibold">Status:</span>{" "}
+                  {ticket?.status || "✅ Going"}
+                </p>
+                {ticket?.qrCode && (
+                  <p>
+                    <span className="font-semibold">QR Code:</span>{" "}
+                    {ticket?.qrCode}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         <Link

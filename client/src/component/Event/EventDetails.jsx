@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaArrowLeft, FaRegUser } from "react-icons/fa";
+import { FaArrowLeft, FaRegEdit, FaRegUser } from "react-icons/fa";
 import { IoLinkOutline, IoShareSocialOutline } from "react-icons/io5";
 import AttendeeModal from "../Modals/EventModal/AttendeeModal";
 import { VscBug } from "react-icons/vsc";
@@ -8,7 +8,7 @@ import CopyToClipboard from "../ClipboardCopy/CopyToClipboard";
 
 import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
 import { RiDeleteBin5Line } from "react-icons/ri";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   cancelEvent,
   deleteEvent,
@@ -21,11 +21,13 @@ import Loader from "../Spinners/Loader";
 import { toast } from "react-toastify";
 import EventShareModal from "../Modals/EventModal/EventShareModal";
 import EditEventModal from "../Modals/EventModal/EditEventModal";
-import { TbCancel } from "react-icons/tb";
+import { TbCancel, TbTicket } from "react-icons/tb";
 import CancelEvent from "../Modals/EventModal/CancelEvent";
 import DeleteEvent from "../Modals/EventModal/DeleteEvent";
 import ReactivateModal from "../Modals/EventModal/ReactivateModal";
 import EditTicketModal from "../Modals/TicketModal/EditTicketModal";
+import AddTicketModal from "../Modals/TicketModal/AddTicketModal";
+import TicketInfoModal from "../Modals/TicketModal/TicketInfoModal";
 
 const CLIENT_URL = import.meta.env.VITE_CLIENT_URL;
 
@@ -45,11 +47,14 @@ const formatDate = (dateString) => {
 
 const EventDetails = () => {
   const [attendeeModalOpen, setAttendeeModalOpen] = useState(false);
+  const [ticketModalOpen, setTicketeModalOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editEventModalOpen, setEditEventModalOpen] = useState(false);
   const [editTicketModalOpen, setEditTicketModalOpen] = useState(false);
+  const [addTicketModalOpen, setAddTicketModalOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
   const [reactivateModalOpen, setReactivateModalOpen] = useState(false);
   const [showFull, setShowFull] = useState(false);
@@ -125,6 +130,24 @@ const EventDetails = () => {
     setEditingTicket(null);
   };
 
+  const openAddTicketModal = (ticket) => {
+    setAddTicketModalOpen(true);
+  };
+
+  const closeAddTicketModal = () => {
+    setAddTicketModalOpen(false);
+  };
+
+  const openTicketModal = (ticket) => {
+    setSelectedTicket(ticket);
+    setTicketeModalOpen(true);
+  };
+
+  const closeTicketModal = () => {
+    setSelectedTicket(null);
+    setTicketeModalOpen(false);
+  };
+
   const openAttendeeModal = () => {
     setAttendeeModalOpen(true);
   };
@@ -192,6 +215,8 @@ const EventDetails = () => {
       e.target.value = "";
     }
   };
+
+  console.log(eventDetails);
 
   // if (loading.uploadImage) {
   //   return <Loader loading={loading.uploadImage} />;
@@ -284,15 +309,20 @@ const EventDetails = () => {
   const isLong = description?.length > 50;
 
   const handleNavigate = (eventId) => {
-    navigate(`/create-ticket/${eventId}`, {
+    navigate(`/scan-ticket`, {
       state: { from: location.pathname }, // Save previous route
     });
   };
 
   if (!eventDetails) return <Loader loading={true} />;
 
+  // const event = eventDetails
+
+  // console.log({event})
+
   return (
     <section className="bg-orange-50 dark:bg-zinc-900 py-24 md:py-28 font-inter text-gray-800 dark:text-zinc-100">
+      {/* // <section className="w-full mt-6 px-4 flex flex-col lg:flex-row items-stretch gap-6"> */}
       <div className="flex flex-col px-4 sm:px-6 md:px-10 gap-6 max-w-7xl mx-auto">
         <button
           onClick={handleBack}
@@ -312,14 +342,15 @@ const EventDetails = () => {
                 </section>
               ) : (
                 <section className="prose dark:prose-invert max-w-none">
-    <div
-      dangerouslySetInnerHTML={{
-        __html: (typeof description === "string"
-          ? description.replace(/<[^>]+>/g, "").slice(0, 120)
-          : ""),
-      }}
-    />
-  </section>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        typeof description === "string"
+                          ? description.replace(/<[^>]+>/g, "").slice(0, 120)
+                          : "",
+                    }}
+                  />
+                </section>
               )}
 
               {isLong && (
@@ -346,19 +377,7 @@ const EventDetails = () => {
               </p>
             </div>
           )}
-          {eventDetails?.canceled && (
-            <span className="text-red-500 font-bold">Canceled</span>
-          )}
         </div>
-        {/* 
-        {console.log({ eventDetails })}
-
-        {user && eventDetails && (
-          <>
-            <UsingHooks user={user} event={eventDetails} />
-            <UsingComponent user={user} event={eventDetails} />
-          </>
-        )} */}
 
         <div className="flex flex-wrap gap-3 sm:gap-4">
           {[
@@ -392,243 +411,185 @@ const EventDetails = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-5 mt-2">
-          <div className="w-full lg:w-[300px] rounded-2xl bg-orange-100/30 dark:bg-zinc-800/50 backdrop-blur-sm border border-orange-300 dark:border-zinc-700 shadow-lg p-4 relative">
-            <div className="w-full h-[200px] rounded-xl overflow-hidden relative">
-              <img
-                src={profilePhoto || eventDetails?.image?.imageUrl}
-                alt={`${eventDetails.title}'s image`}
-                className="w-full h-full object-cover rounded-xl"
-              />
+          <section className="w-full mt-6 flex flex-col lg:flex-row items-stretch gap-6">
+            <div className="w-full lg:w-[300px] rounded-2xl bg-orange-100/30 dark:bg-zinc-800/50 backdrop-blur-sm border border-orange-300 dark:border-zinc-700 shadow-lg p-4 relative">
+              <div className="w-full h-[200px] rounded-xl overflow-hidden relative">
+                <img
+                  src={profilePhoto || eventDetails?.image?.imageUrl}
+                  alt={`${eventDetails.title}'s image`}
+                  className="w-full h-full object-cover rounded-xl"
+                />
+                {eventDetails?.organizer?._id === user._id && isUpcoming() && (
+                  <label
+                    htmlFor="photoUpload"
+                    className="absolute top-2 right-2 bg-white/80 dark:bg-zinc-700/80 hover:bg-orange-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-zinc-100 p-2 rounded-xl shadow-lg cursor-pointer transition-all"
+                  >
+                    <MdOutlineEdit size={20} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoSelect}
+                      hidden
+                      id="photoUpload"
+                    />
+                  </label>
+                )}
+              </div>
+
               {eventDetails?.organizer?._id === user._id && isUpcoming() && (
-                <label
-                  htmlFor="photoUpload"
-                  className="absolute top-2 right-2 bg-white/80 dark:bg-zinc-700/80 hover:bg-orange-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-zinc-100 p-2 rounded-xl shadow-lg cursor-pointer transition-all"
-                >
-                  <MdOutlineEdit size={20} />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoSelect}
-                    hidden
-                    id="photoUpload"
-                  />
-                </label>
+                <div className="mt-4 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={handlePhotoUpload}
+                    className="bg-zinc-700 hover:bg-zinc-800 text-white px-6 py-2 rounded-md text-sm font-medium shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isUpdateDisabled}
+                  >
+                    {loadingUploadImage ? (
+                      <>
+                        Updating <Loader loading={loadingUploadImage} />
+                      </>
+                    ) : (
+                      "Update"
+                    )}
+                  </button>
+                </div>
               )}
             </div>
 
-            {eventDetails?.organizer?._id === user._id && isUpcoming() && (
-              <div className="mt-4 flex justify-center">
-                <button
-                  type="button"
-                  onClick={handlePhotoUpload}
-                  className="bg-zinc-700 hover:bg-zinc-800 text-white px-6 py-2 rounded-md text-sm font-medium shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isUpdateDisabled}
-                >
-                  {loadingUploadImage ? (
-                    <>
-                      Updating <Loader loading={loadingUploadImage} />
-                    </>
-                  ) : (
-                    "Update"
+            <div className="bg-orange-100/30 dark:bg-zinc-800/50 backdrop-blur-sm border border-orange-300 dark:border-zinc-700 rounded-2xl p-6 shadow-lg flex-1">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-bold tracking-wide text-zinc-800 dark:text-zinc-100">
+                  Event Recap
+                </h2>
+                {eventDetails?.organizer?._id === user._id && isUpcoming() && (
+                  <button
+                    onClick={openEditEventModal}
+                    className="p-2 rounded-xl bg-white/30 dark:bg-zinc-700 hover:bg-orange-200 dark:hover:bg-zinc-600 transition-colors"
+                  >
+                    <MdOutlineEdit
+                      size={20}
+                      className="text-orange-600 dark:text-zinc-100"
+                    />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex gap-4 items-start text-zinc-800 dark:text-zinc-200 mb-6">
+                <MdOutlineCalendarMonth size={24} className="mt-1" />
+                <div className="flex flex-col gap-1 py-1 w-full border-b border-zinc-300 dark:border-zinc-600">
+                  <p className="font-medium">
+                    {eventDetails && formatDate(eventDetails.startDate)} –{" "}
+                    {formatDate(eventDetails.endDate)}
+                  </p>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    {eventDetails.startTime} – {eventDetails.endTime}
+                  </p>
+                </div>
+              </div>
+
+              {eventDetails?.location && (
+                <div className="flex gap-4 items-start text-zinc-800 dark:text-zinc-200 mb-6">
+                  <IoLocationOutline size={24} className="mt-1" />
+                  <p className="py-1 w-full border-b border-zinc-300 dark:border-zinc-600 text-sm">
+                    {eventDetails?.location?.join(", ") ||
+                      "Location not available"}
+                  </p>
+                </div>
+              )}
+
+              {eventDetails?.meetLink && (
+                <div className="flex gap-4 items-start text-zinc-800 dark:text-zinc-200 mb-6">
+                  <IoVideocamOutline size={24} className="mt-1" />
+                  <a
+                    href={eventDetails.meetLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 dark:text-blue-400 underline py-1 w-full border-b border-zinc-300 dark:border-zinc-600"
+                  >
+                    Join Meeting
+                  </a>
+                </div>
+              )}
+
+              {/* <Link to="/scan-ticket"> */}
+                <div onClick={handleNavigate} className="flex gap-4 items-start text-zinc-800 dark:text-zinc-200 mb-6 cursor-pointer">
+                  <TbTicket size={24} className="mt-1 hover:text-orange-600" />
+                  <p className="py-1 w-full border-b border-zinc-300 dark:border-zinc-600 text-sm hover:text-orange-600">
+                    Scan Tcket
+                  </p>
+                </div>
+              {/* </Link> */}
+
+              <div className="flex gap-4 items-center text-zinc-800 dark:text-zinc-200 mt-4">
+                <FaRegUser size={20} />
+                <p className="text-sm">
+                  {eventDetails?.attendees?.length}{" "}
+                  {eventDetails?.attendees?.length > 1
+                    ? "registrations"
+                    : "registration"}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-orange-100/30 dark:bg-zinc-800/50 backdrop-blur-sm border border-orange-300 dark:border-zinc-700 rounded-2xl p-6 shadow-lg flex-1 flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold">Ticket Types</h3>
+                {eventDetails &&
+                  eventDetails?.ticketTypes &&
+                  eventDetails?.ticketTypes.length < 5 && (
+                    <button
+                      onClick={openAddTicketModal}
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl transition duration-200 text-sm"
+                    >
+                      + Add Ticket
+                    </button>
                   )}
-                </button>
               </div>
-            )}
-          </div>
 
-          <div className="bg-orange-100/30 dark:bg-zinc-800/50 backdrop-blur-sm border border-orange-300 dark:border-zinc-700 rounded-2xl p-6 shadow-lg flex-1">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold tracking-wide text-zinc-800 dark:text-zinc-100">
-                Event Recap
-              </h2>
-              {eventDetails?.organizer?._id === user._id && isUpcoming() && (
-                <button
-                  onClick={openEditEventModal}
-                  className="p-2 rounded-xl bg-white/30 dark:bg-zinc-700 hover:bg-orange-200 dark:hover:bg-zinc-600 transition-colors"
-                >
-                  <MdOutlineEdit
-                    size={20}
-                    className="text-orange-600 dark:text-zinc-100"
-                  />
-                </button>
-              )}
-            </div>
-
-            <div className="flex gap-4 items-start text-zinc-800 dark:text-zinc-200 mb-6">
-              <MdOutlineCalendarMonth size={24} className="mt-1" />
-              <div className="flex flex-col gap-1 py-1 w-full border-b border-zinc-300 dark:border-zinc-600">
-                <p className="font-medium">
-                  {eventDetails && formatDate(eventDetails.startDate)} –{" "}
-                  {formatDate(eventDetails.endDate)}
-                </p>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {eventDetails.startTime} – {eventDetails.endTime}
-                </p>
-              </div>
-            </div>
-
-            {eventDetails.eventType === "virtual" ? (
-              <div className="flex gap-4 items-start text-zinc-800 dark:text-zinc-200 mb-6">
-                <IoVideocamOutline size={24} className="mt-1" />
-                <a
-                  href={eventDetails.meetLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 dark:text-blue-400 underline py-1 w-full border-b border-zinc-300 dark:border-zinc-600"
-                >
-                  Join Meeting
-                </a>
-              </div>
-            ) : (
-              <div className="flex gap-4 items-start text-zinc-800 dark:text-zinc-200 mb-6">
-                <IoLocationOutline size={24} className="mt-1" />
-                <p className="py-1 w-full border-b border-zinc-300 dark:border-zinc-600 text-sm">
-                  {eventDetails?.location?.join(", ") ||
-                    "Location not available"}
-                </p>
-              </div>
-            )}
-
-            <div className="flex gap-4 items-center text-zinc-800 dark:text-zinc-200 mt-4">
-              <FaRegUser size={20} />
-              <p className="text-sm">
-                {eventDetails?.attendees?.length}{" "}
-                {eventDetails?.attendees?.length > 1
-                  ? "registrations"
-                  : "registration"}
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-orange-100/30 dark:bg-zinc-800/50 backdrop-blur-sm border border-orange-300 dark:border-zinc-700 rounded-2xl p-6 shadow-lg flex-1">
-            {eventDetails &&
-            eventDetails?.ticketTypes &&
-            eventDetails?.ticketTypes.length >= 1 ? (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-lg font-bold tracking-wide text-zinc-800 dark:text-zinc-100">
-                    Ticket Information
-                  </h2>
-
-                  {eventDetails &&
-                    eventDetails?.organizer?._id === user._id &&
-                    isUpcoming() &&
-                    eventDetails.ticketTypes?.map((ticket) => (
-                      <button
-                        key={ticket._id}
-                        onClick={() => openEditTicketModal(ticket)}
-                        className="p-2 rounded-xl bg-white/30 dark:bg-zinc-700 hover:bg-orange-200 dark:hover:bg-zinc-600 transition-colors"
-                      >
-                        <MdOutlineEdit
-                          size={20}
-                          className="text-orange-600 dark:text-zinc-100"
+              {eventDetails?.ticketTypes?.length > 0 ? (
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-2">
+                  {eventDetails.ticketTypes.map((ticket, index) => (
+                    <div
+                      key={index}
+                      onClick={() => openTicketModal(ticket)}
+                      className="border border-gray-300 dark:border-gray-700 rounded-xl p-4 cursor-pointer hover:bg-orange-50 dark:hover:bg-zinc-700/40 transition"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="text-md font-medium">{ticket.type}</h4>
+                        <FaRegEdit
+                          onClick={(e) => {
+                            e.stopPropagation(); // prevent triggering ticket modal
+                            openEditTicketModal(ticket);
+                          }}
+                          className="text-gray-500 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition"
+                          size={16}
                         />
-                      </button>
-                    ))}
-                </div>
-
-                <div className="space-y-6">
-                  {eventDetails &&
-                    eventDetails?.ticketTypes?.map((ticket, index) => (
-                      <div
-                        key={index}
-                        className="bg-white/60 dark:bg-zinc-700/50 backdrop-blur rounded-xl p-4 shadow-sm"
-                      >
-                        <h3 className="text-md font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-                          {ticket?.type
-                            .split(" ")
-                            .map(
-                              (word) =>
-                                word.charAt(0).toUpperCase() + word.slice(1)
-                            )
-                            .join(" ")}
-                        </h3>
-
-                        <div className="space-y-2 text-sm text-zinc-800 dark:text-zinc-200">
-                          <div className="flex justify-between">
-                            <span>Total Quantity:</span>
-                            <span className="font-medium text-right">
-                              {ticket?.totalQuantity}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Available Quantity:</span>
-                            <span className="font-medium text-right">
-                              {ticket?.availableQuantity}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Sold Quantity:</span>
-                            <span className="font-medium text-right">
-                              {ticket?.soldQuantity}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Price:</span>
-                            <span className="font-semibold text-right text-orange-600 dark:text-orange-400">
-                              ${ticket?.price}
-                            </span>
-                          </div>
-                        </div>
                       </div>
-                    ))}
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-4 p-6 border border-dashed border-zinc-300 dark:border-zinc-600 rounded-xl bg-zinc-50 dark:bg-zinc-800 shadow-sm">
-                <p className="text-base sm:text-lg text-zinc-700 dark:text-zinc-200 font-semibold">
-                  No tickets for this event
-                </p>
-                <button
-                  onClick={() => handleNavigate(eventDetails._id)}
-                  className="px-5 sm:px-8 py-2 text-sm font-medium bg-orange-400 dark:bg-orange-600 text-white rounded-full hover:bg-orange-500 dark:hover:bg-orange-700 transition"
-                >
-                  Create ticket
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* <div className="flex-1">
-            {Array.isArray(feedbacks) && feedbacks.length > 0 ? (
-              feedbacks.map((feedback, index) => (
-                <div
-                  key={index}
-                  className="bg-orange-300 dark:bg-zinc-800 bg-opacity-50 border border-orange-400 dark:border-zinc-700 rounded-lg p-6 mb-6 text-gray-700 dark:text-zinc-300"
-                >
-                  <div className="flex gap-3 items-center">
-                    <div className="w-[50px] h-[50px] overflow-hidden rounded-full bg-white">
-                      <img
-                        src={feedback.img}
-                        alt="User"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-lg">{feedback.name}</p>
-                      <p className="text-gray-700 dark:text-zinc-400 text-sm">
-                        {feedback.email}
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Price: ${ticket.price}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Quantity: {ticket.totalQuantity}
                       </p>
                     </div>
-                  </div>
-                  <p className="text-sm mt-3">{feedback.comment}</p>
-                  <div className="flex justify-center mt-4">
-                    <button className="py-2 px-6 sm:px-10 bg-slate-500 text-white hover:bg-slate-600 rounded-md text-sm">
-                      View all feedbacks
-                    </button>
-                  </div>
+                  ))}
                 </div>
-              ))
-            ) : (
-              <div className="text-center flex flex-col items-center justify-center gap-4 bg-orange-300 dark:bg-zinc-800 bg-opacity-50 border border-orange-400 dark:border-zinc-700 rounded-lg px-6 pt-6 pb-4 text-gray-700 dark:text-zinc-300">
-                <MdFeedback size={75} />
-                <p>No feedback yet</p>
-                <p className="text-sm text-center text-gray-600 dark:text-zinc-400">
-                  You do not have any feedback yet for this event
+              ) : (
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  No ticket types available yet.
                 </p>
-              </div>
-            )}
-          </div> */}
+              )}
+
+              {/* Optional Edit Ticket Modal */}
+              {ticketModalOpen && selectedTicket && (
+                <TicketInfoModal
+                  ticket={selectedTicket}
+                  isOpen={openTicketModal}
+                  onClose={closeTicketModal}
+                />
+              )}
+            </div>
+          </section>
         </div>
 
         <div className="flex justify-between items-center gap-4 px-4 py-3 rounded-xl bg-orange-100/30 dark:bg-zinc-800/50 text-zinc-800 dark:text-zinc-200 border border-orange-300 dark:border-zinc-700 shadow-lg">
@@ -685,6 +646,7 @@ const EventDetails = () => {
         <AttendeeModal
           onClose={closeAttendeeModal}
           attendees={eventDetails.attendees}
+          ticket={eventDetails.ticketTypes}
         />
       )}
       {shareModalOpen && (
@@ -702,6 +664,13 @@ const EventDetails = () => {
           onClose={closeEditTicketModal}
           event={eventDetails}
           ticketType={editingTicket}
+        />
+      )}
+      {addTicketModalOpen && (
+        <AddTicketModal
+          onClose={closeAddTicketModal}
+          isOpen={openAddTicketModal}
+          event={eventDetails}
         />
       )}
       {cancelModalOpen && (

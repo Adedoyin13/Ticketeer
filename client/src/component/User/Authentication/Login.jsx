@@ -8,6 +8,7 @@ import { loginUser, setUser } from "../../../redux/reducers/userSlice";
 import GoogleAuth from "./GoogleAuth";
 import Loader from "../../Spinners/Loader";
 import { setWalletAddress } from "../../../redux/reducers/walletSlice";
+import GoogleLogin from "./GoogleLogin";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -136,6 +137,7 @@ const Login = () => {
               <p className="font-bold text-sm text-gray-500 dark:text-gray-300">
                 OR
               </p>
+              {/* <GoogleLogin /> */}
               <GoogleAuth />
 
               <p className="text-sm text-gray-600 dark:text-gray-300">

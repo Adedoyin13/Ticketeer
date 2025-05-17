@@ -36,32 +36,25 @@ const Dashboard = () => {
   }, [dispatch]);
 
   if (userLoading.getUser) {
-    // Handle user loading state, assuming userLoading is an object
     return <Loader loading={userLoading.getUser} />;
   }
 
-  // ✅ Handle separate loading states for events
   if (eventsLoading.userEvents) {
     return <Loader loading={eventsLoading.userEvents} />;
   }
 
-  // ✅ Handle separate error states
   if (userError) return toast.error(`Error fetching user: ${userError}`);
   if (eventsError) return toast.error(`Error fetching events: ${eventsError}`);
 
   return (
     <>
       <div className="relative min-h-screen w-full">
-        {/* Fixed Background Layer */}
         <div className="fixed inset-0 z-0 bg-orange-50 dark:bg-zinc-950" />
 
-        {/* Scrollable Content Layer */}
         <section className="relative z-10 font-inter py-24 px-6 md:px-12 lg:px-20">
           <div className="flex flex-col md:flex-row justify-between gap-12 w-full">
-            {/* Profile Card */}
             <div className="flex flex-col gap-6 w-full md:max-w-xs items-center md:items-stretch">
               <div className="relative flex flex-col gap-5 p-6 w-full bg-white dark:bg-zinc-900 rounded-2xl shadow-lg border border-orange-200 dark:border-zinc-700">
-                {/* Edit Button */}
                 <Link to="/settings/profile-update">
                   <button
                     aria-label="Edit Profile"
@@ -71,7 +64,6 @@ const Dashboard = () => {
                   </button>
                 </Link>
 
-                {/* Profile Details */}
                 {userLoading.getUser ? (
                   <div className="animate-pulse flex flex-col items-center gap-4 py-16">
                     <div className="w-20 h-20 rounded-full bg-zinc-300 dark:bg-zinc-700" />
@@ -83,11 +75,13 @@ const Dashboard = () => {
                 ) : user ? (
                   <div className="flex flex-col gap-4 items-center">
                     <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-orange-300 dark:border-zinc-700 shadow-md bg-orange-100 dark:bg-zinc-800">
-                      <img
-                        src={user?.photo?.imageUrl}
-                        alt={user?.name || "User"}
-                        className="w-full h-full object-cover"
-                      />
+                      {user && user?.photo && (
+                        <img
+                          src={user?.photo?.imageUrl || user?.photo}
+                          alt={user?.name || "User"}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
                     </div>
                     <div className="text-center">
                       <p className="font-semibold text-lg text-zinc-800 dark:text-zinc-100">

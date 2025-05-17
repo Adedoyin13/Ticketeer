@@ -208,9 +208,11 @@ const sendCreateTicketMail = (data) => {
 const sendTicketPurchaseMail = async (data) => {
   const {
     ticketTypeId,
+    ticketTypeName,
+    quantity,
     name,
     email,
-    event,
+    title,
     startDate,
     startTime,
     eventType,
@@ -219,10 +221,14 @@ const sendTicketPurchaseMail = async (data) => {
     status,
   } = data;
 
-  const qrData = `ticketeer://ticket/${ticketTypeId}`;
+  const qrData = JSON.stringify({
+    ticketTypeId,
+    userEmail: email,
+    eventTitle: title,
+    quantity,
+  });
   const qrCodeImage = await generateQrCode(qrData);
 
-  // Set up transporter for sending email
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -233,6 +239,10 @@ const sendTicketPurchaseMail = async (data) => {
       rejectUnauthorized: false,
     },
   });
+
+  const locationOrLinkHtml = eventType === "physical"
+    ? `<p style="margin:0;padding-bottom:10px;"><strong>Location:</strong> ${location}</p>`
+    : `<p style="margin:0;padding-bottom:10px;"><strong>Link:</strong> <a href="${meetLink}" style="color:#f97316;text-decoration:none;">Join the Event</a></p>`;
 
   const htmlContent = `
   <!DOCTYPE html>
@@ -253,29 +263,23 @@ const sendTicketPurchaseMail = async (data) => {
                 <td style="padding:32px;">
                   <h3 style="margin-top:0;">Hi ${name},</h3>
                   <p style="color:#334155;">Thanks for your purchase! 🎉</p>
-                  <pre style="background:#f1f5f9;padding:20px;border-radius:8px;color:#0f172a;">
-<h3 style="color:#1e293b;">Ticket Purchase Summary</h3>
-<div style="background:#f1f5f9;padding:20px;border-radius:8px;">
-  <p style="margin:0;padding-bottom:10px;"><strong>🎟 Ticket:</strong> ${event.title} Ticket</p>
-  <p style="margin:0;padding-bottom:10px;"><strong>Event:</strong> ${event.title}</p>
-  <p style="margin:0;padding-bottom:10px;"><strong>Date:</strong> ${startDate}</p>
-  <p style="margin:0;padding-bottom:10px;"><strong>Time:</strong> ${startTime}</p>
-  <p style="margin:0;padding-bottom:10px;"><strong>Event Type:</strong> ${eventType}</p>
-  <p style="margin:0;padding-bottom:10px;"><strong>Location:</strong> ${location}</p>
-  <p style="margin:0;padding-bottom:10px;"><strong>Link:</strong> <a href="${meetLink}" style="color:#f97316;text-decoration:none;">Join the Event</a></p>
-  
-  <div style="text-align:center;margin-top:20px;">
-    <p style="font-weight:bold;color:#1e293b;">Your QR Code:</p>
-    <img src="${qrCodeImage}" alt="QR Code" style="width:150px;height:150px;border-radius:8px;" />
-  </div>
-
-  <p style="margin-top:20px;color:#334155;"><strong>Status:</strong> ✅ ${status}</p>
-  <p style="margin-top:10px;color:#334155;"><strong>Ticket ID:</strong> #${ticketTypeId}</p>
-</div>
-
-                  </pre>
+                  <div style="background:#f1f5f9;padding:20px;border-radius:8px;color:#0f172a;">
+                    <h3 style="color:#1e293b;">Ticket Purchase Summary</h3>
+                    <p style="margin:0;padding-bottom:10px;"><strong>🎟 Ticket:</strong> ${ticketTypeName} Ticket(s) - Quantity: ${quantity}</p>
+                    <p style="margin:0;padding-bottom:10px;"><strong>Event:</strong> ${title}</p>
+                    <p style="margin:0;padding-bottom:10px;"><strong>Date:</strong> ${startDate}</p>
+                    <p style="margin:0;padding-bottom:10px;"><strong>Time:</strong> ${startTime}</p>
+                    <p style="margin:0;padding-bottom:10px;"><strong>Event Type:</strong> ${eventType}</p>
+                    ${locationOrLinkHtml}
+                    <div style="text-align:center;margin-top:20px;">
+                      <p style="font-weight:bold;color:#1e293b;">Your QR Code:</p>
+                      <img src="${qrCodeImage}" alt="QR Code" style="width:150px;height:150px;border-radius:8px;" />
+                    </div>
+                    <p style="margin-top:20px;color:#334155;"><strong>Status:</strong> ✅ ${status}</p>
+                    <p style="margin-top:10px;color:#334155;"><strong>Ticket Type ID:</strong> #${ticketTypeId}</p>
+                  </div>
                   <div style="text-align:center;margin-top:24px;">
-                    <a href="${CLIENT_URL}/my-tickets" style="background:#f97316;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">View My Tickets</a>
+                    <a href="${process.env.CLIENT_URL}/my-tickets" style="background:#f97316;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">View My Tickets</a>
                   </div>
                 </td>
               </tr>
@@ -292,19 +296,18 @@ const sendTicketPurchaseMail = async (data) => {
     </body>
   </html>`;
 
-  // Set mail options
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Your Ticket is Confirmed!",
-    html: htmlContent,
-  };
-
-  // Send email
-  transporter.sendMail(mailOptions, (err) => {
-    if (err) console.error("Ticket purchase email error:", err);
-    else console.log("Ticket purchase email sent to", email);
-  });
+  // Send mail with await so you can catch errors
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your Ticket is Confirmed!",
+      html: htmlContent,
+    });
+    console.log("Ticket purchase email sent to", email);
+  } catch (err) {
+    console.error("Ticket purchase email error:", err);
+  }
 };
 
 const sendDeleteEventMail = (data) => {

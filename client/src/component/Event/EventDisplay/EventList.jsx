@@ -60,7 +60,6 @@ const EventList = ({ events }) => {
                 <th className="px-5 py-4 whitespace-nowrap">Event</th>
                 <th className="px-5 py-4 whitespace-nowrap">Date</th>
                 <th className="px-5 py-4 whitespace-nowrap">Time</th>
-                <th className="px-5 py-4 whitespace-nowrap">Type</th>
                 <th className="px-5 py-4 whitespace-nowrap">Location</th>
                 <th className="px-5 py-4 whitespace-nowrap">Meet Link</th>
                 <th className="px-5 py-4 whitespace-nowrap">Capacity</th>
@@ -99,18 +98,11 @@ const EventList = ({ events }) => {
                       {event.startTime}
                     </td>
 
-                    <td className="px-5 py-4 whitespace-nowrap capitalize">
-                      {event.eventType}
+                    <td className="px-5 py-4 whitespace-nowrap">
+                       {event.location[2]}, {event.location[1]}
                     </td>
 
                     <td className="px-5 py-4 whitespace-nowrap">
-                      {event.eventType === "physical"
-                        ? `${event.location[2]}, ${event.location[1]}`
-                        : "-"}
-                    </td>
-
-                    <td className="px-5 py-4 whitespace-nowrap">
-                      {event.eventType === "virtual" ? (
                         <a
                           href={event.meetLink}
                           target="_blank"
@@ -119,9 +111,6 @@ const EventList = ({ events }) => {
                         >
                           Join
                         </a>
-                      ) : (
-                        "-"
-                      )}
                     </td>
 
                     <td className="px-5 py-4 whitespace-nowrap">

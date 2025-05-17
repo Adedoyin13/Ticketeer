@@ -17,7 +17,7 @@ const cron = require("node-cron");
 
 const http = require("http");
 const socketIo = require("socket.io");
-const { createEventReminderNotifications } = require("./Utils/cronJobs");
+// const { createEventReminderNotifications } = require("./Utils/cronJobs");
 const { createEventReminderMail } = require("./Utils/sendEventEmail");
 
 const app = express();
@@ -77,13 +77,13 @@ app.get("/", (req, res) => {
 const server = http.createServer(app);
 const io = socketIo(server);
 
-io.on("connection", (socket) => {
-  console.log("A user connected");
-  socket.emit("notification", { message: "You have a new event!" });
-  socket.on("disconnect", () => {
-    console.log("User disconnected");
-  });
-});
+// io.on("connection", (socket) => {
+//   console.log("A user connected");
+//   socket.emit("notification", { message: "You have a new event!" });
+//   socket.on("disconnect", () => {
+//     console.log("User disconnected");
+//   });
+// });
 
 // Error Middleware (should be last)
 app.use(errorHandler);
@@ -93,5 +93,5 @@ connectDb();
 mongoose.connection.once("open", () => {
   console.log("Database connected");
   server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  createEventReminderNotifications();
+  // createEventReminderNotifications();
 });

@@ -3,7 +3,7 @@ import { FaUserSlash } from "react-icons/fa";
 import { IoIosSearch } from "react-icons/io";
 import { IoArrowBackOutline } from "react-icons/io5";
 
-const AttendeeModal = ({ onClose, attendees }) => {
+const AttendeeModal = ({ onClose, attendees, ticket }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filter attendees based on the search query
@@ -18,6 +18,9 @@ const AttendeeModal = ({ onClose, attendees }) => {
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
+
+  console.log({filteredAttendees})
+  console.log({ticket})
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-end items-start z-50 font-inter">

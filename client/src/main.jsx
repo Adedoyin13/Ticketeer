@@ -28,7 +28,7 @@ const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 createRoot(document.getElementById("root")).render(
   <GoogleOAuthProvider clientId={clientId}>
-    <StrictMode>
+    {/* <StrictMode> */}
       <BrowserRouter>
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>
@@ -45,6 +45,6 @@ createRoot(document.getElementById("root")).render(
           </PersistGate>
         </Provider>
       </BrowserRouter>
-    </StrictMode>
+    {/* </StrictMode> */}
   </GoogleOAuthProvider>
 );

@@ -1,8 +1,6 @@
 const mongoose = require("mongoose");
 const DEFAULT_EVENT_IMAGE_URL = process.env.DEFAULT_EVENT_IMAGE_URL;
 
-// Define the ticket schema
-
 const ticketTypeSchema = new mongoose.Schema(
   {
     eventId: {
@@ -13,14 +11,14 @@ const ticketTypeSchema = new mongoose.Schema(
     type: { type: String, required: true }, // e.g., VIP, GA
     description: { type: String },
     price: { type: Number, required: true },
-    totalQuantity: { type: Number, required: true }, // Original total tickets available
-    availableQuantity: { type: Number }, // How many are left
+    totalQuantity: { type: Number, required: true },
+    availableQuantity: { type: Number },
     soldQuantity: { type: Number },
-    // status: {
-    //   type: String,
-    //   enum: ["available", "sold_out", "closed"],
-    //   default: "available",
-    // },
+    status: {
+      type: String,
+      enum: ["sold_out", "available"],
+      default: "available",
+    },
   },
   {
     timestamps: true,
@@ -45,13 +43,15 @@ const ticketSchema = new mongoose.Schema(
       ref: "TicketType",
       required: true,
     },
-    qrCode: { type: String, required: true },
+    quantity: { type: Number },
+    qrCode: { type: String },
     purchaseDate: { type: Date, default: Date.now },
+    checkInTime: { type: Date, default: Date.now },
     status: {
       type: String,
-      enum: ["used", "cancelled"],
+      enum: ["going", "checkedIn"],
     },
-    expiresAt: { type: Date }, // useful for checking ticket validity
+    expiresAt: { type: Date },
   },
   {
     timestamps: true,
@@ -59,7 +59,6 @@ const ticketSchema = new mongoose.Schema(
   }
 );
 
-// Define the event schema
 const eventSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
@@ -72,7 +71,6 @@ const eventSchema = new mongoose.Schema(
       required: true,
       validate: {
         validator: function (v) {
-          // Basic validation for HH:MM format
           return /^([01]\d|2[0-3]):([0-5]\d)$/.test(v);
         },
         message: (props) => `${props.value} is not a valid time format!`,
@@ -89,33 +87,32 @@ const eventSchema = new mongoose.Schema(
       },
     },
     liked: { type: Boolean, default: false },
-    eventType: {
-      type: String,
-      enum: ["physical", "virtual"],
-      required: true,
-    }, // Enum for event type
     location: {
-      type: Array, // Required for physical events
+      type: [String],
       default: [],
       validate: {
         validator: function (value) {
-          return this.eventType === "physical"
-            ? value.length === 5
-            : value.length === 0;
+          // If location array is present, must have exactly 5 elements
+          if (value.length > 0) {
+            return value.length === 5;
+          }
+          return true;
         },
         message:
-          "Location must contain [address, country, state, city, venue name] for physical events.",
+          "Location must contain exactly 5 elements [address, country, state, city, venue name].",
       },
     },
     meetLink: {
-      type: String, // Required for virtual events
+      type: String,
+      default: "",
       validate: {
         validator: function (value) {
-          return this.eventType === "virtual"
-            ? /^https?:\/\/[^\s$.?#].[^\s]*$/.test(value)
-            : !value;
+          if (value && value.length > 0) {
+            return /^https?:\/\/[^\s$.?#].[^\s]*$/.test(value);
+          }
+          return true;
         },
-        message: "A valid URL is required for virtual events.",
+        message: "A valid URL is required for the meet link.",
       },
     },
     organizer: {
@@ -123,20 +120,12 @@ const eventSchema = new mongoose.Schema(
       ref: "User", // Reference to User model
       required: true,
     },
-    eventId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Event",
-    },
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
     likedUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
-    ],    
+    ],
     canceled: {
       type: Boolean,
       default: false,
@@ -162,7 +151,7 @@ const eventSchema = new mongoose.Schema(
         type: String,
         required: true,
         default: DEFAULT_EVENT_IMAGE_URL,
-      }, // Stores Cloudinary URL
+      },
       cloudinaryId: {
         type: String,
       },
@@ -192,6 +181,22 @@ const eventSchema = new mongoose.Schema(
   }
 );
 
+eventSchema.pre("validate", function (next) {
+  if (
+    this.location.length === 5 ||
+    (this.meetLink && this.meetLink.length > 0)
+  ) {
+    next();
+  } else {
+    next(
+      new mongoose.Error.ValidationError(
+        this,
+        "Either a full location or a valid meet link must be provided."
+      )
+    );
+  }
+});
+
 eventSchema.virtual("isUpcoming").get(function () {
   return this.date > Date.now();
 });
@@ -199,6 +204,8 @@ eventSchema.virtual("isUpcoming").get(function () {
 eventSchema.virtual("isPast").get(function () {
   return this.date <= Date.now();
 });
+
+ticketTypeSchema.index({ eventId: 1, type: 1 }, { unique: true });
 
 const Event = mongoose.model("Event", eventSchema);
 const TicketType = mongoose.model("TicketType", ticketTypeSchema);

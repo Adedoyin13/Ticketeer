@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import UsingHooks from "../../UsingHooks";
+import UsingHooks from "../Payment/UsingHooks";
 
 function UserProfile() {
   const user = useSelector((state) => state.user.user);

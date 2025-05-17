@@ -42,6 +42,8 @@ const EventView = () => {
   const [attendeeModalOpen, setAttendeeModalOpen] = useState(false);
   const [purhaseModalOpen, setPurhaseModalOpen] = useState(false);
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
+  const { userTickets } = useSelector((state) => state.events);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
@@ -98,6 +100,7 @@ const EventView = () => {
       try {
         if (user && isAuthenticated) {
           dispatch(getEventDetails(eventId));
+          dispatch(getUserTickets());
         }
       } catch (error) {
         toast.error("Error fetching event details", error);
@@ -133,6 +136,21 @@ const EventView = () => {
       state: { from: location.pathname }, // Save previous route
     });
   };
+
+  // Get only tickets for this event
+  const userTicketsForThisEvent = userTickets?.filter(
+    (ticket) => ticket?.eventId?._id === eventDetails?._id
+  );
+
+  // Check if the user has purchased any tickets for this event
+  const hasPurchased = userTicketsForThisEvent?.length > 0;
+
+  // Create a summary of ticket types
+  const ticketSummary = {};
+  userTicketsForThisEvent?.forEach((ticket) => {
+    const type = ticket?.ticketTypeId?.type || "Unknown";
+    ticketSummary[type] = (ticketSummary[type] || 0) + 1;
+  });
 
   return (
     <section className="bg-orange-50 dark:bg-zinc-900 py-20 md:py-28 px-4 md:px-10 font-inter text-gray-800 dark:text-zinc-100">
@@ -181,18 +199,23 @@ const EventView = () => {
                 </p>
 
                 {label === "Host" ? (
-                  <div className="flex items-center gap-3">
+                  <div className="flex gap-3">
                     {/* Organizer avatar and name */}
-                    <div className="flex items-center gap-2">
-                      {eventDetails?.organizer?.photo?.imageUrl && (
-                        <img
-                          src={eventDetails.organizer.photo.imageUrl}
-                          className="w-6 h-6 rounded-full object-cover"
-                          alt="Host"
-                        />
-                      )}
-                      <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-                        {eventDetails?.organizer?.name || "Unknown Organizer"}
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        {eventDetails?.organizer?.photo?.imageUrl && (
+                          <img
+                            src={eventDetails.organizer.photo.imageUrl}
+                            className="w-6 h-6 rounded-full object-cover"
+                            alt="Host"
+                          />
+                        )}
+                        <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
+                          {eventDetails?.organizer?.name || "Unknown Organizer"}
+                        </p>
+                      </div>
+                      <p className="text-sm font-nomal text-zinc-800 dark:text-zinc-100">
+                        {eventDetails?.organizer?.email || "Unknown Organizer"}
                       </p>
                     </div>
 
@@ -340,62 +363,55 @@ const EventView = () => {
             </div>
 
             {/* Registration / Confirmation */}
+
             <div className="flex flex-col gap-4 px-4 md:px-6 py-5 bg-orange-300 bg-opacity-50 dark:bg-zinc-900/20 border dark:border-zinc-700 shadow-sm rounded-xl">
-              {!isAttending ? (
-                <>
-                  <p className="text-xl font-semibold">Register to Join</p>
-                  <p className="text-sm text-gray-500 dark:text-zinc-400">
-                    Log in to reserve your spot at this event
-                  </p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <img
-                      src={user?.photo?.imageUrl}
-                      className="w-8 h-8 rounded-full object-cover"
-                      alt="You"
-                    />
-                    <div>
-                      <p className="text-sm font-medium">{user.name}</p>
-                      <p className="text-sm text-gray-500 dark:text-zinc-400">
-                        {user.email}
-                      </p>
-                    </div>
-                  </div>
-                  {eventDetails?.ticketTypes?.length > 0 ? (
-                    <button
-                      className="mt-4 self-start px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full transition"
-                      onClick={openPurchaseModal}
-                    >
-                      Purchase Ticket
-                    </button>
-                  ) : (
-                    <button className="mt-4 self-start px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full transition">
-                      No more Ticket for this event
-                    </button>
-                  )}
-                </>
+              <p className="text-xl font-semibold">Register to Join</p>
+
+              {hasPurchased ? (
+                <div className="text-sm text-green-700 dark:text-green-400">
+                  <p>You’ve already purchased the following ticket(s):</p>
+                  <ul className="list-disc list-inside mt-1">
+                    {Object.entries(ticketSummary).map(([type, count]) => (
+                      <li key={type}>
+                        {count} × {type}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ) : (
-                <>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={user?.photo?.imageUrl}
-                        className="w-10 h-10 rounded-full object-cover"
-                        alt="You"
-                      />
-                      <p className="text-lg font-semibold">{user.name}</p>
-                    </div>
-                    <button
-                      onClick={() => handleNavigate(eventDetails._id)}
-                      className="border border-orange-400 hover:bg-orange-100 dark:hover:bg-orange-800/30 hover:border-orange-300 hover:text-orange-800 dark:hover:text-orange-300 rounded-lg px-4 py-3 text-sm text-orange-700 dark:text-orange-300 flex gap-2"
-                    >
-                      <TbTicket size={20} />
-                      My Ticket
-                    </button>
-                  </div>
-                  <p className="text-md text-gray-600 dark:text-zinc-400">
-                    A confirmation email has been sent to {user.email}
+                <p className="text-sm text-gray-500 dark:text-zinc-400">
+                  Log in to reserve your spot at this event.
+                </p>
+              )}
+
+              <div className="flex items-center gap-3 mt-2">
+                <img
+                  src={user?.photo?.imageUrl}
+                  className="w-8 h-8 rounded-full object-cover"
+                  alt="You"
+                />
+                <div>
+                  <p className="text-sm font-medium">{user.name}</p>
+                  <p className="text-sm text-gray-500 dark:text-zinc-400">
+                    {user.email}
                   </p>
-                </>
+                </div>
+              </div>
+
+              {eventDetails?.ticketTypes?.length > 0 ? (
+                <button
+                  className="mt-4 self-start px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full transition"
+                  onClick={openPurchaseModal}
+                >
+                  {hasPurchased ? "Purchase More Tickets" : "Purchase Ticket"}
+                </button>
+              ) : (
+                <button
+                  className="mt-4 self-start px-6 py-2 bg-gray-400 text-white font-semibold rounded-full cursor-not-allowed"
+                  disabled
+                >
+                  No more Tickets for this event
+                </button>
               )}
             </div>
 

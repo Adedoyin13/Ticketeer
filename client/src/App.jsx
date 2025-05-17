@@ -39,24 +39,22 @@ import Settings from "./component/User/Setting/Settings";
 import ProfileUpdate from "./component/User/Setting/ProfileUpdate";
 import UserProfile from "./component/User/UserProfile";
 
-// Payment
-import CheckoutForm from "./component/Payment/CheckoutForm";
-import PaymentPage from "./component/Payment/PaymentPage";
-
 // Spinners
 import Loader from "./component/Spinners/Loader";
 import RouteChangeLoader from "./component/Spinners/RouteChangeLoader";
 import PaymentSuccess from "./component/Modals/TicketModal/PaymentSuccess";
 import PaymentCancel from "./component/Modals/TicketModal/PaymentCancel";
 import ConnectWallet from "./component/Wallet/ConnectWallet";
-import UsingHooks from "./UsingHooks";
+import UsingHooks from "./component/Payment/UsingHooks";
 import EventDescriptionInput from "./component/Event/EventDescripionInput";
 import PaystackHook from "./PaystackHook";
-import PaystackCheckout from "./PaystackCheckout";
+import PaystackCheckout from "./component/Payment/PaystackCheckout";
 import TicketPage from "./component/Ticket/TicketPage";
 import CheckInPage from "./component/Ticket/CheckInPage";
 import ProfilePage from "./component/User/Profile/ProfilePage";
 import PreviewDescription from "./component/Modals/EventModal/PreviewDescription";
+import TicketScanner from "./component/Ticket/TicketScanner";
+import TicketCheckIn from "./component/Ticket/TicketCheckIn";
 
 function App() {
   const dispatch = useDispatch();
@@ -199,6 +197,16 @@ function App() {
           }
         />
         <Route
+          path="/scan-ticket"
+          element={
+            <ProtectedRoute>
+              <UserLayout>
+                <TicketScanner />
+              </UserLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/ticket-page/:ticketId"
           element={
             <ProtectedRoute>
@@ -229,16 +237,6 @@ function App() {
           }
         />
         <Route
-          path="/payment/:eventId"
-          element={
-            <ProtectedRoute>
-              <UserLayout>
-                <PaymentPage />
-              </UserLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/payment-success"
           element={
             <ProtectedRoute>
@@ -249,21 +247,21 @@ function App() {
           }
         />
         <Route
-          path="/payment-failed"
+          path="/checkin/:ticketId"
           element={
             <ProtectedRoute>
               <UserLayout>
-                <PaymentCancel />
+                <TicketCheckIn />
               </UserLayout>
             </ProtectedRoute>
           }
         />
         <Route
-          path="/check-out-form"
+          path="/payment-failed"
           element={
             <ProtectedRoute>
               <UserLayout>
-                <CheckoutForm />
+                <PaymentCancel />
               </UserLayout>
             </ProtectedRoute>
           }

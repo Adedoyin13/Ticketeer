@@ -5,9 +5,13 @@ import Header from "../../Reusables/Header";
 import { useSelector, useDispatch } from "react-redux";
 import { deleteAllNotifications, deleteNotification } from "../../../redux/reducers/eventSlice";
 import { toast } from "react-toastify";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const NotificationModal = ({ onClose }) => {
-  const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const location = useLocation();
+
   const {user} = useSelector(state => state.user)
   const { notifications } =
     useSelector((state) => state.events);
@@ -41,6 +45,12 @@ const NotificationModal = ({ onClose }) => {
 
   console.log({ notifications });
 
+  const handleNavigate = (eventId) => {
+    navigate(`/event-details/${eventId}`, {
+      state: { from: location.pathname },
+    });
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex justify-end z-50 font-inter">
       <div className="w-[95%] max-w-[360px] my-6 mr-6 flex flex-col rounded-2xl bg-white dark:bg-zinc-900 shadow-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden transition-all">
@@ -73,6 +83,7 @@ const NotificationModal = ({ onClose }) => {
                     {new Date(note.createdAt).toLocaleString()}
                   </span>
                 </div>
+                {console.log(note._id)}
                 <button onClick={() => handleDelete(note?._id)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-600 active:bg-orange-100 transition">
                   <IoClose
                     size={18}

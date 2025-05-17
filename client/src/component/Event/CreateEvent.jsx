@@ -8,6 +8,14 @@ import PreviewDescription from "../Modals/EventModal/PreviewDescription";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
+const initialLocation = {
+  address: "",
+  country: "",
+  state: "",
+  city: "",
+  venueName: "",
+};
+
 const CreateEvent = () => {
   const [eventData, setEventData] = useState({
     title: "",
@@ -16,14 +24,7 @@ const CreateEvent = () => {
     endDate: "",
     startTime: "",
     endTime: "",
-    location: {
-      address: "",
-      country: "",
-      city: "",
-      venueName: "",
-      state: "",
-    },
-    eventType: "",
+    location: initialLocation,
     meetLink: "",
     categories: "",
     limit: "",
@@ -36,7 +37,7 @@ const CreateEvent = () => {
 
   const navigate = useNavigate();
 
-  // Dropdown states
+  /* ---------- country / state / city dropdown helpers ---------- */
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
@@ -44,16 +45,16 @@ const CreateEvent = () => {
   useEffect(() => {
     axios
       .get(`${SERVER_URL}/location/countries`)
-      .then((response) => setCountries(response.data))
-      .catch((error) => console.error("Error fetching countries:", error));
+      .then((res) => setCountries(res.data))
+      .catch((err) => console.error(err));
   }, []);
 
   useEffect(() => {
     if (!eventData.location.country) return;
     axios
       .get(`${SERVER_URL}/location/states/${eventData.location.country}`)
-      .then((response) => setStates(response.data))
-      .catch((error) => console.error("Error fetching states:", error));
+      .then((res) => setStates(res.data))
+      .catch((err) => console.error(err));
   }, [eventData.location.country]);
 
   useEffect(() => {
@@ -62,131 +63,95 @@ const CreateEvent = () => {
       .get(
         `${SERVER_URL}/location/cities/${eventData.location.country}/${eventData.location.state}`
       )
-      .then((response) => setCities(response.data))
-      .catch((error) => console.error("Error fetching cities:", error));
+      .then((res) => setCities(res.data))
+      .catch((err) => console.error(err));
   }, [eventData.location.state]);
 
+  /* ---------- generic change handlers ---------- */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
-    setEventData((prev) => {
-      const newData = [
-        "address",
-        "country",
-        "city",
-        "venueName",
-        "state",
-      ].includes(name)
+    setEventData((prev) =>
+      ["address", "country", "state", "city", "venueName"].includes(name)
         ? { ...prev, location: { ...prev.location, [name]: value } }
-        : { ...prev, [name]: value };
-      return newData;
-    });
+        : { ...prev, [name]: value }
+    );
   };
 
-  const handleDescriptionChange = (value) => {
-    setEventData((prev) => ({ ...prev, description: value }));
-  };
+  const handleDescriptionChange = (val) =>
+    setEventData((p) => ({ ...p, description: val }));
 
-  const handleEventTypeChange = (e) => {
-    const value = e.target.value; // "virtual" or "physical"
-    setEventData((prev) => ({
-      ...prev,
-      eventType: value,
-      location:
-        value === "physical"
-          ? prev.location // Retain existing location if event is physical
-          : { address: "", country: "", city: "", venueName: "", state: "" }, // Reset location if event is virtual
-    }));
-  };
+  /* ---------- util helpers ---------- */
+  const locationIsComplete = (loc) =>
+    Object.values(loc).every((v) => v.trim() !== "");
 
-  const cleanEventData = (data) => {
-    return {
-      ...data,
-      location:
-        data.eventType === "physical"
-          ? [
-              data.location.address,
-              data.location.country,
-              data.location.state,
-              data.location.city,
-              data.location.venueName,
-            ] // Convert object to array
-          : [], // Empty array for virtual events
-      meetLink: data.eventType === "virtual" ? data.meetLink : undefined, // Remove meetLink for physical events
-    };
-  };
+  const urlIsValid = (url) => /^https?:\/\/[^\s$.?#].[^\s]*$/.test(url.trim());
 
-  // const handleSubit = async (e) => {
-  //   e.preventDefault();
+  const buildPayload = (data) => ({
+    ...data,
+    location: locationIsComplete(data.location)
+      ? [
+          data.location.address,
+          data.location.country,
+          data.location.state,
+          data.location.city,
+          data.location.venueName,
+        ]
+      : [], // empty if not provided
+    meetLink: data.meetLink.trim() || "", // empty string if not provided
+  });
 
-  //   const finalData = cleanEventData(eventData);
-  //   console.log("Submitting cleaned data:", finalData); // Debugging
-
-  //   try {
-  //     const response = await fetch("/api/events", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify(finalData),
-  //     });
-
-  //     const data = await response.json();
-  //     console.log("Response:", data);
-
-  //     if (!response.ok) {
-  //       throw new Error(data.message || "Something went wrong");
-  //     }
-
-  //     alert("Event created successfully!");
-  //   } catch (error) {
-  //     console.error("Error submitting form:", error.message);
-  //   }
-  // };
-
-  // Handle form submission
+  /* ---------- submit ---------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
 
-    const finalData = cleanEventData(eventData); // Ensure location is an array
-    console.log("Submitting cleaned data:", finalData);
+    // 1️⃣ Front‑end validation ------------------------------------
+    const hasLocation = locationIsComplete(eventData.location);
+    const hasMeetLink =
+      eventData.meetLink.trim() !== "" && urlIsValid(eventData.meetLink);
 
-    if (!eventData.description || eventData.description === "<p><br></p>") {
-      alert("Description is required");
+    if (!hasLocation && !hasMeetLink) {
+      toast.error(
+        "Please provide either a full location or a valid meet link."
+      );
       return;
     }
+    if (!hasLocation && eventData.meetLink.trim() !== "" && !hasMeetLink) {
+      toast.error("Meet link is not a valid URL.");
+      return;
+    }
+    if (hasLocation && !locationIsComplete(eventData.location)) {
+      toast.error("Please complete all 5 location fields.");
+      return;
+    }
+    if (!eventData.description || eventData.description === "<p><br></p>") {
+      toast.error("Description is required");
+      return;
+    }
+
+    const payload = buildPayload(eventData);
 
     setIsSubmitting(true);
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        `${SERVER_URL}/event/createEvent`,
-        finalData,
-        {
-          withCredentials: true,
-        }
-      );
-
-      const data = response.data;
-      console.log("Response:", data);
-
-      if (response.status !== 201) {
-        throw new Error(data.message || "Something went wrong");
-      }
+      const res = await axios.post(`${SERVER_URL}/event/createEvent`, payload, {
+        withCredentials: true,
+      });
 
       toast.success("Event Created Successfully");
-      navigate(`/create-ticket/${data.event._id}`);
-    } catch (error) {
-      const errorMessage =
-        error?.response?.data?.message || "Internal server error";
-      setError(errorMessage);
-      toast.error(errorMessage);
+      navigate(`/create-ticket/${res.data.event._id}`);
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Internal server error";
+      setError(msg);
+      toast.error(msg);
     } finally {
-      setLoading(false);
       setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
+  /* ---------- JSX ---------- */
   return (
     <section className="bg-orange-50 dark:bg-zinc-900 py-20 px-4 sm:px-8 md:px-12 md:py-24 font-inter">
       <div className="max-w-6xl mx-auto">
@@ -292,115 +257,87 @@ const CreateEvent = () => {
               </div>
             </div>
 
-            {/* Event Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
-                Event Type
-              </label>
-              <select
-                name="eventType"
-                value={eventData.eventType}
-                onChange={handleEventTypeChange}
-                className="w-full bg-orange-50 dark:bg-zinc-800 dark:text-zinc-300 border border-orange-300 dark:border-zinc-600 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                required
-              >
-                <option value="" disabled>
-                  Select event type
-                </option>
-                <option value="virtual">Virtual</option>
-                <option value="physical">Physical</option>
-              </select>
-            </div>
-
-            {/* Conditional Fields (Virtual/Physical) */}
-            {eventData.eventType === "virtual" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
-                  Meeting Link
-                </label>
-                <input
-                  type="url"
-                  name="meetLink"
-                  value={eventData.meetLink}
-                  onChange={handleInputChange}
-                  placeholder="https://your-link.com"
-                  className="w-full bg-orange-50 dark:bg-zinc-800 dark:text-zinc-300 border border-orange-300 dark:border-zinc-600 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                  required
-                />
-              </div>
-            )}
-
-            {eventData.eventType === "physical" && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Venue */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
-                      Venue
-                    </label>
-                    <input
-                      type="text"
-                      name="venueName"
-                      placeholder="venue"
-                      className="w-full bg-orange-50 dark:bg-zinc-800 dark:text-zinc-300 border border-orange-300 dark:border-zinc-600 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                      required
-                      onChange={handleInputChange}
-                      value={eventData.location.venueName}
-                    />
-                  </div>
-
-                  {/* Country, State, City */}
-                  {["country", "state", "city"].map((field, i) => (
-                    <div key={i}>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
-                        {field.charAt(0).toUpperCase() + field.slice(1)}
-                      </label>
-                      <select
-                        name={field}
-                        value={eventData.location[field]}
-                        onChange={handleInputChange}
-                        disabled={
-                          (field === "state" && !eventData.location.country) ||
-                          (field === "city" && !eventData.location.state)
-                        }
-                        className="w-full bg-orange-50 dark:bg-zinc-800 dark:text-zinc-300 border border-orange-300 dark:border-zinc-600 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                      >
-                        <option value="">Select {field}</option>
-                        {(field === "country"
-                          ? countries
-                          : field === "state"
-                          ? states
-                          : cities
-                        ).map((item) => (
-                          <option
-                            key={item.isoCode || item.name}
-                            value={item.isoCode || item.name}
-                          >
-                            {item.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Address */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Venue */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
-                    Address
+                  <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                    Venue
                   </label>
                   <input
                     type="text"
-                    name="address"
-                    value={eventData.location.address}
+                    name="venueName"
+                    placeholder="Venue"
                     onChange={handleInputChange}
-                    placeholder="123 Street Name"
-                    className="w-full bg-orange-50 dark:bg-zinc-800 dark:text-zinc-300 border border-orange-300 dark:border-zinc-600 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                    required
+                    value={eventData.location.venueName}
+                    className="w-full bg-orange-50 dark:bg-zinc-800 dark:text-zinc-300 border border-orange-300 dark:border-zinc-600 rounded-xl p-3"
                   />
                 </div>
+
+                {/* Country / State / City */}
+                {["country", "state", "city"].map((field) => (
+                  <div key={field}>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      {field.charAt(0).toUpperCase() + field.slice(1)}
+                    </label>
+                    <select
+                      name={field}
+                      value={eventData.location[field]}
+                      onChange={handleInputChange}
+                      disabled={
+                        (field === "state" && !eventData.location.country) ||
+                        (field === "city" && !eventData.location.state)
+                      }
+                      className="w-full bg-orange-50 dark:bg-zinc-800 dark:text-zinc-300 border border-orange-300 dark:border-zinc-600 rounded-xl p-3"
+                    >
+                      <option value="">Select {field}</option>
+                      {(field === "country"
+                        ? countries
+                        : field === "state"
+                        ? states
+                        : cities
+                      ).map((item) => (
+                        <option
+                          key={item.isoCode || item.name}
+                          value={item.isoCode || item.name}
+                        >
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
               </div>
-            )}
+
+              {/* Address */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  name="address"
+                  placeholder="123 Street Name"
+                  value={eventData.location.address}
+                  onChange={handleInputChange}
+                  className="w-full bg-orange-50 dark:bg-zinc-800 dark:text-zinc-300 border border-orange-300 dark:border-zinc-600 rounded-xl p-3"
+                />
+              </div>
+            </div>
+
+              <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                Meeting Link <span className="text-gray-500">(optional)</span>
+              </label>
+              <input
+                type="url"
+                name="meetLink"
+                value={eventData.meetLink}
+                onChange={handleInputChange}
+                placeholder="https://your-link.com"
+                className="w-full bg-orange-50 dark:bg-zinc-800 dark:text-zinc-300 border border-orange-300 dark:border-zinc-600 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+            </div>
 
             {showPreview && (
               <PreviewDescription
@@ -454,7 +391,7 @@ const CreateEvent = () => {
                     <Loader loading={loading || isSubmitting} />
                   </>
                 ) : (
-                  " Create Event"
+                  "Create Event"
                 )}
               </button>
             </div>

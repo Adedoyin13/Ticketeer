@@ -90,7 +90,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const bgColor = hslToHex(h, s, l);
     const textColor = "FFFFFF";
 
-    const DEFAULT_IMAGE_URL = `https://placehold.co/150x150/${bgColor}/${textColor}?text=${initials}&font=roboto`;
+    const DEFAULT_IMAGE_URL = `https://placehold.co/150x150/${bgColor}/${textColor}?text=${initials}&font=inter`;
 
     const defaultProfilePicture = await ProfilePicture.create({
       userId: user._id,
@@ -196,7 +196,7 @@ const googleLogin = asyncHandler(async (req, res) => {
     if (!token) {
       return res.status(400).json({ message: "Google token is required" });
     }
-
+    
     // Verify the Google ID token
     const ticket = await client.verifyIdToken({
       idToken: token,
@@ -206,9 +206,8 @@ const googleLogin = asyncHandler(async (req, res) => {
     const payload = ticket.getPayload();
     const email = payload.email;
 
-    // Check if user already exists
-    let user = await User.findOne({ email });
-
+    let user = await User.findOne({ email }).populate("photo");
+    
     if (!user) {
       // Create new user
       user = new User({
@@ -230,6 +229,7 @@ const googleLogin = asyncHandler(async (req, res) => {
       }
 
       await user.save();
+      await user.populate("photo");      
     }
 
     // Generate JWT
@@ -270,37 +270,6 @@ const googleLogin = asyncHandler(async (req, res) => {
     console.error("Error during Google login:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-});
-
-const loginWithGoogle = async (req, res) => {
-  passport.authenticate("google", { session: false }, async (err, user) => {
-    if (err || !user) {
-      return res.redirect(`${FRONTEND_URL}/login`);
-    }
-
-    const token = generateToken(user);
-
-    console.log(token);
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 1000 * 86400), // 1 day
-      sameSite: "none",
-      secure: true,
-    });
-
-    try {
-      await sendUserLogInMail({ name: user.name, email: user.email });
-    } catch (error) {
-      console.error("Failed to send login email:", error.message);
-    }
-
-    res.redirect(`${FRONTEND_URL}/dashboard`);
-  })(req, res);
-};
-
-const googleAuth = passport.authenticate("google", {
-  scope: ["email", "profile"],
 });
 
 const connectWallet = async (req, res) => {
@@ -740,9 +709,9 @@ const getUser = asyncHandler(async (req, res) => {
           {
             path: "eventId",
             select:
-              "title description eventType meetLink category location startDate startTime endDate endTime",
+              "title description meetLink category location startDate startTime endDate endTime",
           },
-          { path: "ticketTypeId", select: "type price description" },
+          { path: "ticketTypeId", select: "type price description status" },
         ],
       });
 
@@ -770,7 +739,7 @@ const getUserTickets = asyncHandler(async (req, res) => {
       .populate({
         path: "eventId", // Populate event details related to the ticket
         select:
-          "title description eventType meetLink category location startDate startTime endDate endTime",
+          "title description meetLink category location startDate startTime endDate endTime",
       })
       .populate({
         path: "ticketTypeId", // Populate ticket type details
@@ -1082,8 +1051,6 @@ module.exports = {
   googleLogin,
   forgotPassword,
   resetPassword,
-  loginWithGoogle,
-  googleAuth,
   getUserTickets,
   logoutUser,
   getUser,

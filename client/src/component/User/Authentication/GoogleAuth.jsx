@@ -14,8 +14,10 @@ const GoogleAuth = () => {
     console.log("🪙 Token:", token);
 
     try {
-      const result = await dispatch(loginWithGoogle(token)).unwrap(); // ✅ pass token here
+      const result = await dispatch(loginWithGoogle(token)).unwrap();
       toast.success("Login successful!");
+
+      console.log('Result: ', result)
 
       const redirectPath = location.state?.from?.pathname || "/dashboard";
       navigate(redirectPath, { replace: true });

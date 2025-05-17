@@ -9,6 +9,7 @@ import EditEventModal from "../Modals/EventModal/EditEventModal";
 import { useSelector } from "react-redux";
 import EventDetails from "../Event/EventDetails";
 import { IoLocationOutline, IoVideocamOutline } from "react-icons/io5";
+import Loader from "../Spinners/Loader";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -81,6 +82,11 @@ const CreateTicket = () => {
   };
 
   const createTicket = async () => {
+    if (event?.ticketTypes.length >= 5) {
+      toast.error("You can only add up to 5 ticket types per event.");
+      return;
+    }
+
     if (!ticketData.type || !ticketData.price || !ticketData.totalQuantity) {
       console.log("Missing required fields");
       toast.error("Missing required fields");
@@ -138,6 +144,10 @@ const CreateTicket = () => {
   //   });
   // };
 
+  if (loading) {
+    return <Loader loading={loading} />;
+  }
+
   return (
     <section className="bg-orange-50 dark:bg-neutral-900 min-h-screen py-20 px-4 sm:px-8 md:px-12 lg:py-24 font-inter">
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-10 border-t lg:border-t-0 lg:border-l lg:pl-10 border-orange-100 dark:border-neutral-800 pt-10 lg:pt-0">
@@ -169,30 +179,28 @@ const CreateTicket = () => {
                   <span>Date & time info unavailable</span>
                 )}
               </p>
-              <p className="text-sm">
-                {event.eventType === "virtual" ? (
-                  <>
+              <p className="text-sm flex flex-col gap-2">
+                {event?.meetLink && (
+                  <div className="flex gap-2">
                     <IoVideocamOutline size={18} />
                     <a
-                      href={event.meetLink}
+                      href={event?.meetLink}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 dark:text-blue-400 underline"
                     >
                       Join Meeting
                     </a>
-                  </>
-                ) : event?.location?.[2] && event?.location?.[1] ? (
-                  <div className="flex gap-2">
-                    <IoLocationOutline size={18} />
-                    <p>{`${event.location[2]}, ${event.location[1]}`}</p>
                   </div>
-                ) : (
-                  <>
-                    <IoLocationOutline size={18} />
-                    <p>Location unavailable</p>
-                  </>
                 )}
+                <div>
+                  {event?.location?.[2] && event?.location?.[1] && (
+                    <div className="flex gap-2">
+                      <IoLocationOutline size={18} />
+                      <p>{`${event.location[2]}, ${event.location[1]}`}</p>
+                    </div>
+                  )}
+                </div>
               </p>
               {/* <section className="prose dark:prose-invert max-w-none">
                 <div dangerouslySetInnerHTML={{ __html: event?.description }} />
@@ -214,13 +222,12 @@ const CreateTicket = () => {
         {/* Ticket Form */}
         <div className="flex-1 flex flex-col gap-10">
           <div className="bg-white dark:bg-neutral-800 shadow-lg rounded-3xl border border-orange-200 dark:border-neutral-700 p-8 space-y-6">
-            <div>
+            <div className="flex flex-col gap-1">
               <h2 className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                 Tickets and Payments
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Set up your event tickets with debit/credit card & crypto
-                payment options
+              <p className="text-sm text-gray-600 dark:text-gray-400 pl-1">
+                Set up your event tickets with debit/credit card payment
               </p>
             </div>
 
@@ -250,7 +257,7 @@ const CreateTicket = () => {
                     htmlFor="price"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                   >
-                    Price
+                    Price (₦)
                   </label>
                   <input
                     type="number"

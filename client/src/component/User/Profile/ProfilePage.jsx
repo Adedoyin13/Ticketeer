@@ -83,7 +83,7 @@ const ProfilePage = () => {
         {/* User's Events Section */}
         <div className="max-w-4xl mx-auto mt-8">
           <h2 className="text-2xl font-semibold text-zinc-800 dark:text-white mb-6">
-            Your Upcoming Events
+            Your Events
           </h2>
 
           {/* Event Cards */}

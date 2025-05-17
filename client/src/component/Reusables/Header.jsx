@@ -38,7 +38,12 @@ const Header = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
-  const { user, loading = {}, error, themeMode } = useSelector((state) => state.user);
+  const {
+    user,
+    loading = {},
+    error,
+    themeMode,
+  } = useSelector((state) => state.user);
   const { notifications } = useSelector((state) => state.events);
 
   const handleToggle = () => {
@@ -95,7 +100,6 @@ const Header = () => {
 
         {/* Right - Notification & Profile */}
         <div className="flex items-center gap-6">
-        
           <button
             onClick={handleToggle}
             className="text-zinc-800 dark:text-zinc-200 hover:text-orange-600 dark:hover:text-orange-400 transition"
@@ -124,24 +128,30 @@ const Header = () => {
             className="flex items-center gap-3 cursor-pointer group"
           >
             <div className="w-10 h-10 sm:w-12 sm:h-12 overflow-hidden rounded-full border border-orange-300 dark:border-zinc-600">
-              <img
-                src={user?.photo?.imageUrl || user?.photo}
-                alt="User"
-                className="w-full h-full object-cover"
-              />
+              {user && user?.photo && (
+                <img
+                  src={user?.photo?.imageUrl || user?.photo}
+                  alt={user?.name || "User"}
+                  className="w-full h-full object-cover"
+                />
+              )}
             </div>
             <p className="text-sm sm:text-base font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition">
               {formatName(user?.name) || user?.name}
             </p>
           </div>
-
         </div>
       </nav>
 
       {/* Modals */}
-      {modalOpen && <Sidebar onClose={toggleModal(setModalOpen)} isOpen={modalOpen} />}
+      {modalOpen && (
+        <Sidebar onClose={toggleModal(setModalOpen)} isOpen={modalOpen} />
+      )}
       {profileModalOpen && (
-        <ProfileModal onClose={toggleModal(setProfileModalOpen)} isOpen={profileModalOpen} />
+        <ProfileModal
+          onClose={toggleModal(setProfileModalOpen)}
+          isOpen={profileModalOpen}
+        />
       )}
       {notificationModalOpen && (
         <NotificationModal onClose={toggleModal(setNotificationModalOpen)} />

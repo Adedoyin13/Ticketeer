@@ -31,8 +31,10 @@ const {
   unCancelEvent,
   deleteEventImage,
   getUserPastEvents,
+  validateTicketSelection,
   getMyTickets,
   unlikeEvent,
+  attendeeCheckIn,
   likeEvent,
 } = require("../Controller/eventController");
 const { protectUser, organizerOnly } = require("../Middleware/authMiddleware");
@@ -44,6 +46,7 @@ router.get("/getEvents", protectUser, getEvents);
 router.get("/attendees/:eventId", protectUser, getAttendeesForEvent);
 router.get("/getUserEvents", protectUser, getUserEvents);
 router.get("/liked-events/:eventId", protectUser, likeStatus);
+router.post("/validate", protectUser, validateTicketSelection);
 router.get("/liked-events", protectUser, getAllLikedEvents);
 router.put("/updateEvent/:eventId", protectUser, updateEvent);
 router.put("/updateTicketType/:ticketId", protectUser, updateTicketType);
@@ -54,6 +57,7 @@ router.patch("/uncancel/:eventId", protectUser, unCancelEvent);
 router.put("/like/:eventId", protectUser, likeEvent);
 router.put("/unlike/:eventId", protectUser, unlikeEvent);
 router.put("/check-in/:eventId", checkInTicket);
+router.post('/checkin', attendeeCheckIn)
 
 router.get("/upcoming-events", protectUser, upcomingEvents);
 router.get("/my/upcoming-events", protectUser, userUpcomingEvents);

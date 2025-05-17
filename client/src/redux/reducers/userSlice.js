@@ -63,12 +63,15 @@ export const loginUser = createAsyncThunk(
 
 export const loginWithGoogle = createAsyncThunk(
   "user/loginWithGoogle",
-  async (userData, { rejectWithValue }) => {
+  async (googleToken, { rejectWithValue }) => {
     try {
-      // Normalize response if necessary
-      const user = userData.user || userData;
-      const token = userData.token || "";
-      saveUserToStorage(user, token);
+      const res = await api.post("/user/auth/google", {
+        token: googleToken,
+      });
+
+      console.log('Response: ', res)
+
+      const { user, token } = res.data;
       return { user, token };
     } catch (error) {
       return rejectWithValue(
