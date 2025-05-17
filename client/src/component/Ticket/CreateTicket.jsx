@@ -112,7 +112,7 @@ const CreateTicket = () => {
         error?.response?.data?.message ||
         error.message ||
         "Internal server error";
-      setError(errorMessage); // Set error message
+      setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
