@@ -83,14 +83,12 @@ function App() {
     }
   }, [user, dispatch]);
 
-  // Re-fetch user when navigating to non-auth pages and user is null
   useEffect(() => {
     if (!isAuthPage && !user) {
       dispatch(getUser());
     }
   }, [dispatch, location.pathname, user]);
 
-  // Fetch user's events if user exists
   useEffect(() => {
     if (user) {
       dispatch(getUserEvents());

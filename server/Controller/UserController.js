@@ -141,13 +141,11 @@ const loginUser = asyncHandler(async (req, res) => {
 
     let user = await User.findOne({ email }).populate("photo");
 
-    // Check if the user exists
     if (!user) {
       return res
         .status(404)
         .json({ message: "User Not Found, please create an account" });
     }
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) { 
       return res.status(400).json({ message: "Invalid Credentials" });
