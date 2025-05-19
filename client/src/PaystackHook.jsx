@@ -1,17 +1,12 @@
 import React from "react";
-import logo from './assets/ticketeer-Logo.png'
+import logo from './assets/Ticketeer-Logo.png'
 import { usePaystackPayment } from "react-paystack";
 import "./App.css";
-import { useSelector } from "react-redux";
-
-// const {user} = useSelector((state) => state.user)
-// // const {event} = useSelector((state) => state.events)
-// const logo = user.photo.imageUrl
 
 const config = {
   reference: new Date().getTime().toString(),
   email: 'example@gmail.com',
-  amount: 20000, //Amount is in the country's lowest currency. E.g Kobo, so 20000 kobo = N200
+  amount: 20000,
   publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
 };
 
