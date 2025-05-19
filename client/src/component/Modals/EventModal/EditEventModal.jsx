@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import Loader from "../../Spinners/Loader";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import EventDescriptionEditor from "../../Event/EventDescripionInput";
+// import EventDescriptionEditor from "../../Event/EventDescripionInput";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -464,10 +464,10 @@ const EditEventModal = ({ event, onClose }) => {
               <label className="block mb-1 text-sm font-medium">
                 Description
               </label>
-              <EventDescriptionEditor
+              {/* <EventDescriptionEditor
                 value={formData.description}
                 onChange={handleDescriptionChange}
-              />
+              /> */}
             </div>
 
             <div>

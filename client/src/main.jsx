@@ -9,7 +9,7 @@ import { persistor, store } from "./redux/store/store";
 
 import "react-toastify/dist/ReactToastify.css";
 import "react-calendar/dist/Calendar.css";
-import 'react-quill/dist/quill.snow.css';
+// import 'react-quill/dist/quill.snow.css';
 
 import "@fontsource/merriweather";
 import "@fontsource/inter";

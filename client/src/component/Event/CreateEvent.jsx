@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import EventDescriptionEditor from "./EventDescripionInput";
+// import EventDescriptionEditor from "./EventDescripionInput";
 import Loader from "../Spinners/Loader";
 import PreviewDescription from "../Modals/EventModal/PreviewDescription";
 
@@ -350,10 +350,10 @@ const CreateEvent = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
                 Description
               </label>
-              <EventDescriptionEditor
+              {/* <EventDescriptionEditor
                 value={eventData.description}
                 onChange={handleDescriptionChange}
-              />
+              /> */}
             </div>
 
             <button
