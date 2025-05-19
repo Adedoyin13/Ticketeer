@@ -47,7 +47,6 @@ import PaymentCancel from "./component/Modals/TicketModal/PaymentCancel";
 import ConnectWallet from "./component/Wallet/ConnectWallet";
 import UsingHooks from "./component/Payment/UsingHooks";
 import EventDescriptionInput from "./component/Event/EventDescripionInput";
-import PaystackHook from "./PaystackHook";
 import PaystackCheckout from "./component/Payment/PaystackCheckout";
 import TicketPage from "./component/Ticket/TicketPage";
 import CheckInPage from "./component/Ticket/CheckInPage";
@@ -170,7 +169,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/connect-wallet" element={<ConnectWallet />} />
-        <Route path="/paystack" element={<PaystackHook />} />
         <Route path="/paystack-checkout" element={<PaystackCheckout />} />
 
         {/* Protected Routes */}
