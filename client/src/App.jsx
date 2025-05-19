@@ -165,7 +165,6 @@ function App() {
           }
         />
         <Route path="/hooks" element={<UsingHooks />} />
-        {/* <Route path="/component" element={<UsingComponent />} /> */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/connect-wallet" element={<ConnectWallet />} />
